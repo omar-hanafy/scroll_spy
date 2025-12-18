@@ -1,0 +1,19 @@
+name: Question
+description: Ask a question about usage or behavior
+title: "question: "
+labels: ["question"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What do you want to know?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Provide code snippets or screenshots if helpful.
+    validations:
+      required: false
