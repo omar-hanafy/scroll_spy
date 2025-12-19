@@ -6,9 +6,8 @@ import '../helpers/focus_fixtures.dart';
 
 void main() {
   group('ScrollSpyItemLite', () {
-    testWidgets(
-      'rebuilds ONLY on status toggles, ignores metric drift',
-      (tester) async {
+    testWidgets('rebuilds ONLY on status toggles, ignores metric drift',
+        (tester) async {
       final controller = ScrollSpyController<int>();
       addTearDown(controller.dispose);
 

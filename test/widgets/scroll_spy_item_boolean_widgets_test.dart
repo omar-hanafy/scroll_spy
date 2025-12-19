@@ -252,7 +252,8 @@ void main() {
 
       expect(
         events,
-        unorderedEquals(<String>['p:false->true', 'f:false->true', 'v:false->true']),
+        unorderedEquals(
+            <String>['p:false->true', 'f:false->true', 'v:false->true']),
       );
       events.clear();
 
@@ -295,7 +296,8 @@ void main() {
 
       expect(
         events,
-        unorderedEquals(<String>['p:true->false', 'f:true->false', 'v:true->false']),
+        unorderedEquals(
+            <String>['p:true->false', 'f:true->false', 'v:true->false']),
       );
     });
 
@@ -360,7 +362,8 @@ void main() {
   });
 
   group('ScrollSpyItem boolean widgets (scope resolution)', () {
-    testWidgets('primary builder resolves controller from scope', (tester) async {
+    testWidgets('primary builder resolves controller from scope',
+        (tester) async {
       final controller = ScrollSpyController<int>();
       addTearDown(controller.dispose);
 
@@ -405,7 +408,8 @@ void main() {
       expect(values, <bool>[false, true]);
     });
 
-    testWidgets('primary listener resolves controller from scope', (tester) async {
+    testWidgets('primary listener resolves controller from scope',
+        (tester) async {
       final controller = ScrollSpyController<int>();
       addTearDown(controller.dispose);
 
@@ -460,7 +464,8 @@ void main() {
       expect(events, <String>['false->true', 'true->false']);
     });
 
-    testWidgets('focused builder resolves controller from scope', (tester) async {
+    testWidgets('focused builder resolves controller from scope',
+        (tester) async {
       final controller = ScrollSpyController<int>();
       addTearDown(controller.dispose);
 
@@ -504,7 +509,8 @@ void main() {
       expect(values, <bool>[false, true]);
     });
 
-    testWidgets('focused listener resolves controller from scope', (tester) async {
+    testWidgets('focused listener resolves controller from scope',
+        (tester) async {
       final controller = ScrollSpyController<int>();
       addTearDown(controller.dispose);
 
@@ -558,7 +564,8 @@ void main() {
       expect(events, <String>['false->true', 'true->false']);
     });
 
-    testWidgets('visible builder resolves controller from scope', (tester) async {
+    testWidgets('visible builder resolves controller from scope',
+        (tester) async {
       final controller = ScrollSpyController<int>();
       addTearDown(controller.dispose);
 
@@ -602,7 +609,8 @@ void main() {
       expect(values, <bool>[false, true]);
     });
 
-    testWidgets('visible listener resolves controller from scope', (tester) async {
+    testWidgets('visible listener resolves controller from scope',
+        (tester) async {
       final controller = ScrollSpyController<int>();
       addTearDown(controller.dispose);
 

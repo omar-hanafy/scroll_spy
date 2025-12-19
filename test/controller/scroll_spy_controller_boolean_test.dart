@@ -66,8 +66,7 @@ void main() {
       controller.commitFrame(makeSnapshot(
         focusedIds: {id},
         items: {
-          id: makeFocusItem(
-              id: id, isFocused: true, distanceToAnchorPx: 999)
+          id: makeFocusItem(id: id, isFocused: true, distanceToAnchorPx: 999)
         },
       ));
       expect(updates, 1);

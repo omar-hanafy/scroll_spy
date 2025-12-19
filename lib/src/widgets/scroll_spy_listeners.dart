@@ -429,7 +429,8 @@ class _ScrollSpyItemPrimaryListenerState<T>
   @override
   void didUpdateWidget(covariant ScrollSpyItemPrimaryListener<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.controller != widget.controller || oldWidget.id != widget.id) {
+    if (oldWidget.controller != widget.controller ||
+        oldWidget.id != widget.id) {
       _sync();
     }
   }
@@ -511,7 +512,8 @@ class _ScrollSpyItemFocusedListenerState<T>
   @override
   void didUpdateWidget(covariant ScrollSpyItemFocusedListener<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.controller != widget.controller || oldWidget.id != widget.id) {
+    if (oldWidget.controller != widget.controller ||
+        oldWidget.id != widget.id) {
       _sync();
     }
   }
@@ -593,7 +595,8 @@ class _ScrollSpyItemVisibleListenerState<T>
   @override
   void didUpdateWidget(covariant ScrollSpyItemVisibleListener<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.controller != widget.controller || oldWidget.id != widget.id) {
+    if (oldWidget.controller != widget.controller ||
+        oldWidget.id != widget.id) {
       _sync();
     }
   }
