@@ -55,7 +55,7 @@ class ViewportFocusDebugPainter<T> extends CustomPainter {
       // Slight fill to make it easy to see.
       final Paint fill = Paint()
         ..style = PaintingStyle.fill
-        ..color = _withOpacity(config.regionColor, 0.08);
+        ..color = config.regionColor.withValues(alpha: 0.08);
 
       canvas.drawRect(region, fill);
       canvas.drawRect(region, outline);
@@ -65,9 +65,8 @@ class ViewportFocusDebugPainter<T> extends CustomPainter {
     if (config.showVisibleBounds) {
       final Paint fill = Paint()
         ..style = PaintingStyle.fill
-        ..color = _withOpacity(
-          config.visibleFillColor,
-          config.visibleFillOpacity,
+        ..color = config.visibleFillColor.withValues(
+          alpha: config.visibleFillOpacity,
         );
 
       for (final FocusDebugItem<T> item in frame.items.values) {
@@ -184,9 +183,9 @@ class ViewportFocusDebugPainter<T> extends CustomPainter {
         text: sb.toString().trimRight(),
         maxWidth: math.max(120, item.itemRect.width - 12),
         backgroundColor: isPrimary
-            ? _withOpacity(config.primaryBoundsColor, 0.70)
+            ? config.primaryBoundsColor.withValues(alpha: 0.70)
             : (isFocused
-                ? _withOpacity(config.focusedBoundsColor, 0.70)
+                ? config.focusedBoundsColor.withValues(alpha: 0.70)
                 : const Color(0xAA000000)),
       );
     }
@@ -243,11 +242,6 @@ class ViewportFocusDebugPainter<T> extends CustomPainter {
     final double dx = p.dx.clamp(rect.left, rect.right - 1);
     final double dy = p.dy.clamp(rect.top, rect.bottom - 1);
     return Offset(dx, dy);
-  }
-
-  Color _withOpacity(Color c, double opacity) {
-    final int a = (opacity.clamp(0.0, 1.0) * 255).round();
-    return c.withAlpha(a);
   }
 
   @override

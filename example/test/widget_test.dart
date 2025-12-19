@@ -11,10 +11,10 @@ import 'package:viewport_focus_example/main.dart';
 
 void main() {
   testWidgets('example app builds', (WidgetTester tester) async {
-    await tester.pumpWidget(const ViewportFocusExampleApp());
+    await tester.pumpWidget(const ShowcaseApp());
     await tester.pump();
 
-    expect(find.byType(ViewportFocusDemoPage), findsOneWidget);
-    expect(find.text('viewport_focus'), findsOneWidget);
+    expect(find.byType(FeedPage), findsOneWidget);
+    expect(find.text('Viewport Focus'), findsOneWidget);
   });
 }

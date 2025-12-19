@@ -1,60 +1,9 @@
 # viewport_focus
 
-Viewport-aware focus detection for scrollables. Compute focused items and a stable
-primary item for feeds, autoplay, analytics, and prefetching.
+Viewport-aware focus detection for scrollables. Compute focused items and a
+stable primary item for feeds, autoplay, analytics, and prefetching.
 
 ![viewport_focus demo](https://raw.githubusercontent.com/omar-hanafy/viewport_focus/main/screenshots/viewport_focus.gif)
-
-## TL;DR (copy/paste)
-
-- Wrap your scrollable with `ViewportFocusScope` (or use the ListView/GridView/PageView
-  convenience wrappers).
-- Wrap each trackable item with `ViewportFocusItem`.
-- Listen via `ViewportFocusController` (`primaryId`, `focusedIds`, `snapshot`, per-item).
-
-```dart
-class FeedPage extends StatefulWidget {
-  const FeedPage({super.key});
-
-  @override
-  State<FeedPage> createState() => _FeedPageState();
-}
-
-class _FeedPageState extends State<FeedPage> {
-  final ViewportFocusController<int> focus = ViewportFocusController<int>();
-
-  @override
-  void dispose() {
-    focus.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ViewportFocusListView<int>.builder(
-      controller: focus,
-      region: ViewportFocusRegion.zone(
-        anchor: const ViewportAnchor.fraction(0.5),
-        extentPx: 180,
-      ),
-      policy: const ViewportFocusPolicy<int>.closestToAnchor(),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        return ViewportFocusItem<int>(
-          id: index,
-          builder: (context, itemFocus, child) {
-            return Opacity(
-              opacity: itemFocus.isPrimary ? 1.0 : 0.6,
-              child: child,
-            );
-          },
-          child: FeedCard(item: items[index]),
-        );
-      },
-    );
-  }
-}
-```
 
 ---
 
@@ -82,6 +31,10 @@ class _FeedPageState extends State<FeedPage> {
   - per-frame
   - scroll-end only (debounced)
   - hybrid (per-frame drag + throttled ballistic + final settle)
+- Built for scroll performance: O(N mounted) focus computation + O(1) targeted
+  updates. ViewportFocus minimizes rebuild fan-out with per-item notifiers and
+  diff-only global signals, and offers tunable focus detection. Often faster in
+  real feeds; choose the right update policy and listeners for your use case.
 - **Debug overlay**
   - paints focus region + primary/focused outlines + optional labels
 
@@ -387,13 +340,17 @@ Extras:
 ---
 
 ## Contributing / Development
+Thank you for your interest in contributing in this package. Make sure before you open up PR to do this:
 
+1- run those and make sure tests are green.
 ```bash
 dart format .
 flutter analyze
 flutter test
 flutter pub publish --dry-run
 ```
+2- If you change public behavior or API surface, update the docs and changelog
+alongside the code.
 
 ---
 
