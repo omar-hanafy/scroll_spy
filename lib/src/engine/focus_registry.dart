@@ -11,7 +11,8 @@ import 'package:flutter/widgets.dart';
 /// - a stable registration order for deterministic tie-breaking.
 class ScrollSpyRegistry<T> {
   /// Creates an empty registry with deterministic insertion order.
-  ScrollSpyRegistry() : _entries = LinkedHashMap<T, ScrollSpyRegistryEntry<T>>();
+  ScrollSpyRegistry()
+      : _entries = LinkedHashMap<T, ScrollSpyRegistryEntry<T>>();
 
   final LinkedHashMap<T, ScrollSpyRegistryEntry<T>> _entries;
 
