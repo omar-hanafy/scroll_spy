@@ -5,6 +5,8 @@ stable primary item for feeds, autoplay, analytics, and prefetching.
 
 ![viewport_focus demo](https://raw.githubusercontent.com/omar-hanafy/viewport_focus/main/screenshots/viewport_focus.gif)
 
+Live demo: https://omar-hanafy.github.io/viewport-focus/
+
 ---
 
 ## Features
