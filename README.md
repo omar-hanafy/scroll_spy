@@ -48,7 +48,7 @@ Add to `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  scroll_spy: ^0.1.0
+  scroll_spy: ^0.2.0
 ```
 
 Then:
@@ -385,6 +385,7 @@ These notifiers are:
 Core:
 - `ScrollSpyScope<T>`
 - `ScrollSpyItem<T>`
+- `ScrollSpyItemLite<T>`
 - `ScrollSpyController<T>`
 
 Models:
@@ -401,7 +402,10 @@ Extras:
 - Debug overlay (`ScrollSpyDebugOverlay`, `ScrollSpyDebugConfig`)
 - Convenience wrappers (`ScrollSpyListView`, `ScrollSpyGridView`,
   `ScrollSpyPageView`, `ScrollSpyCustomScrollView`)
-- Builders/listeners (`ScrollSpyPrimaryBuilder`, `ScrollSpyPrimaryListener`, etc.)
+- Builders/listeners (`ScrollSpyPrimaryBuilder`, `ScrollSpyPrimaryListener`,
+  `ScrollSpyItemPrimaryBuilder`, `ScrollSpyItemPrimaryListener`, etc.)
+- Per-item boolean notifiers (`itemIsPrimaryOf`, `itemIsFocusedOf`,
+  `itemIsVisibleOf`)
 
 ---
 

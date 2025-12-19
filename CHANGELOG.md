@@ -1,3 +1,28 @@
+## 0.2.0 — 2025-12-20
+
+Performance-focused release with low-overhead per-item signals for large feeds.
+
+### Highlights
+- Per-item boolean notifiers for primary/focused/visible state.
+- `ScrollSpyItemLite` to rebuild only when those booleans toggle.
+- Builder/listener widgets for boolean signals (no rebuild when unchanged).
+
+### Added
+- `ScrollSpyController.itemIsPrimaryOf(id)`.
+- `ScrollSpyController.itemIsFocusedOf(id)`.
+- `ScrollSpyController.itemIsVisibleOf(id)`.
+- `ScrollSpyItemLite<T>`.
+- `ScrollSpyItemPrimaryBuilder` / `ScrollSpyItemFocusedBuilder` /
+  `ScrollSpyItemVisibleBuilder`.
+- `ScrollSpyItemPrimaryListener` / `ScrollSpyItemFocusedListener` /
+  `ScrollSpyItemVisibleListener`.
+
+### Changed
+- Per-item notifier updates now iterate tracked listeners (O(listeners))
+  and use diff-based updates for boolean signals (behavior unchanged).
+
+---
+
 ## 0.1.0 — 2025-12-19
 
 Initial public release of **scroll_spy**.
