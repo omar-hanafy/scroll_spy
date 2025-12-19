@@ -13,11 +13,11 @@ class ViewportFocusExampleApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'viewport_focus example',
+      title: 'viewport_focus autoplay demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
       ),
       home: const ViewportFocusDemoPage(),
     );
@@ -48,11 +48,11 @@ class _ViewportFocusDemoPageState extends State<ViewportFocusDemoPage> {
   final ScrollController _scrollController = ScrollController();
 
   static const int _itemCount = 60;
-  static const double _itemExtent = 220.0;
+  static const double _itemExtent = 280.0;
 
   bool _debug = false;
   bool _includeRects = false;
-  bool _showNestedScroller = true;
+  bool _showNestedScroller = false;
 
   _RegionKind _regionKind = _RegionKind.zone;
   double _anchorFraction = 0.5;
@@ -172,7 +172,7 @@ class _ViewportFocusDemoPageState extends State<ViewportFocusDemoPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('viewport_focus'),
+        title: const Text('viewport_focus auto-play'),
         actions: [
           IconButton(
             tooltip: 'Scroll to top',
@@ -263,17 +263,11 @@ class _ViewportFocusDemoPageState extends State<ViewportFocusDemoPage> {
                 itemBuilder: (context, index) {
                   return ViewportFocusItem<int>(
                     id: index,
-                    child: _FeedCardStatic(
+                    builder: (context, focus, _) => _FeedCard(
                       index: index,
+                      focus: focus,
                       showNestedScroller: _showNestedScroller,
                     ),
-                    builder: (context, focus, child) {
-                      return _FeedCard(
-                        index: index,
-                        focus: focus,
-                        child: child!,
-                      );
-                    },
                   );
                 },
               ),
@@ -305,8 +299,10 @@ class _HeaderPanel extends StatelessWidget {
               child: ValueListenableBuilder<int?>(
                 valueListenable: controller.primaryId,
                 builder: (context, primary, _) {
+                  final label =
+                      primary == null ? 'None' : '#${primary + 1}';
                   return Text(
-                    'Primary: ${primary ?? "—"}',
+                    'Now playing: $label',
                     style: textTheme.titleMedium,
                   );
                 },
@@ -707,48 +703,113 @@ class _LabeledIntSlider extends StatelessWidget {
   }
 }
 
-class _FeedCardStatic extends StatelessWidget {
-  const _FeedCardStatic({
+class _FeedCard extends StatelessWidget {
+  const _FeedCard({
     required this.index,
+    required this.focus,
     required this.showNestedScroller,
   });
 
+  static const double _cardRadius = 16;
+  static const double _mediaRadius = 14;
+  static const EdgeInsets _cardMargin = EdgeInsets.symmetric(
+    horizontal: 12,
+    vertical: 10,
+  );
+  static const EdgeInsets _cardPadding = EdgeInsets.all(12);
+
   final int index;
+  final ViewportItemFocus<int> focus;
   final bool showNestedScroller;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final scheme = theme.colorScheme;
+
+    final bool isPrimary = focus.isPrimary;
+    final bool isFocused = focus.isFocused;
+    final bool isVisible = focus.isVisible;
+    final bool showNested = showNestedScroller && index % 6 == 0;
+
+    final Color active = scheme.primary;
+    final Color focused = scheme.tertiary;
+    final Color border =
+        isPrimary ? active : (isFocused ? focused : scheme.outlineVariant);
+
+    final String statusLabel = isPrimary
+        ? 'PLAYING'
+        : (isFocused ? 'READY' : (isVisible ? 'PAUSED' : 'OFFSCREEN'));
+    final Color statusColor =
+        isPrimary ? active : (isFocused ? focused : scheme.outline);
+
+    final double progress = isPrimary
+        ? (0.2 + 0.8 * focus.focusProgress)
+        : (isFocused ? (0.1 + 0.6 * focus.focusProgress) : 0.0);
+    final double mediaHeight = showNested ? 90.0 : 120.0;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: _cardMargin,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: colorScheme.outlineVariant),
+          color: scheme.surface,
+          borderRadius: BorderRadius.circular(_cardRadius),
+          border: Border.all(color: border, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: _withOpacity(scheme.shadow, 0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: _cardPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Item $index', style: theme.textTheme.titleMedium),
-              const SizedBox(height: 6),
-              Text(
-                'Scroll me: primary should be stable and only one winner.',
-                style: theme.textTheme.bodyMedium,
+              Row(
+                children: [
+                  Text('Clip ${index + 1}', style: theme.textTheme.titleMedium),
+                  const Spacer(),
+                  Icon(Icons.visibility, size: 16, color: scheme.outline),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${(focus.visibleFraction * 100).toStringAsFixed(0)}% in view',
+                    style: theme.textTheme.labelMedium,
+                  ),
+                ],
               ),
-              const Spacer(),
-              if (showNestedScroller && index % 6 == 0) ...[
+              const SizedBox(height: 8),
+              _buildMediaPreview(
+                context: context,
+                height: mediaHeight,
+                isPrimary: isPrimary,
+                isFocused: isFocused,
+                statusLabel: statusLabel,
+                statusColor: statusColor,
+                progress: progress.clamp(0.0, 1.0).toDouble(),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Auto-play toggles when this card becomes primary in the focus zone.',
+                style: theme.textTheme.bodySmall,
+              ),
+              const SizedBox(height: 6),
+              if (!showNested)
+                _buildDetailsRow(
+                  context: context,
+                  isPrimary: isPrimary,
+                  statusColor: statusColor,
+                ),
+              if (showNested) ...[
                 Text(
                   'Nested horizontal scroller (depth > 0)',
                   style: theme.textTheme.labelMedium,
                 ),
                 const SizedBox(height: 6),
                 SizedBox(
-                  height: 56,
+                  height: 52,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: 20,
@@ -757,14 +818,14 @@ class _FeedCardStatic extends StatelessWidget {
                         padding: const EdgeInsets.only(right: 8),
                         child: DecoratedBox(
                           decoration: BoxDecoration(
-                            color: colorScheme.surfaceContainerHigh,
+                            color: scheme.surfaceContainerHigh,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: colorScheme.outlineVariant,
+                              color: scheme.outlineVariant,
                             ),
                           ),
                           child: SizedBox(
-                            width: 56,
+                            width: 52,
                             child: Center(child: Text('$i')),
                           ),
                         ),
@@ -779,77 +840,183 @@ class _FeedCardStatic extends StatelessWidget {
       ),
     );
   }
-}
 
-class _FeedCard extends StatelessWidget {
-  const _FeedCard({
-    required this.index,
-    required this.focus,
-    required this.child,
-  });
-
-  final int index;
-  final ViewportItemFocus<int> focus;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
-    Color alpha(Color color, double opacity) {
-      final a = (opacity.clamp(0.0, 1.0) * 255).round();
-      return color.withAlpha(a);
-    }
-
-    final Color border = focus.isPrimary
-        ? Colors.green
-        : (focus.isFocused ? Colors.orange : scheme.outlineVariant);
-
-    final Color overlay = focus.isPrimary
-        ? alpha(Colors.green, 0.10)
-        : (focus.isFocused ? alpha(Colors.orange, 0.08) : Colors.transparent);
-
-    return Stack(
-      fit: StackFit.expand,
+  Widget _buildDetailsRow({
+    required BuildContext context,
+    required bool isPrimary,
+    required Color statusColor,
+  }) {
+    final theme = Theme.of(context);
+    return Row(
       children: [
-        child,
-        IgnorePointer(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: DecoratedBox(
+        Icon(
+          isPrimary ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+          size: 18,
+          color: statusColor,
+        ),
+        const SizedBox(width: 6),
+        Text(
+          isPrimary ? 'Sound on' : 'Sound off',
+          style: theme.textTheme.labelMedium,
+        ),
+        const Spacer(),
+        Text(
+          'focus ${(focus.focusProgress * 100).toStringAsFixed(0)}%',
+          style: theme.textTheme.labelMedium,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMediaPreview({
+    required BuildContext context,
+    required double height,
+    required bool isPrimary,
+    required bool isFocused,
+    required String statusLabel,
+    required Color statusColor,
+    required double progress,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    final Color overlayColor = isPrimary ? scheme.primary : scheme.tertiary;
+    final double overlayOpacity = isPrimary ? 0.25 : (isFocused ? 0.15 : 0.0);
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(_mediaRadius),
+      child: SizedBox(
+        height: height,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            DecoratedBox(
               decoration: BoxDecoration(
-                color: overlay,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: border, width: 2),
+                gradient: LinearGradient(
+                  colors: [
+                    scheme.primaryContainer,
+                    scheme.secondaryContainer,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
               ),
-              child: Align(
-                alignment: Alignment.topRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 10, right: 10),
+            ),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOut,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    _withOpacity(overlayColor, overlayOpacity),
+                    Colors.transparent,
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+            Center(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                switchInCurve: Curves.easeOutBack,
+                switchOutCurve: Curves.easeIn,
+                transitionBuilder: (child, anim) {
+                  return FadeTransition(
+                    opacity: anim,
+                    child: ScaleTransition(scale: anim, child: child),
+                  );
+                },
+                child: Icon(
+                  isPrimary ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                  key: ValueKey<bool>(isPrimary),
+                  size: 52,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: _buildStatusPill(
+                label: statusLabel,
+                color: statusColor,
+              ),
+            ),
+            Positioned(
+              left: 10,
+              right: 10,
+              bottom: 8,
+              child: _buildProgressBar(progress, statusColor),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusPill({required String label, required Color color}) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: _withOpacity(Colors.black, 0.35),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: _withOpacity(color, 0.85)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.4,
+            color: color,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProgressBar(double progress, Color color) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: progress),
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+      builder: (context, value, _) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(999),
+          child: SizedBox(
+            height: 6,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: _withOpacity(Colors.black, 0.25),
+                  ),
+                ),
+                FractionallySizedBox(
+                  alignment: Alignment.centerLeft,
+                  widthFactor: value,
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      color: alpha(scheme.surfaceContainerHighest, 0.90),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: scheme.outlineVariant),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      child: Text(
-                        focus.isPrimary
-                            ? 'PRIMARY'
-                            : (focus.isFocused ? 'focused' : 'idle'),
+                      gradient: LinearGradient(
+                        colors: [
+                          _withOpacity(color, 0.95),
+                          _withOpacity(color, 0.45),
+                        ],
                       ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
           ),
-        ),
-      ],
+        );
+      },
     );
+  }
+
+  Color _withOpacity(Color color, double opacity) {
+    final alpha = (opacity.clamp(0.0, 1.0) * 255).round();
+    return color.withAlpha(alpha);
   }
 }
