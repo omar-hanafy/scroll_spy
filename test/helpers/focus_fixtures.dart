@@ -1,7 +1,7 @@
-import 'package:viewport_focus/viewport_focus.dart';
+import 'package:scroll_spy/scroll_spy.dart';
 
-/// Creates a deterministic [ViewportItemFocus<int>] for unit tests.
-ViewportItemFocus<int> makeFocusItem({
+/// Creates a deterministic [ScrollSpyItemFocus<int>] for unit tests.
+ScrollSpyItemFocus<int> makeFocusItem({
   required int id,
   bool isVisible = true,
   bool isFocused = false,
@@ -11,7 +11,7 @@ ViewportItemFocus<int> makeFocusItem({
   double focusProgress = 1.0,
   double focusOverlapFraction = 1.0,
 }) {
-  return ViewportItemFocus<int>(
+  return ScrollSpyItemFocus<int>(
     id: id,
     isVisible: isVisible,
     isFocused: isFocused,
@@ -25,20 +25,20 @@ ViewportItemFocus<int> makeFocusItem({
   );
 }
 
-/// Creates a deterministic [ViewportFocusSnapshot<int>] for unit tests.
-ViewportFocusSnapshot<int> makeSnapshot({
+/// Creates a deterministic [ScrollSpySnapshot<int>] for unit tests.
+ScrollSpySnapshot<int> makeSnapshot({
   DateTime? computedAt,
   int? primaryId,
   Set<int> focusedIds = const <int>{},
   Set<int> visibleIds = const <int>{},
-  Map<int, ViewportItemFocus<int>> items =
-      const <int, ViewportItemFocus<int>>{},
+  Map<int, ScrollSpyItemFocus<int>> items =
+      const <int, ScrollSpyItemFocus<int>>{},
 }) {
-  return ViewportFocusSnapshot<int>(
+  return ScrollSpySnapshot<int>(
     computedAt: computedAt ?? DateTime.fromMillisecondsSinceEpoch(0),
     primaryId: primaryId,
     focusedIds: Set<int>.from(focusedIds),
     visibleIds: Set<int>.from(visibleIds),
-    items: Map<int, ViewportItemFocus<int>>.from(items),
+    items: Map<int, ScrollSpyItemFocus<int>>.from(items),
   );
 }

@@ -1,26 +1,26 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:viewport_focus/viewport_focus.dart';
+import 'package:scroll_spy/scroll_spy.dart';
 
 import '../helpers/widget_harness.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('FocusEngine (ViewportUpdatePolicy.onScrollEnd)', () {
+  group('FocusEngine (ScrollSpyUpdatePolicy.onScrollEnd)', () {
     testWidgets(
       'does not update primary during drag; updates only after scroll end debounce',
       (tester) async {
-        final harness = ViewportFocusTestHarness(
+        final harness = ScrollSpyTestHarness(
           itemCount: 30,
           itemExtent: 100.0,
           viewportSize: const Size(400, 300),
-          region: const ViewportFocusRegion.zone(
-            anchor: ViewportAnchor.fraction(0.5),
+          region: const ScrollSpyRegion.zone(
+            anchor: ScrollSpyAnchor.fraction(0.5),
             extentPx: 100.0,
           ),
-          policy: const ViewportFocusPolicy<int>.closestToAnchor(),
-          updatePolicy: ViewportUpdatePolicy.onScrollEnd(
+          policy: const ScrollSpyPolicy<int>.closestToAnchor(),
+          updatePolicy: ScrollSpyUpdatePolicy.onScrollEnd(
             debounce: const Duration(milliseconds: 200),
           ),
           // IMPORTANT: keep null so we isolate behavior to ScrollNotifications.

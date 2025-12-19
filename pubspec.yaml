@@ -1,8 +1,8 @@
-name: viewport_focus
+name: scroll_spy
 description: Compute focused items and a stable primary item in a scrollable viewport (feed/autoplay/analytics).
 version: 0.1.0
-repository: https://github.com/omar-hanafy/viewport_focus
-issue_tracker: https://github.com/omar-hanafy/viewport_focus/issues
+repository: https://github.com/omar-hanafy/scroll_spy
+issue_tracker: https://github.com/omar-hanafy/scroll_spy/issues
 
 topics:
   - flutter

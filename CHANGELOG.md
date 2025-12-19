@@ -1,6 +1,6 @@
 ## 0.1.0 — 2025-12-19
 
-Initial public release of **viewport_focus**.
+Initial public release of **scroll_spy**.
 
 ### Highlights
 - Compute focused items plus a single stable primary winner.
@@ -10,9 +10,9 @@ Initial public release of **viewport_focus**.
 
 ### Added
 - Focus engine that computes focused items and a single stable primary item.
-- `ViewportFocusScope<T>` to observe a scrollable subtree.
-- `ViewportFocusItem<T>` for per-item registration + focused/primary rebuild isolation.
-- `ViewportFocusController<T>` exposing `primaryId`, `focusedIds`, `snapshot`,
+- `ScrollSpyScope<T>` to observe a scrollable subtree.
+- `ScrollSpyItem<T>` for per-item registration + focused/primary rebuild isolation.
+- `ScrollSpyController<T>` exposing `primaryId`, `focusedIds`, `snapshot`,
   and `itemFocusOf(id)`.
 - Focus regions:
   - `line` (anchor + optional thickness)
@@ -38,15 +38,15 @@ Initial public release of **viewport_focus**.
   - primary/focused outlines
   - optional labels
   - optional rect inclusion (debug-only)
-- Diagnostics hook: `ViewportFocusDiagnostics`.
+- Diagnostics hook: `ScrollSpyDiagnostics`.
 - Convenience wrappers:
-  - `ViewportFocusListView` / `ViewportFocusGridView` /
-    `ViewportFocusCustomScrollView` / `ViewportFocusPageView`
+  - `ScrollSpyListView` / `ScrollSpyGridView` /
+    `ScrollSpyCustomScrollView` / `ScrollSpyPageView`
 - Builder/listener utilities:
-  - `ViewportPrimaryBuilder` / `ViewportPrimaryListener`
-  - `ViewportFocusedIdsBuilder`
-  - `ViewportSnapshotBuilder`
-  - `ViewportItemFocusBuilder`
+  - `ScrollSpyPrimaryBuilder` / `ScrollSpyPrimaryListener`
+  - `ScrollSpyFocusedIdsBuilder`
+  - `ScrollSpySnapshotBuilder`
+  - `ScrollSpyItemFocusBuilder`
 
 ### Notes
 - For best performance, keep the debug overlay disabled in release builds.

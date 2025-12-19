@@ -7,7 +7,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:viewport_focus_example/main.dart';
+import 'package:scroll_spy_example/main.dart';
 
 void main() {
   testWidgets('example app builds', (WidgetTester tester) async {
@@ -15,6 +15,6 @@ void main() {
     await tester.pump();
 
     expect(find.byType(FeedPage), findsOneWidget);
-    expect(find.text('Viewport Focus'), findsOneWidget);
+    expect(find.text('Scroll Spy'), findsOneWidget);
   });
 }

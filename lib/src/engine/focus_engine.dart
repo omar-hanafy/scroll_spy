@@ -1,34 +1,34 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
-import 'package:viewport_focus/src/utils/throttle.dart';
+import 'package:scroll_spy/src/utils/throttle.dart';
 
-import 'package:viewport_focus/src/debug/debug_config.dart' as debug;
-import 'package:viewport_focus/src/public/viewport_focus_controller.dart';
-import 'package:viewport_focus/src/public/viewport_focus_models.dart';
-import 'package:viewport_focus/src/public/viewport_focus_policy.dart';
-import 'package:viewport_focus/src/public/viewport_focus_region.dart';
-import 'package:viewport_focus/src/public/viewport_focus_stability.dart';
-import 'package:viewport_focus/src/public/viewport_focus_update_policy.dart';
-import 'package:viewport_focus/src/engine/focus_diff.dart';
-import 'package:viewport_focus/src/engine/focus_geometry.dart';
-import 'package:viewport_focus/src/engine/focus_registry.dart';
-import 'package:viewport_focus/src/engine/focus_selection.dart';
+import 'package:scroll_spy/src/debug/debug_config.dart' as debug;
+import 'package:scroll_spy/src/public/scroll_spy_controller.dart';
+import 'package:scroll_spy/src/public/scroll_spy_models.dart';
+import 'package:scroll_spy/src/public/scroll_spy_policy.dart';
+import 'package:scroll_spy/src/public/scroll_spy_region.dart';
+import 'package:scroll_spy/src/public/scroll_spy_stability.dart';
+import 'package:scroll_spy/src/public/scroll_spy_update_policy.dart';
+import 'package:scroll_spy/src/engine/focus_diff.dart';
+import 'package:scroll_spy/src/engine/focus_geometry.dart';
+import 'package:scroll_spy/src/engine/focus_registry.dart';
+import 'package:scroll_spy/src/engine/focus_selection.dart';
 
 /// Internal engine that turns scroll/layout signals into focus snapshots.
 ///
-/// This is the runtime core used by `ViewportFocusScopeState`. It is not
+/// This is the runtime core used by `ScrollSpyScopeState`. It is not
 /// typically constructed directly by application code; instead, configure a
-/// `ViewportFocusScope` (region/policy/stability/updatePolicy) and listen via a
-/// [ViewportFocusController].
+/// `ScrollSpyScope` (region/policy/stability/updatePolicy) and listen via a
+/// [ScrollSpyController].
 ///
 /// Pipeline per compute pass:
 /// 1) Reads currently registered items from the [FocusRegistry].
 /// 2) Measures viewport + item geometry using [FocusGeometry].
-/// 3) Evaluates [ViewportFocusRegion] and selects primary/focused sets using
-///    [FocusSelection] and the configured [ViewportFocusPolicy] +
-///    [ViewportFocusStability].
-/// 4) Commits the resulting [ViewportFocusSnapshot] to the controller through
+/// 3) Evaluates [ScrollSpyRegion] and selects primary/focused sets using
+///    [FocusSelection] and the configured [ScrollSpyPolicy] +
+///    [ScrollSpyStability].
+/// 4) Commits the resulting [ScrollSpySnapshot] to the controller through
 ///    [FocusDiff] (so the controller can do diff-only notifications and
 ///    per-item listenable management).
 ///
@@ -36,7 +36,7 @@ import 'package:viewport_focus/src/engine/focus_selection.dart';
 /// - Work is always performed on a post-frame callback so layout/paint
 ///   transforms are stable.
 /// - Multiple triggers are coalesced into at most one compute per frame.
-/// - [ViewportUpdatePolicy] determines which triggers are honored during user
+/// - [ScrollSpyUpdatePolicy] determines which triggers are honored during user
 ///   drag, ballistic scrolling, and idle time.
 ///
 /// Debug:
@@ -44,19 +44,19 @@ import 'package:viewport_focus/src/engine/focus_selection.dart';
 ///   the overlay listens to.
 /// - Per-item rectangles are only included when [includeItemRects] is true to
 ///   avoid extra allocations.
-class FocusEngine<T> {
+class ScrollSpyEngine<T> {
   /// Creates a focus engine tied to a scope's controller and registry.
   ///
   /// The engine reads from [registry], uses [region]/[policy]/[stability] to
   /// select focus, and publishes snapshots into [controller]. If
   /// [includeItemRects] is true, per-item rects are included in debug frames.
-  FocusEngine({
-    required ViewportFocusController<T> controller,
-    required FocusRegistry<T> registry,
-    required ViewportFocusRegion region,
-    required ViewportFocusPolicy<T> policy,
-    required ViewportFocusStability stability,
-    required ViewportUpdatePolicy updatePolicy,
+  ScrollSpyEngine({
+    required ScrollSpyController<T> controller,
+    required ScrollSpyRegistry<T> registry,
+    required ScrollSpyRegion region,
+    required ScrollSpyPolicy<T> policy,
+    required ScrollSpyStability stability,
+    required ScrollSpyUpdatePolicy updatePolicy,
     required bool includeItemRects,
   })  : _controller = controller,
         _registry = registry,
@@ -65,32 +65,32 @@ class FocusEngine<T> {
         _stability = stability,
         _updatePolicy = updatePolicy,
         _includeItemRects = includeItemRects,
-        _debugFrame = ValueNotifier<debug.FocusDebugFrame<T>?>(
-          debug.FocusDebugFrame.empty<T>(),
+        _debugFrame = ValueNotifier<debug.ScrollSpyDebugFrame<T>?>(
+          debug.ScrollSpyDebugFrame.empty<T>(),
         ) {
     _configureSchedulersForPolicy(updatePolicy);
   }
 
-  ViewportFocusController<T> _controller;
-  final FocusRegistry<T> _registry;
+  ScrollSpyController<T> _controller;
+  final ScrollSpyRegistry<T> _registry;
 
-  ViewportFocusRegion _region;
-  ViewportFocusPolicy<T> _policy;
-  ViewportFocusStability _stability;
-  ViewportUpdatePolicy _updatePolicy;
+  ScrollSpyRegion _region;
+  ScrollSpyPolicy<T> _policy;
+  ScrollSpyStability _stability;
+  ScrollSpyUpdatePolicy _updatePolicy;
 
   bool _includeItemRects;
 
   int _debugSequence = 0;
 
-  final ValueNotifier<debug.FocusDebugFrame<T>?> _debugFrame;
+  final ValueNotifier<debug.ScrollSpyDebugFrame<T>?> _debugFrame;
 
   /// A stream of debug frames produced after each compute pass.
   ///
-  /// `ViewportFocusScope(debug: true)` wires this into the debug overlay. The
+  /// `ScrollSpyScope(debug: true)` wires this into the debug overlay. The
   /// value is updated even when the controller’s diff-only signals (like
   /// `primaryId`) do not change, because it reflects raw per-frame metrics.
-  ValueListenable<debug.FocusDebugFrame<T>?> get debugFrame => _debugFrame;
+  ValueListenable<debug.ScrollSpyDebugFrame<T>?> get debugFrame => _debugFrame;
 
   ScrollController? _scrollController;
 
@@ -162,11 +162,11 @@ class FocusEngine<T> {
   /// Any meaningful change forces an immediate recompute so downstream
   /// listenables reflect the new region/policy/stability/update policy.
   void updateConfig({
-    required ViewportFocusController<T> controller,
-    required ViewportFocusRegion region,
-    required ViewportFocusPolicy<T> policy,
-    required ViewportFocusStability stability,
-    required ViewportUpdatePolicy updatePolicy,
+    required ScrollSpyController<T> controller,
+    required ScrollSpyRegion region,
+    required ScrollSpyPolicy<T> policy,
+    required ScrollSpyStability stability,
+    required ScrollSpyUpdatePolicy updatePolicy,
     required bool includeItemRects,
   }) {
     if (_disposed) return;
@@ -203,7 +203,7 @@ class FocusEngine<T> {
     }
   }
 
-  void _configureSchedulersForPolicy(ViewportUpdatePolicy policy) {
+  void _configureSchedulersForPolicy(ScrollSpyUpdatePolicy policy) {
     _scrollEndDebouncer?.dispose();
     _flingThrottler?.dispose();
     _scrollEndDebouncer = null;
@@ -230,9 +230,9 @@ class FocusEngine<T> {
 
   /// Registers an item for geometry tracking.
   ///
-  /// Called by the owning scope when a `ViewportFocusItem` has a stable
+  /// Called by the owning scope when a `ScrollSpyItem` has a stable
   /// [RenderBox]. Registering marks the engine dirty and schedules a compute
-  /// pass (respecting the current [ViewportUpdatePolicy]).
+  /// pass (respecting the current [ScrollSpyUpdatePolicy]).
   void registerItem(
     T id, {
     required BuildContext context,
@@ -245,7 +245,7 @@ class FocusEngine<T> {
 
   /// Unregisters an item ID from geometry tracking.
   ///
-  /// This is called when a `ViewportFocusItem` is disposed or changes its ID.
+  /// This is called when a `ScrollSpyItem` is disposed or changes its ID.
   /// The next compute pass will no longer include this item (and the controller
   /// may eventually evict its per-item notifier if one exists).
   void unregisterItem(T id) {
@@ -296,7 +296,7 @@ class FocusEngine<T> {
   ///
   /// This updates the current axis inference and scroll state (dragging vs.
   /// ballistic) and schedules compute passes according to the configured
-  /// [ViewportUpdatePolicy].
+  /// [ScrollSpyUpdatePolicy].
   ///
   /// Always returns `false` so the notification continues bubbling.
   bool handleScrollNotification(ScrollNotification n) {
@@ -366,7 +366,7 @@ class FocusEngine<T> {
   ///
   /// These notifications can be very chatty during active scrolling. The engine
   /// ignores them while the user is scrolling/dragging to respect the configured
-  /// [ViewportUpdatePolicy], and only triggers a compute when idle.
+  /// [ScrollSpyUpdatePolicy], and only triggers a compute when idle.
   bool handleScrollMetricsNotification(ScrollMetricsNotification n) {
     if (_disposed) return false;
     _axis = _axisFromAxisDirection(n.metrics.axisDirection);
@@ -469,7 +469,7 @@ class FocusEngine<T> {
     _registry.pruneUnmounted();
 
     final Axis axis = _resolveAxisFallback(_axis);
-    final FocusGeometryResult<T> geom = FocusGeometry.compute<T>(
+    final ScrollSpyGeometryResult<T> geom = ScrollSpyGeometry.compute<T>(
       entries: _registry.entriesSnapshot(),
       region: _region,
       axis: axis,
@@ -479,7 +479,7 @@ class FocusEngine<T> {
     final DateTime now = DateTime.now();
 
     if (geom.items.isEmpty) {
-      final empty = ViewportFocusSnapshot<T>(
+      final empty = ScrollSpySnapshot<T>(
         computedAt: now,
         primaryId: null,
         focusedIds: const {},
@@ -487,12 +487,12 @@ class FocusEngine<T> {
         items: const {},
       );
 
-      FocusDiff.commitToController<T>(controller: _controller, next: empty);
+      ScrollSpyDiff.commitToController<T>(controller: _controller, next: empty);
 
       _previousPrimaryId = null;
       _previousPrimarySince = null;
 
-      _debugFrame.value = debug.FocusDebugFrame<T>(
+      _debugFrame.value = debug.ScrollSpyDebugFrame<T>(
         sequence: ++_debugSequence,
         viewportRect: geom.viewportRect,
         focusRegionRect: _buildFocusRegionRect(
@@ -510,7 +510,7 @@ class FocusEngine<T> {
       return;
     }
 
-    final FocusSelectionResult<T> selection = FocusSelection.select<T>(
+    final ScrollSpySelectionResult<T> selection = ScrollSpySelection.select<T>(
       items: geom.items,
       policy: _policy,
       stability: _stability,
@@ -519,7 +519,7 @@ class FocusEngine<T> {
       now: now,
     );
 
-    final ViewportFocusSnapshot<T> next = ViewportFocusSnapshot<T>(
+    final ScrollSpySnapshot<T> next = ScrollSpySnapshot<T>(
       computedAt: now,
       primaryId: selection.primaryId,
       focusedIds: selection.focusedIds,
@@ -527,12 +527,12 @@ class FocusEngine<T> {
       items: selection.itemsById,
     );
 
-    FocusDiff.commitToController<T>(controller: _controller, next: next);
+    ScrollSpyDiff.commitToController<T>(controller: _controller, next: next);
 
     _previousPrimaryId = selection.primaryId;
     _previousPrimarySince = selection.primarySince;
 
-    _debugFrame.value = debug.FocusDebugFrame<T>(
+    _debugFrame.value = debug.ScrollSpyDebugFrame<T>(
       sequence: ++_debugSequence,
       viewportRect: geom.viewportRect,
       focusRegionRect: _buildFocusRegionRect(
@@ -551,26 +551,26 @@ class FocusEngine<T> {
   Rect? _buildFocusRegionRect({
     required Rect viewportRect,
     required Axis axis,
-    required ViewportFocusRegion region,
+    required ScrollSpyRegion region,
   }) {
     if (viewportRect.isEmpty) return null;
 
     final double viewportMainExtent =
         axis == Axis.vertical ? viewportRect.height : viewportRect.width;
 
-    final ViewportAnchor anchor = switch (region) {
-      ViewportFocusLineRegion(:final anchor) => anchor,
-      ViewportFocusZoneRegion(:final anchor) => anchor,
-      ViewportFocusCustomRegion(:final anchor) => anchor,
+    final ScrollSpyAnchor anchor = switch (region) {
+      ScrollSpyLineRegion(:final anchor) => anchor,
+      ScrollSpyZoneRegion(:final anchor) => anchor,
+      ScrollSpyCustomRegion(:final anchor) => anchor,
     };
 
     final double anchorOffsetPx = anchor.resolveFromStart(viewportMainExtent);
 
     final double thicknessPx = switch (region) {
-      ViewportFocusLineRegion(:final thicknessPx) =>
+      ScrollSpyLineRegion(:final thicknessPx) =>
         thicknessPx <= 0.0 ? 1.0 : thicknessPx,
-      ViewportFocusZoneRegion(:final extentPx) => extentPx,
-      ViewportFocusCustomRegion() => 1.0,
+      ScrollSpyZoneRegion(:final extentPx) => extentPx,
+      ScrollSpyCustomRegion() => 1.0,
     };
 
     final double halfThickness = thicknessPx / 2.0;
@@ -590,34 +590,34 @@ class FocusEngine<T> {
           );
   }
 
-  String? _buildFocusRegionLabel(ViewportFocusRegion region) {
-    if (region is ViewportFocusZoneRegion) {
+  String? _buildFocusRegionLabel(ScrollSpyRegion region) {
+    if (region is ScrollSpyZoneRegion) {
       return 'zone @ ${region.anchor} (extent ${region.extentPx.toStringAsFixed(0)}px)';
     }
-    if (region is ViewportFocusLineRegion) {
+    if (region is ScrollSpyLineRegion) {
       return region.thicknessPx <= 0.0
           ? 'line @ ${region.anchor}'
           : 'line @ ${region.anchor} (th ${region.thicknessPx.toStringAsFixed(1)}px)';
     }
-    if (region is ViewportFocusCustomRegion) {
+    if (region is ScrollSpyCustomRegion) {
       return 'custom @ ${region.anchor}';
     }
     return null;
   }
 
-  Map<T, debug.FocusDebugItem<T>> _buildDebugItems(
-    Map<T, ViewportItemFocus<T>> itemsById,
+  Map<T, debug.ScrollSpyDebugItem<T>> _buildDebugItems(
+    Map<T, ScrollSpyItemFocus<T>> itemsById,
   ) {
     if (itemsById.isEmpty) return const {};
 
-    final map = <T, debug.FocusDebugItem<T>>{};
+    final map = <T, debug.ScrollSpyDebugItem<T>>{};
 
     for (final entry in itemsById.entries) {
       final focus = entry.value;
       final rect = focus.itemRectInViewport;
       if (rect == null) continue;
 
-      map[entry.key] = debug.FocusDebugItem<T>(
+      map[entry.key] = debug.ScrollSpyDebugItem<T>(
         id: entry.key,
         itemRect: rect,
         visibleRect: focus.visibleRectInViewport,
@@ -625,7 +625,7 @@ class FocusEngine<T> {
       );
     }
 
-    return Map<T, debug.FocusDebugItem<T>>.unmodifiable(map);
+    return Map<T, debug.ScrollSpyDebugItem<T>>.unmodifiable(map);
   }
 
   Axis _resolveAxisFallback(Axis current) {

@@ -2,31 +2,31 @@
 import 'dart:math' as math;
 import 'package:flutter/widgets.dart';
 
-import 'package:viewport_focus/src/public/viewport_focus_models.dart';
-import 'package:viewport_focus/src/debug/debug_config.dart';
+import 'package:scroll_spy/src/public/scroll_spy_models.dart';
+import 'package:scroll_spy/src/debug/debug_config.dart';
 
-/// Paints a [FocusDebugFrame] produced by the focus engine.
+/// Paints a [ScrollSpyDebugFrame] produced by the focus engine.
 ///
-/// This painter is used by `ViewportFocusDebugOverlay` and intentionally keeps
+/// This painter is used by `ScrollSpyDebugOverlay` and intentionally keeps
 /// all *geometry decisions* in the engine:
 /// - All rects in [frame] are assumed to already be in the same coordinate
 ///   space as the canvas.
 /// - When per-item rects are not provided by the engine (because
-///   [ViewportFocusDebugConfig.includeItemRectsInFrame] is false), the painter
+///   [ScrollSpyDebugConfig.includeItemRectsInFrame] is false), the painter
 ///   only draws what is available (region + global label).
 ///
 /// Repaint contract:
 /// - Repaints when [frame.sequence] changes (new engine compute), or
 /// - when [config] values change (value-based equality).
-class ViewportFocusDebugPainter<T> extends CustomPainter {
+class ScrollSpyDebugPainter<T> extends CustomPainter {
   /// The frame to visualize.
-  final FocusDebugFrame<T> frame;
+  final ScrollSpyDebugFrame<T> frame;
 
   /// Visual and feature toggles for debug painting.
-  final ViewportFocusDebugConfig config;
+  final ScrollSpyDebugConfig config;
 
   /// Creates a painter for a single debug frame.
-  ViewportFocusDebugPainter({required this.frame, required this.config})
+  ScrollSpyDebugPainter({required this.frame, required this.config})
       : super(repaint: null);
 
   @override
@@ -69,7 +69,7 @@ class ViewportFocusDebugPainter<T> extends CustomPainter {
           alpha: config.visibleFillOpacity,
         );
 
-      for (final FocusDebugItem<T> item in frame.items.values) {
+      for (final ScrollSpyDebugItem<T> item in frame.items.values) {
         final Rect? vr = item.visibleRect;
         if (vr == null || vr.isEmpty) continue;
         canvas.drawRect(vr, fill);
@@ -92,7 +92,7 @@ class ViewportFocusDebugPainter<T> extends CustomPainter {
       ..strokeWidth = config.primaryStrokeWidth
       ..color = config.primaryBoundsColor;
 
-    for (final FocusDebugItem<T> item in frame.items.values) {
+    for (final ScrollSpyDebugItem<T> item in frame.items.values) {
       final bool isPrimary =
           frame.primaryId != null && item.id == frame.primaryId;
       final bool isFocused = frame.focusedIds.contains(item.id) ||
@@ -124,7 +124,7 @@ class ViewportFocusDebugPainter<T> extends CustomPainter {
     final int itemCount = frame.items.length;
 
     final StringBuffer sb = StringBuffer()
-      ..writeln('ViewportFocus Debug')
+      ..writeln('ScrollSpy Debug')
       ..writeln('seq: ${frame.sequence}')
       ..writeln('primary: $primary')
       ..writeln('focused: $focusedCount, items: $itemCount');
@@ -151,8 +151,8 @@ class ViewportFocusDebugPainter<T> extends CustomPainter {
   }
 
   void _paintItemLabels(Canvas canvas, Rect viewport, Size size) {
-    for (final FocusDebugItem<T> item in frame.items.values) {
-      final ViewportItemFocus<T>? f = item.focus;
+    for (final ScrollSpyDebugItem<T> item in frame.items.values) {
+      final ScrollSpyItemFocus<T>? f = item.focus;
       if (f == null) continue;
 
       // Keep label inside viewport-ish area for readability.
@@ -245,7 +245,7 @@ class ViewportFocusDebugPainter<T> extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant ViewportFocusDebugPainter<T> oldDelegate) {
+  bool shouldRepaint(covariant ScrollSpyDebugPainter<T> oldDelegate) {
     // Repaint when the engine produces a new frame (sequence) or config toggles change.
     return oldDelegate.frame.sequence != frame.sequence ||
         oldDelegate.config != config;

@@ -1,26 +1,26 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:viewport_focus/viewport_focus.dart';
+import 'package:scroll_spy/scroll_spy.dart';
 
 import '../helpers/widget_harness.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('FocusEngine (ViewportUpdatePolicy.hybrid)', () {
+  group('FocusEngine (ScrollSpyUpdatePolicy.hybrid)', () {
     testWidgets(
       'computePerFrameWhileDragging=false keeps primary stable during drag and shortly after release',
       (tester) async {
-        final harness = ViewportFocusTestHarness(
+        final harness = ScrollSpyTestHarness(
           itemCount: 30,
           itemExtent: 100.0,
           viewportSize: const Size(400, 300),
-          region: const ViewportFocusRegion.zone(
-            anchor: ViewportAnchor.fraction(0.5),
+          region: const ScrollSpyRegion.zone(
+            anchor: ScrollSpyAnchor.fraction(0.5),
             extentPx: 100.0,
           ),
-          policy: const ViewportFocusPolicy<int>.closestToAnchor(),
-          updatePolicy: ViewportUpdatePolicy.hybrid(
+          policy: const ScrollSpyPolicy<int>.closestToAnchor(),
+          updatePolicy: ScrollSpyUpdatePolicy.hybrid(
             scrollEndDebounce: const Duration(seconds: 5),
             ballisticInterval: const Duration(seconds: 5),
             computePerFrameWhileDragging: false,
@@ -86,16 +86,16 @@ void main() {
     testWidgets(
       'computePerFrameWhileDragging=true updates primary during drag (even with huge debounce/interval)',
       (tester) async {
-        final harness = ViewportFocusTestHarness(
+        final harness = ScrollSpyTestHarness(
           itemCount: 30,
           itemExtent: 100.0,
           viewportSize: const Size(400, 300),
-          region: const ViewportFocusRegion.zone(
-            anchor: ViewportAnchor.fraction(0.5),
+          region: const ScrollSpyRegion.zone(
+            anchor: ScrollSpyAnchor.fraction(0.5),
             extentPx: 100.0,
           ),
-          policy: const ViewportFocusPolicy<int>.closestToAnchor(),
-          updatePolicy: ViewportUpdatePolicy.hybrid(
+          policy: const ScrollSpyPolicy<int>.closestToAnchor(),
+          updatePolicy: ScrollSpyUpdatePolicy.hybrid(
             scrollEndDebounce: const Duration(seconds: 5),
             ballisticInterval: const Duration(seconds: 5),
             computePerFrameWhileDragging: true,

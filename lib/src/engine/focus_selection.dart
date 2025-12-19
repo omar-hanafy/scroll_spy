@@ -2,15 +2,15 @@ import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:viewport_focus/src/public/viewport_focus_models.dart';
-import 'package:viewport_focus/src/public/viewport_focus_policy.dart';
-import 'package:viewport_focus/src/public/viewport_focus_stability.dart';
-import 'package:viewport_focus/src/utils/equality.dart';
+import 'package:scroll_spy/src/public/scroll_spy_models.dart';
+import 'package:scroll_spy/src/public/scroll_spy_policy.dart';
+import 'package:scroll_spy/src/public/scroll_spy_stability.dart';
+import 'package:scroll_spy/src/utils/equality.dart';
 
 /// Pure selection + stability logic.
 ///
-/// Input: a list of [ViewportItemFocus] objects computed from geometry.
-/// Output: a [FocusSelectionResult] describing:
+/// Input: a list of [ScrollSpyItemFocus] objects computed from geometry.
+/// Output: a [ScrollSpySelectionResult] describing:
 /// - visibleIds
 /// - focusedIds
 /// - primaryId (winner inside focusedIds, or null)
@@ -20,15 +20,15 @@ import 'package:viewport_focus/src/utils/equality.dart';
 /// NOTE:
 /// - This file intentionally has no Flutter rendering imports.
 /// - It is designed to be fully unit-testable with plain Dart tests.
-final class FocusSelection {
-  const FocusSelection._();
+final class ScrollSpySelection {
+  const ScrollSpySelection._();
 
   /// Selects the next focus frame state.
   ///
   /// Rules:
   /// - primary is chosen ONLY among focused candidates.
   /// - if no focused candidates:
-  ///   - if [ViewportFocusStability.allowPrimaryWhenNoItemFocused] is true,
+  ///   - if [ScrollSpyStability.allowPrimaryWhenNoItemFocused] is true,
   ///     keep the previous primary if still visible, else pick the best visible.
   ///   - otherwise primaryId becomes null.
   /// - stability (min duration + hysteresis) is applied only when:
@@ -36,19 +36,19 @@ final class FocusSelection {
   ///   - there is a different focused candidate that would otherwise win.
   ///
   /// Comparator contract for custom policies:
-  /// - [ViewportFocusPolicy.custom]'s compare must behave like [Comparator]:
+  /// - [ScrollSpyPolicy.custom]'s compare must behave like [Comparator]:
   ///   return < 0 if (a) is better than (b).
-  static FocusSelectionResult<T> select<T>({
-    required List<ViewportItemFocus<T>> items,
-    required ViewportFocusPolicy<T> policy,
-    required ViewportFocusStability stability,
+  static ScrollSpySelectionResult<T> select<T>({
+    required List<ScrollSpyItemFocus<T>> items,
+    required ScrollSpyPolicy<T> policy,
+    required ScrollSpyStability stability,
     required T? previousPrimaryId,
     required DateTime? previousPrimarySince,
     required DateTime now,
   }) {
     // Preserve input ordering (used as stable tie-breaker).
-    final LinkedHashMap<T, ViewportItemFocus<T>> baseById =
-        LinkedHashMap<T, ViewportItemFocus<T>>();
+    final LinkedHashMap<T, ScrollSpyItemFocus<T>> baseById =
+        LinkedHashMap<T, ScrollSpyItemFocus<T>>();
     for (final item in items) {
       baseById[item.id] = item;
     }
@@ -56,10 +56,10 @@ final class FocusSelection {
     final LinkedHashSet<T> visibleIds = LinkedHashSet<T>();
     final LinkedHashSet<T> focusedIds = LinkedHashSet<T>();
 
-    final List<ViewportItemFocus<T>> focusedCandidates =
-        <ViewportItemFocus<T>>[];
-    final List<ViewportItemFocus<T>> visibleCandidates =
-        <ViewportItemFocus<T>>[];
+    final List<ScrollSpyItemFocus<T>> focusedCandidates =
+        <ScrollSpyItemFocus<T>>[];
+    final List<ScrollSpyItemFocus<T>> visibleCandidates =
+        <ScrollSpyItemFocus<T>>[];
 
     for (final item in items) {
       if (item.isVisible) {
@@ -72,7 +72,7 @@ final class FocusSelection {
       }
     }
 
-    final ViewportItemFocus<T>? previousPrimaryItem =
+    final ScrollSpyItemFocus<T>? previousPrimaryItem =
         previousPrimaryId == null ? null : baseById[previousPrimaryId];
 
     final bool previousPrimaryStillFocused =
@@ -81,10 +81,10 @@ final class FocusSelection {
         previousPrimaryItem != null && previousPrimaryItem.isVisible;
 
     // Determine the best focused candidate according to policy.
-    final ViewportItemFocus<T>? bestFocused =
+    final ScrollSpyItemFocus<T>? bestFocused =
         focusedCandidates.isEmpty ? null : _pickBest(focusedCandidates, policy);
 
-    final ViewportItemFocus<T>? bestVisible =
+    final ScrollSpyItemFocus<T>? bestVisible =
         visibleCandidates.isEmpty ? null : _pickBest(visibleCandidates, policy);
 
     T? nextPrimaryId;
@@ -154,21 +154,21 @@ final class FocusSelection {
     }
 
     // Build final itemsById, ensuring exactly one isPrimary (or none).
-    final LinkedHashMap<T, ViewportItemFocus<T>> itemsById =
-        LinkedHashMap<T, ViewportItemFocus<T>>();
+    final LinkedHashMap<T, ScrollSpyItemFocus<T>> itemsById =
+        LinkedHashMap<T, ScrollSpyItemFocus<T>>();
 
     for (final item in items) {
       final bool shouldBePrimary =
           nextPrimaryId != null && item.id == nextPrimaryId;
 
-      final ViewportItemFocus<T> updated = item.isPrimary == shouldBePrimary
+      final ScrollSpyItemFocus<T> updated = item.isPrimary == shouldBePrimary
           ? item
           : item.copyWith(isPrimary: shouldBePrimary);
 
       itemsById[updated.id] = updated;
     }
 
-    return FocusSelectionResult<T>(
+    return ScrollSpySelectionResult<T>(
       primaryId: nextPrimaryId,
       primarySince: nextPrimarySince,
       focusedIds: focusedIds,
@@ -187,8 +187,8 @@ final class FocusSelection {
   }
 
   static bool _beatsByHysteresis<T>({
-    required ViewportItemFocus<T> current,
-    required ViewportItemFocus<T> candidate,
+    required ScrollSpyItemFocus<T> current,
+    required ScrollSpyItemFocus<T> candidate,
     required double hysteresisPx,
   }) {
     if (hysteresisPx <= 0) {
@@ -209,15 +209,15 @@ final class FocusSelection {
         (improvement > hysteresisPx || nearlyEqual(improvement, hysteresisPx));
   }
 
-  static ViewportItemFocus<T> _pickBest<T>(
-    List<ViewportItemFocus<T>> candidates,
-    ViewportFocusPolicy<T> policy,
+  static ScrollSpyItemFocus<T> _pickBest<T>(
+    List<ScrollSpyItemFocus<T>> candidates,
+    ScrollSpyPolicy<T> policy,
   ) {
     assert(candidates.isNotEmpty);
 
-    ViewportItemFocus<T> best = candidates.first;
+    ScrollSpyItemFocus<T> best = candidates.first;
     for (var i = 1; i < candidates.length; i++) {
-      final ViewportItemFocus<T> c = candidates[i];
+      final ScrollSpyItemFocus<T> c = candidates[i];
       if (_isBetter(candidate: c, currentBest: best, policy: policy)) {
         best = c;
       }
@@ -226,9 +226,9 @@ final class FocusSelection {
   }
 
   static bool _isBetter<T>({
-    required ViewportItemFocus<T> candidate,
-    required ViewportItemFocus<T> currentBest,
-    required ViewportFocusPolicy<T> policy,
+    required ScrollSpyItemFocus<T> candidate,
+    required ScrollSpyItemFocus<T> currentBest,
+    required ScrollSpyPolicy<T> policy,
   }) {
     final int cmp = _compare(candidate, currentBest, policy);
     if (cmp < 0) return true;
@@ -239,7 +239,7 @@ final class FocusSelection {
     final int fp = _compareDesc(
       candidate.focusProgress,
       currentBest.focusProgress,
-      epsilon: kViewportFocusDefaultEpsilonFraction,
+      epsilon: kScrollSpyDefaultEpsilonFraction,
     );
     if (fp != 0) return fp < 0;
 
@@ -247,7 +247,7 @@ final class FocusSelection {
     final int vf = _compareDesc(
       candidate.visibleFraction,
       currentBest.visibleFraction,
-      epsilon: kViewportFocusDefaultEpsilonFraction,
+      epsilon: kScrollSpyDefaultEpsilonFraction,
     );
     if (vf != 0) return vf < 0;
 
@@ -255,7 +255,7 @@ final class FocusSelection {
     final int dist = _compareAsc(
       candidate.distanceToAnchorPx.abs(),
       currentBest.distanceToAnchorPx.abs(),
-      epsilon: kViewportFocusDefaultEpsilonPx,
+      epsilon: kScrollSpyDefaultEpsilonPx,
     );
     if (dist != 0) return dist < 0;
 
@@ -264,9 +264,9 @@ final class FocusSelection {
   }
 
   static int _compare<T>(
-    ViewportItemFocus<T> a,
-    ViewportItemFocus<T> b,
-    ViewportFocusPolicy<T> policy,
+    ScrollSpyItemFocus<T> a,
+    ScrollSpyItemFocus<T> b,
+    ScrollSpyPolicy<T> policy,
   ) {
     // Custom comparator wins.
     if (policy is CustomFocusPolicy<T>) {
@@ -277,7 +277,7 @@ final class FocusSelection {
       return _compareAsc(
         a.distanceToAnchorPx.abs(),
         b.distanceToAnchorPx.abs(),
-        epsilon: kViewportFocusDefaultEpsilonPx,
+        epsilon: kScrollSpyDefaultEpsilonPx,
       );
     }
 
@@ -285,7 +285,7 @@ final class FocusSelection {
       return _compareAsc(
         a.distanceToAnchorPx.abs(),
         b.distanceToAnchorPx.abs(),
-        epsilon: kViewportFocusDefaultEpsilonPx,
+        epsilon: kScrollSpyDefaultEpsilonPx,
       );
     }
 
@@ -293,7 +293,7 @@ final class FocusSelection {
       return _compareDesc(
         a.visibleFraction,
         b.visibleFraction,
-        epsilon: kViewportFocusDefaultEpsilonFraction,
+        epsilon: kScrollSpyDefaultEpsilonFraction,
       );
     }
 
@@ -301,7 +301,7 @@ final class FocusSelection {
       return _compareDesc(
         a.focusOverlapFraction,
         b.focusOverlapFraction,
-        epsilon: kViewportFocusDefaultEpsilonFraction,
+        epsilon: kScrollSpyDefaultEpsilonFraction,
       );
     }
 
@@ -309,7 +309,7 @@ final class FocusSelection {
       return _compareDesc(
         a.focusProgress,
         b.focusProgress,
-        epsilon: kViewportFocusDefaultEpsilonFraction,
+        epsilon: kScrollSpyDefaultEpsilonFraction,
       );
     }
 
@@ -317,7 +317,7 @@ final class FocusSelection {
     return _compareAsc(
       a.distanceToAnchorPx.abs(),
       b.distanceToAnchorPx.abs(),
-      epsilon: kViewportFocusDefaultEpsilonPx,
+      epsilon: kScrollSpyDefaultEpsilonPx,
     );
   }
 
@@ -335,10 +335,10 @@ final class FocusSelection {
 /// Result of a selection pass (focused set + chosen primary).
 ///
 /// This is an internal representation used by the engine pipeline. It is
-/// converted to a public [ViewportFocusSnapshot] before being committed to the
-/// [ViewportFocusController]. Collections are frozen to prevent mutation after
+/// converted to a public [ScrollSpySnapshot] before being committed to the
+/// [ScrollSpyController]. Collections are frozen to prevent mutation after
 /// selection so downstream components can treat them as stable inputs.
-final class FocusSelectionResult<T> {
+final class ScrollSpySelectionResult<T> {
   /// The chosen primary item ID, or `null` when no primary is selected.
   final T? primaryId;
 
@@ -357,27 +357,27 @@ final class FocusSelectionResult<T> {
   /// Final per-item state keyed by ID, with isPrimary updated.
   ///
   /// Order is stable and matches input ordering.
-  final Map<T, ViewportItemFocus<T>> itemsById;
+  final Map<T, ScrollSpyItemFocus<T>> itemsById;
 
   /// Creates a selection result with frozen collections.
   ///
   /// The constructor wraps sets/maps in unmodifiable views to preserve
   /// selection invariants for downstream consumers.
-  FocusSelectionResult({
+  ScrollSpySelectionResult({
     required this.primaryId,
     required this.primarySince,
     required Set<T> focusedIds,
     required Set<T> visibleIds,
-    required Map<T, ViewportItemFocus<T>> itemsById,
+    required Map<T, ScrollSpyItemFocus<T>> itemsById,
   })  : focusedIds = focusedIds is UnmodifiableSetView<T>
             ? focusedIds
             : UnmodifiableSetView<T>(focusedIds),
         visibleIds = visibleIds is UnmodifiableSetView<T>
             ? visibleIds
             : UnmodifiableSetView<T>(visibleIds),
-        itemsById = itemsById is UnmodifiableMapView<T, ViewportItemFocus<T>>
+        itemsById = itemsById is UnmodifiableMapView<T, ScrollSpyItemFocus<T>>
             ? itemsById
-            : UnmodifiableMapView<T, ViewportItemFocus<T>>(itemsById);
+            : UnmodifiableMapView<T, ScrollSpyItemFocus<T>>(itemsById);
 
   /// Converts this selection result to a public snapshot object.
   ///
@@ -386,11 +386,11 @@ final class FocusSelectionResult<T> {
   /// Set [includeItemsMap] to `false` to drop the per-item map when only the
   /// global primary/sets are needed. The engine typically keeps it `true` so
   /// per-item listenables can be updated.
-  ViewportFocusSnapshot<T> toSnapshot({
+  ScrollSpySnapshot<T> toSnapshot({
     DateTime? computedAt,
     bool includeItemsMap = true,
   }) {
-    return ViewportFocusSnapshot<T>(
+    return ScrollSpySnapshot<T>(
       computedAt: computedAt ?? DateTime.now(),
       primaryId: primaryId,
       focusedIds: focusedIds,

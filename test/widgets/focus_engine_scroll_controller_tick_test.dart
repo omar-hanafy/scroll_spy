@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:viewport_focus/viewport_focus.dart';
+import 'package:scroll_spy/scroll_spy.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -9,7 +9,7 @@ void main() {
     testWidgets(
       'perFrame policy recomputes on programmatic jumpTo when notifications are filtered out',
       (tester) async {
-        final controller = ViewportFocusController<int>();
+        final controller = ScrollSpyController<int>();
         final scrollController = ScrollController();
         addTearDown(controller.dispose);
         addTearDown(scrollController.dispose);
@@ -23,14 +23,14 @@ void main() {
                 child: SizedBox(
                   width: 400,
                   height: 300,
-                  child: ViewportFocusScope<int>(
+                  child: ScrollSpyScope<int>(
                     controller: controller,
-                    region: const ViewportFocusRegion.zone(
-                      anchor: ViewportAnchor.fraction(0.5),
+                    region: const ScrollSpyRegion.zone(
+                      anchor: ScrollSpyAnchor.fraction(0.5),
                       extentPx: 100,
                     ),
-                    policy: const ViewportFocusPolicy<int>.closestToAnchor(),
-                    updatePolicy: const ViewportUpdatePolicy.perFrame(),
+                    policy: const ScrollSpyPolicy<int>.closestToAnchor(),
+                    updatePolicy: const ScrollSpyUpdatePolicy.perFrame(),
                     scrollController: scrollController,
                     // Ignore notifications so only ScrollController listener path is exercised.
                     notificationDepth: 1,
@@ -40,7 +40,7 @@ void main() {
                       itemCount: 30,
                       cacheExtent: 5000,
                       itemBuilder: (context, index) {
-                        return ViewportFocusItem<int>(
+                        return ScrollSpyItem<int>(
                           id: index,
                           child: const SizedBox.expand(),
                           builder: (context, focus, child) => child!,
@@ -83,7 +83,7 @@ void main() {
     testWidgets(
       'onScrollEnd policy recomputes after debounce on programmatic jumpTo when notifications are filtered out',
       (tester) async {
-        final controller = ViewportFocusController<int>();
+        final controller = ScrollSpyController<int>();
         final scrollController = ScrollController();
         addTearDown(controller.dispose);
         addTearDown(scrollController.dispose);
@@ -99,14 +99,14 @@ void main() {
                 child: SizedBox(
                   width: 400,
                   height: 300,
-                  child: ViewportFocusScope<int>(
+                  child: ScrollSpyScope<int>(
                     controller: controller,
-                    region: const ViewportFocusRegion.zone(
-                      anchor: ViewportAnchor.fraction(0.5),
+                    region: const ScrollSpyRegion.zone(
+                      anchor: ScrollSpyAnchor.fraction(0.5),
                       extentPx: 100,
                     ),
-                    policy: const ViewportFocusPolicy<int>.closestToAnchor(),
-                    updatePolicy: ViewportUpdatePolicy.onScrollEnd(
+                    policy: const ScrollSpyPolicy<int>.closestToAnchor(),
+                    updatePolicy: ScrollSpyUpdatePolicy.onScrollEnd(
                       debounce: debounce,
                     ),
                     scrollController: scrollController,
@@ -117,7 +117,7 @@ void main() {
                       itemCount: 30,
                       cacheExtent: 5000,
                       itemBuilder: (context, index) {
-                        return ViewportFocusItem<int>(
+                        return ScrollSpyItem<int>(
                           id: index,
                           child: const SizedBox.expand(),
                           builder: (context, focus, child) => child!,

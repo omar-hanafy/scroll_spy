@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-/// Log levels for viewport_focus internal diagnostics.
-enum ViewportFocusLogLevel {
+/// Log levels for scroll_spy internal diagnostics.
+enum ScrollSpyLogLevel {
   /// Verbose diagnostics intended for development/debug sessions.
   debug,
 
@@ -17,10 +17,10 @@ enum ViewportFocusLogLevel {
 
 /// Signature for a log sink.
 ///
-/// If you set [ViewportFocusDiagnostics.sink], the library will call it.
+/// If you set [ScrollSpyDiagnostics.sink], the library will call it.
 /// If null, diagnostics are no-op.
-typedef ViewportFocusLogSink = void Function(
-  ViewportFocusLogLevel level,
+typedef ScrollSpyLogSink = void Function(
+  ScrollSpyLogLevel level,
   String message, {
   Object? error,
   StackTrace? stackTrace,
@@ -35,23 +35,23 @@ typedef ViewportFocusLogSink = void Function(
 /// Performance:
 /// Diagnostics calls may occur during scrolling/animation frames. Keep your
 /// sink fast and avoid throwing exceptions from it.
-final class ViewportFocusDiagnostics {
-  ViewportFocusDiagnostics._();
+final class ScrollSpyDiagnostics {
+  ScrollSpyDiagnostics._();
 
   /// When set, diagnostics will call this sink. When null, diagnostics are disabled.
-  static ViewportFocusLogSink? sink;
+  static ScrollSpyLogSink? sink;
 
   /// Whether diagnostics are currently enabled.
   static bool get enabled => sink != null;
 
   /// Emits a debug-level message (no-op when [sink] is `null`).
   static void debug(String message, {Map<String, Object?>? data}) {
-    _log(ViewportFocusLogLevel.debug, message, data: data);
+    _log(ScrollSpyLogLevel.debug, message, data: data);
   }
 
   /// Emits an info-level message (no-op when [sink] is `null`).
   static void info(String message, {Map<String, Object?>? data}) {
-    _log(ViewportFocusLogLevel.info, message, data: data);
+    _log(ScrollSpyLogLevel.info, message, data: data);
   }
 
   /// Emits a warning-level message (no-op when [sink] is `null`).
@@ -62,7 +62,7 @@ final class ViewportFocusDiagnostics {
     Map<String, Object?>? data,
   }) {
     _log(
-      ViewportFocusLogLevel.warning,
+      ScrollSpyLogLevel.warning,
       message,
       error: error,
       stackTrace: stackTrace,
@@ -78,7 +78,7 @@ final class ViewportFocusDiagnostics {
     Map<String, Object?>? data,
   }) {
     _log(
-      ViewportFocusLogLevel.error,
+      ScrollSpyLogLevel.error,
       message,
       error: error,
       stackTrace: stackTrace,
@@ -87,7 +87,7 @@ final class ViewportFocusDiagnostics {
   }
 
   static void _log(
-    ViewportFocusLogLevel level,
+    ScrollSpyLogLevel level,
     String message, {
     Object? error,
     StackTrace? stackTrace,
@@ -102,10 +102,10 @@ final class ViewportFocusDiagnostics {
   /// Convenience sink for quick debugging (prints via [debugPrint]).
   ///
   /// You can enable it like:
-  /// `ViewportFocusDiagnostics.sink = ViewportFocusDiagnostics.debugPrintSink();`
-  static ViewportFocusLogSink debugPrintSink({String tag = 'viewport_focus'}) {
+  /// `ScrollSpyDiagnostics.sink = ScrollSpyDiagnostics.debugPrintSink();`
+  static ScrollSpyLogSink debugPrintSink({String tag = 'scroll_spy'}) {
     return (
-      ViewportFocusLogLevel level,
+      ScrollSpyLogLevel level,
       String message, {
       Object? error,
       StackTrace? stackTrace,

@@ -1,23 +1,23 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:viewport_focus/viewport_focus.dart';
+import 'package:scroll_spy/scroll_spy.dart';
 
-/// Deterministic widget-test harness for viewport_focus behavior.
+/// Deterministic widget-test harness for scroll_spy behavior.
 ///
 /// Conventions:
 /// - item ids are 0..itemCount-1
 /// - ListView uses fixed [itemExtent]
 /// - Viewport size is enforced via a SizedBox
-final class ViewportFocusTestHarness {
-  ViewportFocusTestHarness({
-    ViewportFocusController<int>? controller,
+final class ScrollSpyTestHarness {
+  ScrollSpyTestHarness({
+    ScrollSpyController<int>? controller,
     this.itemCount = 20,
     this.itemExtent = 100.0,
     this.viewportSize = const Size(400, 300),
-    ViewportFocusRegion? region,
-    ViewportFocusPolicy<int>? policy,
-    this.stability = const ViewportFocusStability(),
-    this.updatePolicy = const ViewportUpdatePolicy.perFrame(),
+    ScrollSpyRegion? region,
+    ScrollSpyPolicy<int>? policy,
+    this.stability = const ScrollSpyStability(),
+    this.updatePolicy = const ScrollSpyUpdatePolicy.perFrame(),
     this.scrollController,
     this.debug = false,
     this.debugConfig,
@@ -26,33 +26,33 @@ final class ViewportFocusTestHarness {
   })  : assert(itemCount >= 0),
         assert(itemExtent > 0),
         assert(viewportSize.width > 0 && viewportSize.height > 0),
-        controller = controller ?? ViewportFocusController<int>(),
+        controller = controller ?? ScrollSpyController<int>(),
         region = region ??
-            ViewportFocusRegion.zone(
-              anchor: const ViewportAnchor.fraction(0.5),
+            ScrollSpyRegion.zone(
+              anchor: const ScrollSpyAnchor.fraction(0.5),
               extentPx: itemExtent,
             ),
-        policy = policy ?? const ViewportFocusPolicy.closestToAnchor(),
+        policy = policy ?? const ScrollSpyPolicy.closestToAnchor(),
         scopeKey = scopeKey ?? const Key('vf_scope'),
         listKey = listKey ?? const Key('vf_list');
 
   /// Public so tests can inspect/commit frames.
-  final ViewportFocusController<int> controller;
+  final ScrollSpyController<int> controller;
 
-  /// Optional: if provided, passed to both ListView and ViewportFocusScope.
+  /// Optional: if provided, passed to both ListView and ScrollSpyScope.
   final ScrollController? scrollController;
 
   final int itemCount;
   final double itemExtent;
   final Size viewportSize;
 
-  final ViewportFocusRegion region;
-  final ViewportFocusPolicy<int> policy;
-  final ViewportFocusStability stability;
-  final ViewportUpdatePolicy updatePolicy;
+  final ScrollSpyRegion region;
+  final ScrollSpyPolicy<int> policy;
+  final ScrollSpyStability stability;
+  final ScrollSpyUpdatePolicy updatePolicy;
 
   final bool debug;
-  final ViewportFocusDebugConfig? debugConfig;
+  final ScrollSpyDebugConfig? debugConfig;
 
   /// Keys to find the scope/list reliably in tests.
   final Key scopeKey;
@@ -66,7 +66,7 @@ final class ViewportFocusTestHarness {
       itemExtent: itemExtent,
       itemCount: itemCount,
       itemBuilder: (context, index) {
-        return ViewportFocusItem<int>(
+        return ScrollSpyItem<int>(
           id: index,
           child: const _StaticItemChild(),
           builder: (context, focus, child) {
@@ -77,7 +77,7 @@ final class ViewportFocusTestHarness {
       },
     );
 
-    final scoped = ViewportFocusScope<int>(
+    final scoped = ScrollSpyScope<int>(
       key: scopeKey,
       controller: controller,
       region: region,
@@ -111,7 +111,7 @@ final class ViewportFocusTestHarness {
   Future<void> pump(WidgetTester tester) async {
     await tester.pumpWidget(build());
 
-    // Frame 1: lets ViewportFocusItem post-frame registration run
+    // Frame 1: lets ScrollSpyItem post-frame registration run
     // and schedule an engine compute.
     await tester.pump();
 
@@ -119,9 +119,9 @@ final class ViewportFocusTestHarness {
     await tester.pump();
   }
 
-  /// Convenience: fetch the mounted [ViewportFocusScopeState<int>] by [scopeKey].
-  ViewportFocusScopeState<int> scopeState(WidgetTester tester) {
-    return tester.state<ViewportFocusScopeState<int>>(find.byKey(scopeKey));
+  /// Convenience: fetch the mounted [ScrollSpyScopeState<int>] by [scopeKey].
+  ScrollSpyScopeState<int> scopeState(WidgetTester tester) {
+    return tester.state<ScrollSpyScopeState<int>>(find.byKey(scopeKey));
   }
 }
 

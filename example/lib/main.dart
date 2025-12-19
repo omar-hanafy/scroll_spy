@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:viewport_focus/viewport_focus.dart';
+import 'package:scroll_spy/scroll_spy.dart';
 
 void main() {
   runApp(const ShowcaseApp());
@@ -11,7 +11,7 @@ class ShowcaseApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Viewport Focus Showcase',
+      title: 'Scroll Spy Showcase',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
@@ -36,8 +36,7 @@ class FeedPage extends StatefulWidget {
 
 class _FeedPageState extends State<FeedPage> {
   // 1. Create a Focus Controller
-  final ViewportFocusController<int> _focusController =
-      ViewportFocusController();
+  final ScrollSpyController<int> _focusController = ScrollSpyController();
   final ScrollController _scrollController = ScrollController();
 
   bool _autoScrolling = false;
@@ -89,7 +88,7 @@ class _FeedPageState extends State<FeedPage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Viewport Focus'),
+        title: const Text('Scroll Spy'),
         backgroundColor: Colors.transparent,
         elevation: 0,
         flexibleSpace: Container(
@@ -116,19 +115,19 @@ class _FeedPageState extends State<FeedPage> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
       ),
-      // 2. Wrap your list in a ViewportFocusScope
-      body: ViewportFocusScope<int>(
+      // 2. Wrap your list in a ScrollSpyScope
+      body: ScrollSpyScope<int>(
         controller: _focusController,
         // Define the "Focus Zone" (e.g. center 300px)
-        region: ViewportFocusRegion.zone(
-          anchor: const ViewportAnchor.fraction(0.5),
+        region: ScrollSpyRegion.zone(
+          anchor: const ScrollSpyAnchor.fraction(0.5),
           extentPx: 300,
         ),
         // Define how to pick the "Primary" item (Closest to center)
-        policy: const ViewportFocusPolicy.closestToAnchor(),
+        policy: const ScrollSpyPolicy.closestToAnchor(),
         // Optional: Debug overlay to visualize the zone
         debug: _showDebug,
-        debugConfig: const ViewportFocusDebugConfig(
+        debugConfig: const ScrollSpyDebugConfig(
           showFocusRegion: true,
           showLabels: true,
           showPrimaryOutline: true,
@@ -140,8 +139,8 @@ class _FeedPageState extends State<FeedPage> {
           // Make items large enough to be interesting
           itemExtent: 500,
           itemBuilder: (context, index) {
-            // 3. Wrap each item in ViewportFocusItem
-            return ViewportFocusItem<int>(
+            // 3. Wrap each item in ScrollSpyItem
+            return ScrollSpyItem<int>(
               id: index,
               builder: (context, focus, _) {
                 return _InteractiveFeedItem(index: index, focus: focus);
@@ -158,7 +157,7 @@ class _InteractiveFeedItem extends StatelessWidget {
   const _InteractiveFeedItem({required this.index, required this.focus});
 
   final int index;
-  final ViewportItemFocus<int> focus;
+  final ScrollSpyItemFocus<int> focus;
 
   @override
   Widget build(BuildContext context) {

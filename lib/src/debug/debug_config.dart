@@ -3,11 +3,11 @@ import 'dart:ui' show Color, Rect;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' show EdgeInsets, TextStyle;
-import 'package:viewport_focus/src/public/viewport_focus_models.dart';
+import 'package:scroll_spy/src/public/scroll_spy_models.dart';
 
 /// Configuration options for the visual debug overlay.
 ///
-/// When `ViewportFocusScope(debug: true)` is enabled, the scope inserts a
+/// When `ScrollSpyScope(debug: true)` is enabled, the scope inserts a
 /// transparent overlay above your scrollable and feeds it debug frames produced
 /// by the focus engine. This config controls **what gets painted** and how it is
 /// styled, and it also tells the engine whether to include per-item rects in
@@ -20,11 +20,11 @@ import 'package:viewport_focus/src/public/viewport_focus_models.dart';
 /// - Internal metrics like "distance to anchor" and "visible fraction".
 ///
 /// **Usage:**
-/// Pass this to `ViewportFocusScope.debugConfig`. The scope will forward
+/// Pass this to `ScrollSpyScope.debugConfig`. The scope will forward
 /// [includeItemRectsInFrame] to the engine so debug frames contain enough
 /// geometry for the overlay to draw item bounds.
 @immutable
-class ViewportFocusDebugConfig {
+class ScrollSpyDebugConfig {
   /// Whether the debug overlay should paint anything at all.
   final bool enabled;
 
@@ -109,9 +109,9 @@ class ViewportFocusDebugConfig {
 
   /// Creates a debug config with optional overrides.
   ///
-  /// Supply this to `ViewportFocusScope.debugConfig` to control overlay styling
+  /// Supply this to `ScrollSpyScope.debugConfig` to control overlay styling
   /// and whether the engine includes per-item rects in debug frames.
-  const ViewportFocusDebugConfig({
+  const ScrollSpyDebugConfig({
     this.enabled = true,
     this.includeItemRectsInFrame = true,
     this.showViewportBounds = false,
@@ -144,10 +144,10 @@ class ViewportFocusDebugConfig {
   /// A preset that turns the overlay fully off and avoids per-item `Rect`
   /// allocation in debug frames.
   ///
-  /// Use this when you want `ViewportFocusScope(debug: true)` available but
+  /// Use this when you want `ScrollSpyScope(debug: true)` available but
   /// need a single switch to disable painting/allocations (for example, in a
   /// release build where a debug toggle could still be flipped accidentally).
-  static const ViewportFocusDebugConfig disabled = ViewportFocusDebugConfig(
+  static const ScrollSpyDebugConfig disabled = ScrollSpyDebugConfig(
     enabled: false,
     includeItemRectsInFrame: false,
     showViewportBounds: false,
@@ -169,7 +169,7 @@ class ViewportFocusDebugConfig {
   /// Note: The debug painter repaints when the config’s **values** change
   /// (equality is value-based), so rebuilding with an equal config does not
   /// force a repaint.
-  ViewportFocusDebugConfig copyWith({
+  ScrollSpyDebugConfig copyWith({
     bool? enabled,
     bool? includeItemRectsInFrame,
     bool? showViewportBounds,
@@ -194,7 +194,7 @@ class ViewportFocusDebugConfig {
     EdgeInsets? labelPadding,
     double? labelCornerRadius,
   }) {
-    return ViewportFocusDebugConfig(
+    return ScrollSpyDebugConfig(
       enabled: enabled ?? this.enabled,
       includeItemRectsInFrame:
           includeItemRectsInFrame ?? this.includeItemRectsInFrame,
@@ -224,7 +224,7 @@ class ViewportFocusDebugConfig {
 
   @override
   bool operator ==(Object other) {
-    return other is ViewportFocusDebugConfig &&
+    return other is ScrollSpyDebugConfig &&
         other.enabled == enabled &&
         other.includeItemRectsInFrame == includeItemRectsInFrame &&
         other.showViewportBounds == showViewportBounds &&
@@ -283,9 +283,9 @@ class ViewportFocusDebugConfig {
 /// Frames are produced by the engine and consumed by the debug overlay/painter.
 /// Coordinate space:
 /// - All rects here MUST be in the same coordinate space as the debug overlay's
-///   canvas (typically the `ViewportFocusScope` render box coordinate space).
+///   canvas (typically the `ScrollSpyScope` render box coordinate space).
 @immutable
-class FocusDebugFrame<T> {
+class ScrollSpyDebugFrame<T> {
   /// Monotonically increasing sequence number assigned by the engine.
   ///
   /// The painter uses this as a repaint key so every compute pass can be
@@ -311,17 +311,17 @@ class FocusDebugFrame<T> {
   final Set<T> focusedIds;
 
   /// Per-item debug information. Typically contains only registered items and
-  /// only includes rects when [ViewportFocusDebugConfig.includeItemRectsInFrame]
+  /// only includes rects when [ScrollSpyDebugConfig.includeItemRectsInFrame]
   /// is enabled.
-  final Map<T, FocusDebugItem<T>> items;
+  final Map<T, ScrollSpyDebugItem<T>> items;
 
   /// Optional snapshot for richer labels; safe for overlay to ignore.
-  final ViewportFocusSnapshot<T>? snapshot;
+  final ScrollSpySnapshot<T>? snapshot;
 
   /// Creates a debug frame for a single engine compute pass.
   ///
   /// All rects must already be in the overlay's coordinate space.
-  const FocusDebugFrame({
+  const ScrollSpyDebugFrame({
     required this.sequence,
     required this.viewportRect,
     required this.focusRegionRect,
@@ -336,8 +336,8 @@ class FocusDebugFrame<T> {
   ///
   /// This is used as an initial value before the engine has produced a real
   /// compute pass.
-  static FocusDebugFrame<T> empty<T>() {
-    return FocusDebugFrame<T>(
+  static ScrollSpyDebugFrame<T> empty<T>() {
+    return ScrollSpyDebugFrame<T>(
       sequence: 0,
       viewportRect: Rect.zero,
       focusRegionRect: null,
@@ -351,21 +351,21 @@ class FocusDebugFrame<T> {
 
   @override
   bool operator ==(Object other) =>
-      other is FocusDebugFrame<T> && other.sequence == sequence;
+      other is ScrollSpyDebugFrame<T> && other.sequence == sequence;
 
   @override
   int get hashCode => sequence.hashCode;
 }
 
-/// Debug information for a single registered item within a [FocusDebugFrame].
+/// Debug information for a single registered item within a [ScrollSpyDebugFrame].
 ///
 /// The overlay uses this data to draw rectangles and per-item labels. The
 /// engine only populates these rects when debug mode requests them (see
-/// [ViewportFocusDebugConfig.includeItemRectsInFrame]) to avoid per-frame
+/// [ScrollSpyDebugConfig.includeItemRectsInFrame]) to avoid per-frame
 /// allocations in production.
 @immutable
-class FocusDebugItem<T> {
-  /// The item’s identifier (the same ID used by `ViewportFocusItem`).
+class ScrollSpyDebugItem<T> {
+  /// The item’s identifier (the same ID used by `ScrollSpyItem`).
   final T id;
 
   /// Item bounds in overlay coordinate space.
@@ -376,10 +376,10 @@ class FocusDebugItem<T> {
 
   /// Optional per-item metrics (the same object a controller snapshot would
   /// expose for this item).
-  final ViewportItemFocus<T>? focus;
+  final ScrollSpyItemFocus<T>? focus;
 
   /// Creates per-item debug data for overlay rendering.
-  const FocusDebugItem({
+  const ScrollSpyDebugItem({
     required this.id,
     required this.itemRect,
     required this.visibleRect,

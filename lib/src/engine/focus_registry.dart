@@ -2,18 +2,18 @@ import 'dart:collection';
 
 import 'package:flutter/widgets.dart';
 
-/// Registry for focus items inside a `ViewportFocusScope`.
+/// Registry for focus items inside a `ScrollSpyScope`.
 ///
 /// Stores:
 /// - item id
 /// - a [RenderBox] (probe) used for geometry.
 /// - a [BuildContext] for axis inference (via [Scrollable.maybeOf]).
 /// - a stable registration order for deterministic tie-breaking.
-class FocusRegistry<T> {
+class ScrollSpyRegistry<T> {
   /// Creates an empty registry with deterministic insertion order.
-  FocusRegistry() : _entries = LinkedHashMap<T, FocusRegistryEntry<T>>();
+  ScrollSpyRegistry() : _entries = LinkedHashMap<T, ScrollSpyRegistryEntry<T>>();
 
-  final LinkedHashMap<T, FocusRegistryEntry<T>> _entries;
+  final LinkedHashMap<T, ScrollSpyRegistryEntry<T>> _entries;
 
   int _nextOrder = 0;
 
@@ -31,7 +31,7 @@ class FocusRegistry<T> {
       return;
     }
 
-    _entries[id] = FocusRegistryEntry<T>(
+    _entries[id] = ScrollSpyRegistryEntry<T>(
       id: id,
       context: context,
       box: box,
@@ -48,10 +48,10 @@ class FocusRegistry<T> {
   }
 
   /// Returns the current registry entry for [id], or `null` if not registered.
-  FocusRegistryEntry<T>? entryOf(T id) => _entries[id];
+  ScrollSpyRegistryEntry<T>? entryOf(T id) => _entries[id];
 
   /// Stable snapshot in registration order.
-  List<FocusRegistryEntry<T>> entriesSnapshot() =>
+  List<ScrollSpyRegistryEntry<T>> entriesSnapshot() =>
       _entries.values.toList(growable: false);
 
   /// Removes entries whose contexts are unmounted or whose render objects are
@@ -74,9 +74,9 @@ class FocusRegistry<T> {
 }
 
 /// A single registered focus entry (ID + geometry probe).
-class FocusRegistryEntry<T> {
+class ScrollSpyRegistryEntry<T> {
   /// Creates a registry entry for a single item probe.
-  const FocusRegistryEntry({
+  const ScrollSpyRegistryEntry({
     required this.id,
     required this.context,
     required this.box,
@@ -102,8 +102,8 @@ class FocusRegistryEntry<T> {
 
   /// Creates a copy with updated [context]/[box] while preserving identity and
   /// [registrationOrder].
-  FocusRegistryEntry<T> copyWith({BuildContext? context, RenderBox? box}) {
-    return FocusRegistryEntry<T>(
+  ScrollSpyRegistryEntry<T> copyWith({BuildContext? context, RenderBox? box}) {
+    return ScrollSpyRegistryEntry<T>(
       id: id,
       context: context ?? this.context,
       box: box ?? this.box,

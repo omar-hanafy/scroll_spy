@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart' show Size;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:viewport_focus/viewport_focus.dart';
+import 'package:scroll_spy/scroll_spy.dart';
 
 import '../helpers/widget_harness.dart';
 
@@ -9,7 +9,7 @@ void main() {
 
   group('FocusEngine - includeItemRects', () {
     testWidgets('debug=false => snapshot items have no rects', (tester) async {
-      final harness = ViewportFocusTestHarness(
+      final harness = ScrollSpyTestHarness(
         itemCount: 20,
         itemExtent: 100,
         viewportSize: const Size(400, 300),
@@ -30,12 +30,12 @@ void main() {
     testWidgets(
       'debug=true + includeItemRectsInFrame=true => rects are present',
       (tester) async {
-        final harness = ViewportFocusTestHarness(
+        final harness = ScrollSpyTestHarness(
           itemCount: 20,
           itemExtent: 100,
           viewportSize: const Size(400, 300),
           debug: true,
-          debugConfig: const ViewportFocusDebugConfig(
+          debugConfig: const ScrollSpyDebugConfig(
             enabled: true,
             includeItemRectsInFrame: true,
             showLabels: false,
@@ -56,12 +56,12 @@ void main() {
     testWidgets(
       'debug=true + includeItemRectsInFrame=false => rects are omitted',
       (tester) async {
-        final harness = ViewportFocusTestHarness(
+        final harness = ScrollSpyTestHarness(
           itemCount: 20,
           itemExtent: 100,
           viewportSize: const Size(400, 300),
           debug: true,
-          debugConfig: const ViewportFocusDebugConfig(
+          debugConfig: const ScrollSpyDebugConfig(
             enabled: true,
             includeItemRectsInFrame: false,
             showLabels: false,

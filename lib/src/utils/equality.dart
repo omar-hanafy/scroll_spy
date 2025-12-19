@@ -3,28 +3,28 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:viewport_focus/src/public/viewport_focus_models.dart';
+import 'package:scroll_spy/src/public/scroll_spy_models.dart';
 
 /// Default tolerance (in pixels) used when comparing geometry values.
 ///
 /// This is tuned to avoid churn from sub-pixel scroll jitter while still
 /// treating meaningful movement as a change.
-const double kViewportFocusDefaultEpsilonPx = 0.5;
+const double kScrollSpyDefaultEpsilonPx = 0.5;
 
 /// Default tolerance used when comparing normalized 0..1 values (fractions).
-const double kViewportFocusDefaultEpsilonFraction = 0.001;
+const double kScrollSpyDefaultEpsilonFraction = 0.001;
 
 /// Tolerance-based double comparison.
 ///
 /// IMPORTANT:
 /// - The default [epsilon] is in *pixels*.
 /// - For normalized 0..1 values (fractions/progress), pass
-///   [kViewportFocusDefaultEpsilonFraction] explicitly (or use
+///   [kScrollSpyDefaultEpsilonFraction] explicitly (or use
 ///   [nearlyEqualFraction]).
 bool nearlyEqual(
   double a,
   double b, {
-  double epsilon = kViewportFocusDefaultEpsilonPx,
+  double epsilon = kScrollSpyDefaultEpsilonPx,
 }) {
   if (identical(a, b)) return true;
 
@@ -41,7 +41,7 @@ bool nearlyEqual(
 bool nearlyEqualPx(
   double a,
   double b, {
-  double epsilonPx = kViewportFocusDefaultEpsilonPx,
+  double epsilonPx = kScrollSpyDefaultEpsilonPx,
 }) {
   return nearlyEqual(a, b, epsilon: epsilonPx);
 }
@@ -50,7 +50,7 @@ bool nearlyEqualPx(
 bool nearlyEqualFraction(
   double a,
   double b, {
-  double epsilonFraction = kViewportFocusDefaultEpsilonFraction,
+  double epsilonFraction = kScrollSpyDefaultEpsilonFraction,
 }) {
   return nearlyEqual(a, b, epsilon: epsilonFraction);
 }
@@ -61,7 +61,7 @@ bool nearlyEqualFraction(
 bool rectNearlyEqual(
   Rect? a,
   Rect? b, {
-  double epsilon = kViewportFocusDefaultEpsilonPx,
+  double epsilon = kScrollSpyDefaultEpsilonPx,
 }) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;
@@ -80,18 +80,18 @@ bool setUnorderedEquals<T>(Set<T> a, Set<T> b) {
   return setEquals<T>(a, b);
 }
 
-/// Semantic, tolerance-based equality for [ViewportItemFocus].
+/// Semantic, tolerance-based equality for [ScrollSpyItemFocus].
 ///
 /// This is used by the controller and engine to avoid notifying listeners when
 /// values change only by tiny amounts (for example, sub-pixel distance jitter).
 ///
 /// Set [compareRects] to `false` to ignore rect differences (useful when rects
 /// are not part of your public contract or are omitted for performance).
-bool viewportItemFocusNearlyEqual<T>(
-  ViewportItemFocus<T> a,
-  ViewportItemFocus<T> b, {
-  double epsilonPx = kViewportFocusDefaultEpsilonPx,
-  double epsilonFraction = kViewportFocusDefaultEpsilonFraction,
+bool scrollSpyItemFocusNearlyEqual<T>(
+  ScrollSpyItemFocus<T> a,
+  ScrollSpyItemFocus<T> b, {
+  double epsilonPx = kScrollSpyDefaultEpsilonPx,
+  double epsilonFraction = kScrollSpyDefaultEpsilonFraction,
   bool compareRects = true,
 }) {
   if (identical(a, b)) return true;
@@ -172,11 +172,11 @@ double clampDouble(double value, double min, double max) {
 /// This is primarily intended for tests and internal diffing. The default
 /// [compareRects] is `false` because rects are often omitted by the engine (and
 /// can be noisy even when present).
-bool viewportFocusSnapshotNearlyEqual<T>(
-  ViewportFocusSnapshot<T> a,
-  ViewportFocusSnapshot<T> b, {
-  double epsilonPx = kViewportFocusDefaultEpsilonPx,
-  double epsilonFraction = kViewportFocusDefaultEpsilonFraction,
+bool scrollSpySnapshotNearlyEqual<T>(
+  ScrollSpySnapshot<T> a,
+  ScrollSpySnapshot<T> b, {
+  double epsilonPx = kScrollSpyDefaultEpsilonPx,
+  double epsilonFraction = kScrollSpyDefaultEpsilonFraction,
   bool compareRects = false,
 }) {
   if (identical(a, b)) return true;
@@ -193,7 +193,7 @@ bool viewportFocusSnapshotNearlyEqual<T>(
     final bItem = b.items[id];
     if (bItem == null) return false;
 
-    if (!viewportItemFocusNearlyEqual<T>(
+    if (!scrollSpyItemFocusNearlyEqual<T>(
       aItem,
       bItem,
       epsilonPx: epsilonPx,

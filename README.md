@@ -1,11 +1,11 @@
-# viewport_focus
+# scroll_spy
 
 Viewport-aware focus detection for scrollables. Compute focused items and a
 stable primary item for feeds, autoplay, analytics, and prefetching.
 
-![viewport_focus demo](https://raw.githubusercontent.com/omar-hanafy/viewport_focus/main/screenshots/viewport_focus.gif)
+![scroll_spy demo](https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.gif)
 
-Live demo: https://omar-hanafy.github.io/viewport-focus/
+Live demo: https://omar-hanafy.github.io/scroll-spy/
 
 ---
 
@@ -16,9 +16,9 @@ Live demo: https://omar-hanafy.github.io/viewport-focus/
   - `focusedIds`: all items intersecting the focus region
   - `snapshot`: full per-item metrics
 - **Configurable focus region**
-  - `ViewportFocusRegion.zone(...)` (recommended default)
-  - `ViewportFocusRegion.line(...)`
-  - `ViewportFocusRegion.custom(...)`
+  - `ScrollSpyRegion.zone(...)` (recommended default)
+  - `ScrollSpyRegion.line(...)`
+  - `ScrollSpyRegion.custom(...)`
 - **Multiple primary selection policies**
   - closest to anchor
   - largest visible fraction
@@ -34,7 +34,7 @@ Live demo: https://omar-hanafy.github.io/viewport-focus/
   - scroll-end only (debounced)
   - hybrid (per-frame drag + throttled ballistic + final settle)
 - Built for scroll performance: O(N mounted) focus computation + O(1) targeted
-  updates. ViewportFocus minimizes rebuild fan-out with per-item notifiers and
+  updates. ScrollSpy minimizes rebuild fan-out with per-item notifiers and
   diff-only global signals, and offers tunable focus detection. Often faster in
   real feeds; choose the right update policy and listeners for your use case.
 - **Debug overlay**
@@ -48,13 +48,13 @@ Add to `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  viewport_focus: ^0.1.0
+  scroll_spy: ^0.1.0
 ```
 
 Then:
 
 ```dart
-import 'package:viewport_focus/viewport_focus.dart';
+import 'package:scroll_spy/scroll_spy.dart';
 ```
 
 ---
@@ -75,7 +75,7 @@ Use this form if you already have a custom scrollable and do not want the
 convenience wrappers.
 
 ```dart
-final focus = ViewportFocusController<int>();
+final focus = ScrollSpyController<int>();
 
 @override
 void dispose() {
@@ -85,25 +85,25 @@ void dispose() {
 
 @override
 Widget build(BuildContext context) {
-  return ViewportFocusScope<int>(
+  return ScrollSpyScope<int>(
     controller: focus,
-    region: ViewportFocusRegion.zone(
-      anchor: const ViewportAnchor.fraction(0.5),
+    region: ScrollSpyRegion.zone(
+      anchor: const ScrollSpyAnchor.fraction(0.5),
       extentPx: 180,
     ),
-    policy: const ViewportFocusPolicy<int>.closestToAnchor(),
-    stability: const ViewportFocusStability(
+    policy: const ScrollSpyPolicy<int>.closestToAnchor(),
+    stability: const ScrollSpyStability(
       hysteresisPx: 24,
       minPrimaryDuration: Duration(milliseconds: 120),
       preferCurrentPrimary: true,
       allowPrimaryWhenNoItemFocused: true,
     ),
-    updatePolicy: const ViewportUpdatePolicy.perFrame(),
+    updatePolicy: const ScrollSpyUpdatePolicy.perFrame(),
     child: ListView.builder(
       itemExtent: 220,
       itemCount: 60,
       itemBuilder: (context, index) {
-        return ViewportFocusItem<int>(
+        return ScrollSpyItem<int>(
           id: index,
           child: /* static subtree (optional) */ null,
           builder: (context, itemFocus, child) {
@@ -135,7 +135,7 @@ Widget build(BuildContext context) {
 ### 1) Primary changes (cheap)
 
 ```dart
-ViewportPrimaryBuilder<int>(
+ScrollSpyPrimaryBuilder<int>(
   builder: (context, primaryId, _) {
     return Text('Primary: ${primaryId ?? "-"}');
   },
@@ -145,7 +145,7 @@ ViewportPrimaryBuilder<int>(
 Or listen without rebuilding:
 
 ```dart
-ViewportPrimaryListener<int>(
+ScrollSpyPrimaryListener<int>(
   onChanged: (prev, curr) {
     // start/stop video playback, log analytics, etc.
   },
@@ -156,7 +156,7 @@ ViewportPrimaryListener<int>(
 ### 2) Focused set changes
 
 ```dart
-ViewportFocusedIdsBuilder<int>(
+ScrollSpyFocusedIdsBuilder<int>(
   builder: (context, focusedIds, _) {
     return Text('Focused: ${focusedIds.length}');
   },
@@ -165,12 +165,12 @@ ViewportFocusedIdsBuilder<int>(
 
 ### 3) Per-item focus (only rebuild that item)
 
-`ViewportFocusItem` already does this via `controller.itemFocusOf(id)`.
+`ScrollSpyItem` already does this via `controller.itemFocusOf(id)`.
 
 You can also manually wire:
 
 ```dart
-ViewportItemFocusBuilder<int>(
+ScrollSpyItemFocusBuilder<int>(
   id: 7,
   builder: (context, itemFocus, _) => Text('${itemFocus.isPrimary}'),
 );
@@ -179,7 +179,7 @@ ViewportItemFocusBuilder<int>(
 ### 4) Full snapshot (most detail, most updates)
 
 ```dart
-ViewportSnapshotBuilder<int>(
+ScrollSpySnapshotBuilder<int>(
   builder: (context, snapshot, _) {
     return Text('Items in snapshot: ${snapshot.items.length}');
   },
@@ -195,8 +195,8 @@ ViewportSnapshotBuilder<int>(
 A band centered on the anchor; items intersecting the band are focused.
 
 ```dart
-ViewportFocusRegion.zone(
-  anchor: const ViewportAnchor.fraction(0.5),
+ScrollSpyRegion.zone(
+  anchor: const ScrollSpyAnchor.fraction(0.5),
   extentPx: 180,
 )
 ```
@@ -206,8 +206,8 @@ ViewportFocusRegion.zone(
 A thin line at the anchor (optionally with thickness).
 
 ```dart
-ViewportFocusRegion.line(
-  anchor: const ViewportAnchor.fraction(0.5),
+ScrollSpyRegion.line(
+  anchor: const ScrollSpyAnchor.fraction(0.5),
   thicknessPx: 0, // infinitesimal line
 )
 ```
@@ -217,10 +217,10 @@ ViewportFocusRegion.line(
 Bring your own evaluator:
 
 ```dart
-ViewportFocusRegion.custom(
-  anchor: const ViewportAnchor.fraction(0.5),
+ScrollSpyRegion.custom(
+  anchor: const ScrollSpyAnchor.fraction(0.5),
   evaluator: (input) {
-    return const ViewportRegionResult(
+    return const ScrollSpyRegionResult(
       isFocused: true,
       focusProgress: 1.0,
       overlapFraction: 1.0,
@@ -236,16 +236,16 @@ ViewportFocusRegion.custom(
 Built-ins:
 
 ```dart
-const ViewportFocusPolicy<int>.closestToAnchor();
-const ViewportFocusPolicy<int>.largestVisibleFraction();
-const ViewportFocusPolicy<int>.largestFocusOverlap();
-const ViewportFocusPolicy<int>.largestFocusProgress();
+const ScrollSpyPolicy<int>.closestToAnchor();
+const ScrollSpyPolicy<int>.largestVisibleFraction();
+const ScrollSpyPolicy<int>.largestFocusOverlap();
+const ScrollSpyPolicy<int>.largestFocusProgress();
 ```
 
 Custom comparator:
 
 ```dart
-ViewportFocusPolicy<int>.custom(
+ScrollSpyPolicy<int>.custom(
   compare: (a, b) {
     // return < 0 when a is better than b
     // return > 0 when b is better
@@ -268,7 +268,7 @@ ViewportFocusPolicy<int>.custom(
   scroll end.
 
 ```dart
-ViewportUpdatePolicy.hybrid(
+ScrollSpyUpdatePolicy.hybrid(
   scrollEndDebounce: const Duration(milliseconds: 80),
   ballisticInterval: const Duration(milliseconds: 50),
   computePerFrameWhileDragging: true,
@@ -284,7 +284,7 @@ If your list items contain nested scrollables (horizontal carousels, etc.), use
 scrollable drives focus:
 
 ```dart
-ViewportFocusScope<int>(
+ScrollSpyScope<int>(
   notificationDepth: 0, // default
   child: ...
 )
@@ -297,9 +297,9 @@ ViewportFocusScope<int>(
 Enable the overlay:
 
 ```dart
-ViewportFocusScope<int>(
+ScrollSpyScope<int>(
   debug: true,
-  debugConfig: const ViewportFocusDebugConfig(
+  debugConfig: const ScrollSpyDebugConfig(
     enabled: true,
     includeItemRectsInFrame: true, // more allocations (debug-only)
     showFocusRegion: true,
@@ -319,25 +319,25 @@ allocations.
 ## What is in the box (API map)
 
 Core:
-- `ViewportFocusScope<T>`
-- `ViewportFocusItem<T>`
-- `ViewportFocusController<T>`
+- `ScrollSpyScope<T>`
+- `ScrollSpyItem<T>`
+- `ScrollSpyController<T>`
 
 Models:
-- `ViewportItemFocus<T>`
-- `ViewportFocusSnapshot<T>`
+- `ScrollSpyItemFocus<T>`
+- `ScrollSpySnapshot<T>`
 
 Configuration:
-- `ViewportFocusRegion` + `ViewportAnchor`
-- `ViewportFocusPolicy`
-- `ViewportFocusStability`
-- `ViewportUpdatePolicy`
+- `ScrollSpyRegion` + `ScrollSpyAnchor`
+- `ScrollSpyPolicy`
+- `ScrollSpyStability`
+- `ScrollSpyUpdatePolicy`
 
 Extras:
-- Debug overlay (`ViewportFocusDebugOverlay`, `ViewportFocusDebugConfig`)
-- Convenience wrappers (`ViewportFocusListView`, `ViewportFocusGridView`,
-  `ViewportFocusPageView`, `ViewportFocusCustomScrollView`)
-- Builders/listeners (`ViewportPrimaryBuilder`, `ViewportPrimaryListener`, etc.)
+- Debug overlay (`ScrollSpyDebugOverlay`, `ScrollSpyDebugConfig`)
+- Convenience wrappers (`ScrollSpyListView`, `ScrollSpyGridView`,
+  `ScrollSpyPageView`, `ScrollSpyCustomScrollView`)
+- Builders/listeners (`ScrollSpyPrimaryBuilder`, `ScrollSpyPrimaryListener`, etc.)
 
 ---
 

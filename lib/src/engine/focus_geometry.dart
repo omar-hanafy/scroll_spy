@@ -3,9 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
-import 'package:viewport_focus/src/public/viewport_focus_models.dart';
-import 'package:viewport_focus/src/public/viewport_focus_region.dart';
-import 'package:viewport_focus/src/engine/focus_registry.dart';
+import 'package:scroll_spy/src/public/scroll_spy_models.dart';
+import 'package:scroll_spy/src/public/scroll_spy_region.dart';
+import 'package:scroll_spy/src/engine/focus_registry.dart';
 
 /// Output of a single geometry pass.
 ///
@@ -14,11 +14,11 @@ import 'package:viewport_focus/src/engine/focus_registry.dart';
 /// per-item metrics required to decide visibility/focus/primary, and it is also
 /// used by the engine to build debug frames when enabled.
 @immutable
-class FocusGeometryResult<T> {
+class ScrollSpyGeometryResult<T> {
   /// Creates a geometry result for a single compute pass.
   ///
-  /// Use [FocusGeometry.compute] to build this with correct coordinate spaces.
-  const FocusGeometryResult({
+  /// Use [ScrollSpyGeometry.compute] to build this with correct coordinate spaces.
+  const ScrollSpyGeometryResult({
     required this.viewportRect,
     required this.viewportGlobalRect,
     required this.axis,
@@ -41,16 +41,16 @@ class FocusGeometryResult<T> {
   ///
   /// This list includes every registered entry whose render object is currently
   /// mounted, attached, and has a size. Items may still appear here even when
-  /// [ViewportItemFocus.isVisible] is false (for example, when they are built
+  /// [ScrollSpyItemFocus.isVisible] is false (for example, when they are built
   /// but fully outside the viewport).
-  final List<ViewportItemFocus<T>> items;
+  final List<ScrollSpyItemFocus<T>> items;
 
   /// Returns an empty geometry result.
   ///
   /// This is typically used when the engine cannot yet resolve a viewport
   /// render object (for example, before the first layout pass).
-  factory FocusGeometryResult.empty({Axis axis = Axis.vertical}) {
-    return FocusGeometryResult<T>(
+  factory ScrollSpyGeometryResult.empty({Axis axis = Axis.vertical}) {
+    return ScrollSpyGeometryResult<T>(
       viewportRect: Rect.zero,
       viewportGlobalRect: Rect.zero,
       axis: axis,
@@ -65,11 +65,11 @@ class FocusGeometryResult<T> {
 /// - item rect in **viewport-local** coordinates
 /// - visible fraction (intersection area / item area)
 /// - signed distance from item center to the configured anchor
-/// - focus hit/progress based on [ViewportFocusRegion.evaluate]
+/// - focus hit/progress based on [ScrollSpyRegion.evaluate]
 ///
 /// The selection step runs later and decides the primary winner.
-class FocusGeometry {
-  const FocusGeometry._();
+class ScrollSpyGeometry {
+  const ScrollSpyGeometry._();
 
   /// Computes geometry for the current [entries] snapshot.
   ///
@@ -80,15 +80,15 @@ class FocusGeometry {
   ///
   /// Coordinate space:
   /// - `viewportRect` is `(Offset.zero & viewportBox.size)`.
-  /// - `ViewportItemFocus.itemRectInViewport` (when included) uses the same
+  /// - `ScrollSpyItemFocus.itemRectInViewport` (when included) uses the same
   ///   coordinate system: the viewport’s top-left is `(0, 0)`.
   ///
   /// Allocation control:
-  /// - When [includeItemRects] is false, rect fields on [ViewportItemFocus] are
+  /// - When [includeItemRects] is false, rect fields on [ScrollSpyItemFocus] are
   ///   set to `null` to reduce per-frame allocations (useful outside of debug).
-  static FocusGeometryResult<T> compute<T>({
-    required Iterable<FocusRegistryEntry<T>> entries,
-    required ViewportFocusRegion region,
+  static ScrollSpyGeometryResult<T> compute<T>({
+    required Iterable<ScrollSpyRegistryEntry<T>> entries,
+    required ScrollSpyRegion region,
     required Axis axis,
     required bool includeItemRects,
   }) {
@@ -112,7 +112,7 @@ class FocusGeometry {
     }
 
     if (viewportBox == null) {
-      return FocusGeometryResult<T>.empty(axis: axis);
+      return ScrollSpyGeometryResult<T>.empty(axis: axis);
     }
 
     final Offset viewportGlobalTopLeft = viewportBox.localToGlobal(Offset.zero);
@@ -127,7 +127,7 @@ class FocusGeometry {
       viewportMainExtent: viewportMainExtent,
     );
 
-    final List<ViewportItemFocus<T>> items = <ViewportItemFocus<T>>[];
+    final List<ScrollSpyItemFocus<T>> items = <ScrollSpyItemFocus<T>>[];
 
     for (final entry in entries) {
       if (!entry.context.mounted) continue;
@@ -157,21 +157,21 @@ class FocusGeometry {
 
       final double distanceToAnchorPx = itemCenter - anchorOffsetPx;
 
-      final ViewportRegionResult regionResult = isVisible
+      final ScrollSpyRegionResult regionResult = isVisible
           ? region.evaluate(
-              ViewportRegionInput(
+              ScrollSpyRegionInput(
                 itemRectInViewport: itemRect,
                 viewportRect: viewportRect,
                 axis: axis,
                 anchorOffsetPx: anchorOffsetPx,
               ),
             )
-          : ViewportRegionResult.notFocused;
+          : ScrollSpyRegionResult.notFocused;
 
       final bool isFocused = isVisible && regionResult.isFocused;
 
       items.add(
-        ViewportItemFocus<T>(
+        ScrollSpyItemFocus<T>(
           id: entry.id,
           isVisible: isVisible,
           isFocused: isFocused,
@@ -188,7 +188,7 @@ class FocusGeometry {
       );
     }
 
-    return FocusGeometryResult<T>(
+    return ScrollSpyGeometryResult<T>(
       viewportRect: viewportRect,
       viewportGlobalRect: viewportGlobalRect,
       axis: axis,
@@ -232,13 +232,13 @@ class FocusGeometry {
   }
 
   static double _resolveAnchorOffsetPx({
-    required ViewportFocusRegion region,
+    required ScrollSpyRegion region,
     required double viewportMainExtent,
   }) {
-    final ViewportAnchor anchor = switch (region) {
-      ViewportFocusLineRegion(:final anchor) => anchor,
-      ViewportFocusZoneRegion(:final anchor) => anchor,
-      ViewportFocusCustomRegion(:final anchor) => anchor,
+    final ScrollSpyAnchor anchor = switch (region) {
+      ScrollSpyLineRegion(:final anchor) => anchor,
+      ScrollSpyZoneRegion(:final anchor) => anchor,
+      ScrollSpyCustomRegion(:final anchor) => anchor,
     };
 
     return anchor.resolveFromStart(viewportMainExtent);

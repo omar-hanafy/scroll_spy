@@ -9,7 +9,7 @@ void main() {
   testWidgets('FocusEngine handles empty registry (itemCount=0)', (
     tester,
   ) async {
-    final harness = ViewportFocusTestHarness(
+    final harness = ScrollSpyTestHarness(
       itemCount: 0,
       itemExtent: 100,
       viewportSize: const Size(400, 300),

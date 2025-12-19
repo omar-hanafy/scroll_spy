@@ -1,16 +1,16 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:viewport_focus/viewport_focus.dart';
+import 'package:scroll_spy/scroll_spy.dart';
 
 import '../helpers/focus_fixtures.dart';
 
 void main() {
-  group('FocusSelection.select', () {
+  group('ScrollSpySelection.select', () {
     test('chooses primary only among focused candidates', () {
       final now = DateTime(2024, 1, 1);
 
       // Item 1 is "best" by distance, but it is NOT focused.
       // Item 2 is focused, so it must win primary (primary is only among focused).
-      final items = <ViewportItemFocus<int>>[
+      final items = <ScrollSpyItemFocus<int>>[
         makeFocusItem(
           id: 1,
           isVisible: true,
@@ -29,10 +29,10 @@ void main() {
         ),
       ];
 
-      final result = FocusSelection.select<int>(
+      final result = ScrollSpySelection.select<int>(
         items: items,
-        policy: const ViewportFocusPolicy.closestToAnchor(),
-        stability: const ViewportFocusStability(),
+        policy: const ScrollSpyPolicy.closestToAnchor(),
+        stability: const ScrollSpyStability(),
         previousPrimaryId: null,
         previousPrimarySince: null,
         now: now,
@@ -50,7 +50,7 @@ void main() {
       () {
         final now = DateTime(2024, 1, 1);
 
-        final items = <ViewportItemFocus<int>>[
+        final items = <ScrollSpyItemFocus<int>>[
           makeFocusItem(
             id: 1,
             isVisible: true,
@@ -69,10 +69,10 @@ void main() {
           ),
         ];
 
-        final result = FocusSelection.select<int>(
+        final result = ScrollSpySelection.select<int>(
           items: items,
-          policy: const ViewportFocusPolicy.closestToAnchor(),
-          stability: const ViewportFocusStability(
+          policy: const ScrollSpyPolicy.closestToAnchor(),
+          stability: const ScrollSpyStability(
             allowPrimaryWhenNoItemFocused: false,
           ),
           previousPrimaryId: 1,
@@ -98,7 +98,7 @@ void main() {
         // No one is focused.
         // Policy would pick item 2 by distance, but stability rule says keep previous
         // primary if it's still visible.
-        final items = <ViewportItemFocus<int>>[
+        final items = <ScrollSpyItemFocus<int>>[
           makeFocusItem(
             id: 1,
             isVisible: true,
@@ -117,10 +117,10 @@ void main() {
           ),
         ];
 
-        final result = FocusSelection.select<int>(
+        final result = ScrollSpySelection.select<int>(
           items: items,
-          policy: const ViewportFocusPolicy.closestToAnchor(),
-          stability: const ViewportFocusStability(
+          policy: const ScrollSpyPolicy.closestToAnchor(),
+          stability: const ScrollSpyStability(
             allowPrimaryWhenNoItemFocused: true,
           ),
           previousPrimaryId: 1,
@@ -142,7 +142,7 @@ void main() {
       () {
         final now = DateTime(2024, 1, 1);
 
-        final items = <ViewportItemFocus<int>>[
+        final items = <ScrollSpyItemFocus<int>>[
           // Previous primary exists in frame but is NOT visible.
           makeFocusItem(
             id: 1,
@@ -165,10 +165,10 @@ void main() {
           ),
         ];
 
-        final result = FocusSelection.select<int>(
+        final result = ScrollSpySelection.select<int>(
           items: items,
-          policy: const ViewportFocusPolicy.closestToAnchor(),
-          stability: const ViewportFocusStability(
+          policy: const ScrollSpyPolicy.closestToAnchor(),
+          stability: const ScrollSpyStability(
             allowPrimaryWhenNoItemFocused: true,
           ),
           previousPrimaryId: 1,
@@ -191,7 +191,7 @@ void main() {
 
       // Both focused, candidate 2 is clearly better by closest-to-anchor,
       // but minPrimaryDuration has NOT elapsed => keep previous primary (1).
-      final items = <ViewportItemFocus<int>>[
+      final items = <ScrollSpyItemFocus<int>>[
         makeFocusItem(
           id: 1,
           isVisible: true,
@@ -210,10 +210,10 @@ void main() {
         ),
       ];
 
-      final result = FocusSelection.select<int>(
+      final result = ScrollSpySelection.select<int>(
         items: items,
-        policy: const ViewportFocusPolicy.closestToAnchor(),
-        stability: const ViewportFocusStability(
+        policy: const ScrollSpyPolicy.closestToAnchor(),
+        stability: const ScrollSpyStability(
           minPrimaryDuration: Duration(milliseconds: 100),
           preferCurrentPrimary: false, // even if not sticky, min duration wins
         ),
@@ -238,7 +238,7 @@ void main() {
         // Current primary is 1 at distance 100.
         // Candidate 2 is better (80), but not better by hysteresis margin (50).
         // Improvement = 20 < 50 => keep current.
-        final itemsNotEnough = <ViewportItemFocus<int>>[
+        final itemsNotEnough = <ScrollSpyItemFocus<int>>[
           makeFocusItem(
             id: 1,
             isVisible: true,
@@ -257,15 +257,15 @@ void main() {
           ),
         ];
 
-        final stability = const ViewportFocusStability(
+        final stability = const ScrollSpyStability(
           minPrimaryDuration: Duration(milliseconds: 100),
           preferCurrentPrimary: true,
           hysteresisPx: 50,
         );
 
-        final r1 = FocusSelection.select<int>(
+        final r1 = ScrollSpySelection.select<int>(
           items: itemsNotEnough,
-          policy: const ViewportFocusPolicy.closestToAnchor(),
+          policy: const ScrollSpyPolicy.closestToAnchor(),
           stability: stability,
           previousPrimaryId: 1,
           previousPrimarySince: previousSince,
@@ -276,7 +276,7 @@ void main() {
         expect(r1.primarySince, previousSince);
 
         // Now candidate improves enough: current=100, candidate=40 => improvement=60 >= 50.
-        final itemsEnough = <ViewportItemFocus<int>>[
+        final itemsEnough = <ScrollSpyItemFocus<int>>[
           makeFocusItem(
             id: 1,
             isVisible: true,
@@ -295,9 +295,9 @@ void main() {
           ),
         ];
 
-        final r2 = FocusSelection.select<int>(
+        final r2 = ScrollSpySelection.select<int>(
           items: itemsEnough,
-          policy: const ViewportFocusPolicy.closestToAnchor(),
+          policy: const ScrollSpyPolicy.closestToAnchor(),
           stability: stability,
           previousPrimaryId: 1,
           previousPrimarySince: previousSince,
@@ -320,7 +320,7 @@ void main() {
         // 1) focusProgress (tied)
         // 2) visibleFraction (should pick item 2)
         // 3) abs distance (would pick item 1 if visibleFraction were treated as "equal")
-        final items = <ViewportItemFocus<int>>[
+        final items = <ScrollSpyItemFocus<int>>[
           makeFocusItem(
             id: 1,
             isVisible: true,
@@ -341,10 +341,10 @@ void main() {
           ),
         ];
 
-        final result = FocusSelection.select<int>(
+        final result = ScrollSpySelection.select<int>(
           items: items,
-          policy: const ViewportFocusPolicy.largestFocusProgress(),
-          stability: const ViewportFocusStability(),
+          policy: const ScrollSpyPolicy.largestFocusProgress(),
+          stability: const ScrollSpyStability(),
           previousPrimaryId: null,
           previousPrimarySince: null,
           now: now,
@@ -368,7 +368,7 @@ void main() {
       // - visibleFraction equal
       // - abs distance equal
       // => stable fallback keeps the first candidate in the input list.
-      final items = <ViewportItemFocus<int>>[
+      final items = <ScrollSpyItemFocus<int>>[
         makeFocusItem(
           id: 1,
           isVisible: true,
@@ -389,10 +389,10 @@ void main() {
         ),
       ];
 
-      final result = FocusSelection.select<int>(
+      final result = ScrollSpySelection.select<int>(
         items: items,
-        policy: const ViewportFocusPolicy.largestFocusProgress(),
-        stability: const ViewportFocusStability(),
+        policy: const ScrollSpyPolicy.largestFocusProgress(),
+        stability: const ScrollSpyStability(),
         previousPrimaryId: null,
         previousPrimarySince: null,
         now: now,
@@ -406,7 +406,7 @@ void main() {
     test('custom policy comparator tie falls back to distance-to-anchor', () {
       final now = DateTime(2024, 1, 1);
 
-      final items = <ViewportItemFocus<int>>[
+      final items = <ScrollSpyItemFocus<int>>[
         makeFocusItem(
           id: 1,
           isVisible: true,
@@ -429,10 +429,10 @@ void main() {
         ),
       ];
 
-      final result = FocusSelection.select<int>(
+      final result = ScrollSpySelection.select<int>(
         items: items,
-        policy: ViewportFocusPolicy<int>.custom(compare: (a, b) => 0),
-        stability: const ViewportFocusStability(),
+        policy: ScrollSpyPolicy<int>.custom(compare: (a, b) => 0),
+        stability: const ScrollSpyStability(),
         previousPrimaryId: null,
         previousPrimarySince: null,
         now: now,
@@ -451,7 +451,7 @@ void main() {
       final now = DateTime(2024, 1, 1);
 
       // Item 1 is closer, but the custom comparator prefers higher id.
-      final items = <ViewportItemFocus<int>>[
+      final items = <ScrollSpyItemFocus<int>>[
         makeFocusItem(
           id: 1,
           isVisible: true,
@@ -470,12 +470,12 @@ void main() {
         ),
       ];
 
-      final result = FocusSelection.select<int>(
+      final result = ScrollSpySelection.select<int>(
         items: items,
-        policy: ViewportFocusPolicy.custom(
+        policy: ScrollSpyPolicy.custom(
           compare: (a, b) => b.id.compareTo(a.id), // prefer larger id
         ),
-        stability: const ViewportFocusStability(),
+        stability: const ScrollSpyStability(),
         previousPrimaryId: null,
         previousPrimarySince: null,
         now: now,
@@ -494,7 +494,7 @@ void main() {
         // Candidate 2 is only slightly better by distance, and would NOT beat
         // the large hysteresis margin, but preferCurrentPrimary=false should
         // switch immediately once minPrimaryDuration is satisfied.
-        final items = <ViewportItemFocus<int>>[
+        final items = <ScrollSpyItemFocus<int>>[
           makeFocusItem(
             id: 1,
             isVisible: true,
@@ -513,10 +513,10 @@ void main() {
           ),
         ];
 
-        final result = FocusSelection.select<int>(
+        final result = ScrollSpySelection.select<int>(
           items: items,
-          policy: const ViewportFocusPolicy.closestToAnchor(),
-          stability: const ViewportFocusStability(
+          policy: const ScrollSpyPolicy.closestToAnchor(),
+          stability: const ScrollSpyStability(
             minPrimaryDuration: Duration(milliseconds: 100),
             hysteresisPx: 999,
             preferCurrentPrimary: false,
@@ -536,7 +536,7 @@ void main() {
       () {
         final now = DateTime(2024, 1, 1);
 
-        final items = <ViewportItemFocus<int>>[
+        final items = <ScrollSpyItemFocus<int>>[
           makeFocusItem(
             id: 1,
             isVisible: true,
@@ -555,10 +555,10 @@ void main() {
           ),
         ];
 
-        final result = FocusSelection.select<int>(
+        final result = ScrollSpySelection.select<int>(
           items: items,
-          policy: const ViewportFocusPolicy.closestToAnchor(),
-          stability: const ViewportFocusStability(
+          policy: const ScrollSpyPolicy.closestToAnchor(),
+          stability: const ScrollSpyStability(
             minPrimaryDuration: Duration(milliseconds: 100),
             preferCurrentPrimary: false,
           ),

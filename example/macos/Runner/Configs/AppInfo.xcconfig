@@ -5,10 +5,10 @@
 // 'flutter create' template.
 
 // The application's name. By default this is also the title of the Flutter window.
-PRODUCT_NAME = viewport_focus_example
+PRODUCT_NAME = scroll_spy_example
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.viewportfocus.viewportFocusExample
+PRODUCT_BUNDLE_IDENTIFIER = com.scrollspy.viewportFocusExample
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2025 com.viewportfocus. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2025 com.scrollspy. All rights reserved.
