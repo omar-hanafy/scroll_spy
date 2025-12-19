@@ -316,6 +316,70 @@ allocations.
 
 ---
 
+## Performance / Low-overhead signals (for large feeds)
+
+By default, `ScrollSpyItem` rebuilds whenever focus metrics (like
+`visibleFraction` or `distanceToAnchorPx`) change. In a large scrolling feed,
+this can cause frequent rebuilds even if the item simply remains "focused" but
+moves slightly.
+
+For maximum performance, use **Low-Overhead Signals** to rebuild only when
+boolean states change (`isPrimary`, `isFocused`, `isVisible`).
+
+### 1) Use `ScrollSpyItemLite`
+
+This widget is a drop-in replacement for `ScrollSpyItem` that rebuilds **only**
+when `isPrimary` or `isFocused` toggles. It ignores metric drift.
+
+```dart
+ScrollSpyItemLite<int>(
+  id: index,
+  child: const FeedCardBody(), // static content
+  builder: (context, isPrimary, isFocused, child) {
+    // This builder runs rarely (only on state toggles).
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: isPrimary ? Colors.green : Colors.transparent,
+          width: 3,
+        ),
+      ),
+      child: child,
+    );
+  },
+);
+```
+
+### 2) Listen to specific booleans
+
+If you don't need the full item wrapper, you can listen to specific signals directly:
+
+```dart
+ScrollSpyItemPrimaryBuilder<int>(
+  id: index,
+  builder: (context, isPrimary, child) {
+    return isPrimary ? const PlayingIcon() : const SizedBox.shrink();
+  },
+);
+```
+
+### 3) Controller API
+
+The controller exposes these lightweight notifiers directly:
+
+```dart
+final isPrimary = controller.itemIsPrimaryOf(id);
+final isFocused = controller.itemIsFocusedOf(id);
+final isVisible = controller.itemIsVisibleOf(id);
+```
+
+These notifiers are:
+- **Lazy:** Created only when accessed.
+- **Diff-optimized:** Updated only when the boolean value actually changes.
+- **Auto-evicted:** Disposed when the item leaves the viewport and no listeners remain.
+
+---
+
 ## What is in the box (API map)
 
 Core:

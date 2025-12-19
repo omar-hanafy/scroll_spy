@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:scroll_spy/src/public/scroll_spy_controller.dart';
@@ -42,6 +43,16 @@ typedef ScrollSpySnapshotWidgetBuilder<T> = Widget Function(
 typedef ScrollSpyItemFocusWidgetBuilder<T> = Widget Function(
   BuildContext context,
   ScrollSpyItemFocus<T> itemFocus,
+  Widget? child,
+);
+
+/// Builder signature for reacting to a boolean status change.
+///
+/// Used by [ScrollSpyItemPrimaryBuilder], [ScrollSpyItemFocusedBuilder],
+/// and [ScrollSpyItemVisibleBuilder].
+typedef ScrollSpyItemBoolWidgetBuilder<T> = Widget Function(
+  BuildContext context,
+  bool value,
   Widget? child,
 );
 
@@ -275,4 +286,349 @@ class ScrollSpyItemFocusBuilder<T> extends StatelessWidget {
       builder: (context, focus, _) => builder(context, focus, child),
     );
   }
+}
+
+/// Rebuilds only when the **primary** status of [id] changes.
+class ScrollSpyItemPrimaryBuilder<T> extends StatelessWidget {
+  /// Creates a builder that rebuilds when [id] toggles primary status.
+  const ScrollSpyItemPrimaryBuilder({
+    super.key,
+    this.controller,
+    required this.id,
+    this.child,
+    required this.builder,
+  });
+
+  /// The controller to listen to. If null, resolves from the nearest [ScrollSpyScope].
+  final ScrollSpyController<T>? controller;
+
+  /// The item ID to observe.
+  final T id;
+
+  /// Optional subtree that does not depend on the boolean value.
+  final Widget? child;
+
+  /// Builder invoked when the primary status changes.
+  final ScrollSpyItemBoolWidgetBuilder<T> builder;
+
+  @override
+  Widget build(BuildContext context) {
+    final ctrl = _resolveController<T>(context, controller: controller);
+    return ValueListenableBuilder<bool>(
+      valueListenable: ctrl.itemIsPrimaryOf(id),
+      builder: (context, v, _) => builder(context, v, child),
+    );
+  }
+}
+
+/// Rebuilds only when the **focused** status of [id] changes.
+class ScrollSpyItemFocusedBuilder<T> extends StatelessWidget {
+  /// Creates a builder that rebuilds when [id] toggles focused status.
+  const ScrollSpyItemFocusedBuilder({
+    super.key,
+    this.controller,
+    required this.id,
+    this.child,
+    required this.builder,
+  });
+
+  /// The controller to listen to. If null, resolves from the nearest [ScrollSpyScope].
+  final ScrollSpyController<T>? controller;
+
+  /// The item ID to observe.
+  final T id;
+
+  /// Optional subtree that does not depend on the boolean value.
+  final Widget? child;
+
+  /// Builder invoked when the focused status changes.
+  final ScrollSpyItemBoolWidgetBuilder<T> builder;
+
+  @override
+  Widget build(BuildContext context) {
+    final ctrl = _resolveController<T>(context, controller: controller);
+    return ValueListenableBuilder<bool>(
+      valueListenable: ctrl.itemIsFocusedOf(id),
+      builder: (context, v, _) => builder(context, v, child),
+    );
+  }
+}
+
+/// Rebuilds only when the **visible** status of [id] changes.
+class ScrollSpyItemVisibleBuilder<T> extends StatelessWidget {
+  /// Creates a builder that rebuilds when [id] toggles visibility.
+  const ScrollSpyItemVisibleBuilder({
+    super.key,
+    this.controller,
+    required this.id,
+    this.child,
+    required this.builder,
+  });
+
+  /// The controller to listen to. If null, resolves from the nearest [ScrollSpyScope].
+  final ScrollSpyController<T>? controller;
+
+  /// The item ID to observe.
+  final T id;
+
+  /// Optional subtree that does not depend on the boolean value.
+  final Widget? child;
+
+  /// Builder invoked when the visible status changes.
+  final ScrollSpyItemBoolWidgetBuilder<T> builder;
+
+  @override
+  Widget build(BuildContext context) {
+    final ctrl = _resolveController<T>(context, controller: controller);
+    return ValueListenableBuilder<bool>(
+      valueListenable: ctrl.itemIsVisibleOf(id),
+      builder: (context, v, _) => builder(context, v, child),
+    );
+  }
+}
+
+/// Triggers a callback when the **primary** status of [id] changes (no rebuild).
+class ScrollSpyItemPrimaryListener<T> extends StatefulWidget {
+  /// Creates a listener that reacts to primary status changes for [id].
+  const ScrollSpyItemPrimaryListener({
+    super.key,
+    this.controller,
+    required this.id,
+    required this.onChanged,
+    required this.child,
+  });
+
+  /// The controller to observe. If null, resolves from the nearest [ScrollSpyScope].
+  final ScrollSpyController<T>? controller;
+
+  /// The item ID to observe.
+  final T id;
+
+  /// Called with the previous and current values when the status toggles.
+  final void Function(bool previous, bool current) onChanged;
+
+  /// Subtree that is not rebuilt by this listener.
+  final Widget child;
+
+  @override
+  State<ScrollSpyItemPrimaryListener<T>> createState() =>
+      _ScrollSpyItemPrimaryListenerState<T>();
+}
+
+class _ScrollSpyItemPrimaryListenerState<T>
+    extends State<ScrollSpyItemPrimaryListener<T>> {
+  ValueListenable<bool>? _listenable;
+  bool _last = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _sync();
+  }
+
+  @override
+  void didUpdateWidget(covariant ScrollSpyItemPrimaryListener<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller || oldWidget.id != widget.id) {
+      _sync();
+    }
+  }
+
+  void _sync() {
+    final ctrl = _resolveController<T>(context, controller: widget.controller);
+    final l = ctrl.itemIsPrimaryOf(widget.id);
+
+    if (identical(l, _listenable)) return;
+
+    _listenable?.removeListener(_handle);
+    _listenable = l;
+    _last = l.value;
+    l.addListener(_handle);
+  }
+
+  void _handle() {
+    final l = _listenable;
+    if (l == null) return;
+
+    final curr = l.value;
+    final prev = _last;
+    if (prev != curr) {
+      _last = curr;
+      widget.onChanged(prev, curr);
+    }
+  }
+
+  @override
+  void dispose() {
+    _listenable?.removeListener(_handle);
+    _listenable = null;
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
+/// Triggers a callback when the **focused** status of [id] changes (no rebuild).
+class ScrollSpyItemFocusedListener<T> extends StatefulWidget {
+  /// Creates a listener that reacts to focused status changes for [id].
+  const ScrollSpyItemFocusedListener({
+    super.key,
+    this.controller,
+    required this.id,
+    required this.onChanged,
+    required this.child,
+  });
+
+  /// The controller to observe. If null, resolves from the nearest [ScrollSpyScope].
+  final ScrollSpyController<T>? controller;
+
+  /// The item ID to observe.
+  final T id;
+
+  /// Called with the previous and current values when the status toggles.
+  final void Function(bool previous, bool current) onChanged;
+
+  /// Subtree that is not rebuilt by this listener.
+  final Widget child;
+
+  @override
+  State<ScrollSpyItemFocusedListener<T>> createState() =>
+      _ScrollSpyItemFocusedListenerState<T>();
+}
+
+class _ScrollSpyItemFocusedListenerState<T>
+    extends State<ScrollSpyItemFocusedListener<T>> {
+  ValueListenable<bool>? _listenable;
+  bool _last = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _sync();
+  }
+
+  @override
+  void didUpdateWidget(covariant ScrollSpyItemFocusedListener<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller || oldWidget.id != widget.id) {
+      _sync();
+    }
+  }
+
+  void _sync() {
+    final ctrl = _resolveController<T>(context, controller: widget.controller);
+    final l = ctrl.itemIsFocusedOf(widget.id);
+
+    if (identical(l, _listenable)) return;
+
+    _listenable?.removeListener(_handle);
+    _listenable = l;
+    _last = l.value;
+    l.addListener(_handle);
+  }
+
+  void _handle() {
+    final l = _listenable;
+    if (l == null) return;
+
+    final curr = l.value;
+    final prev = _last;
+    if (prev != curr) {
+      _last = curr;
+      widget.onChanged(prev, curr);
+    }
+  }
+
+  @override
+  void dispose() {
+    _listenable?.removeListener(_handle);
+    _listenable = null;
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
+/// Triggers a callback when the **visible** status of [id] changes (no rebuild).
+class ScrollSpyItemVisibleListener<T> extends StatefulWidget {
+  /// Creates a listener that reacts to visibility changes for [id].
+  const ScrollSpyItemVisibleListener({
+    super.key,
+    this.controller,
+    required this.id,
+    required this.onChanged,
+    required this.child,
+  });
+
+  /// The controller to observe. If null, resolves from the nearest [ScrollSpyScope].
+  final ScrollSpyController<T>? controller;
+
+  /// The item ID to observe.
+  final T id;
+
+  /// Called with the previous and current values when the status toggles.
+  final void Function(bool previous, bool current) onChanged;
+
+  /// Subtree that is not rebuilt by this listener.
+  final Widget child;
+
+  @override
+  State<ScrollSpyItemVisibleListener<T>> createState() =>
+      _ScrollSpyItemVisibleListenerState<T>();
+}
+
+class _ScrollSpyItemVisibleListenerState<T>
+    extends State<ScrollSpyItemVisibleListener<T>> {
+  ValueListenable<bool>? _listenable;
+  bool _last = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _sync();
+  }
+
+  @override
+  void didUpdateWidget(covariant ScrollSpyItemVisibleListener<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller || oldWidget.id != widget.id) {
+      _sync();
+    }
+  }
+
+  void _sync() {
+    final ctrl = _resolveController<T>(context, controller: widget.controller);
+    final l = ctrl.itemIsVisibleOf(widget.id);
+
+    if (identical(l, _listenable)) return;
+
+    _listenable?.removeListener(_handle);
+    _listenable = l;
+    _last = l.value;
+    l.addListener(_handle);
+  }
+
+  void _handle() {
+    final l = _listenable;
+    if (l == null) return;
+
+    final curr = l.value;
+    final prev = _last;
+    if (prev != curr) {
+      _last = curr;
+      widget.onChanged(prev, curr);
+    }
+  }
+
+  @override
+  void dispose() {
+    _listenable?.removeListener(_handle);
+    _listenable = null;
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

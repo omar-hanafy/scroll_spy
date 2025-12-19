@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
@@ -13,6 +14,16 @@ import 'package:scroll_spy/src/widgets/scroll_spy_scope.dart';
 typedef ScrollSpyItemBuilder<T> = Widget Function(
   BuildContext context,
   ScrollSpyItemFocus<T> focus,
+  Widget? child,
+);
+
+/// Signature for building a lite focus-aware item subtree.
+///
+/// Only receives boolean state toggles.
+typedef ScrollSpyItemLiteBuilder<T> = Widget Function(
+  BuildContext context,
+  bool isPrimary,
+  bool isFocused,
   Widget? child,
 );
 
@@ -153,6 +164,157 @@ class _ScrollSpyItemState<T> extends State<ScrollSpyItem<T>> {
         valueListenable: controller.itemFocusOf(id),
         builder: (context, focus, _) =>
             widget.builder(context, focus, widget.child),
+      ),
+    );
+  }
+
+  void _handleProbeBox(RenderBox box) {
+    if (identical(_probeBox, box)) return;
+    _probeBox = box;
+    _scheduleRegister();
+  }
+}
+
+/// A "Lite" version of [ScrollSpyItem] that rebuilds ONLY when
+/// [isPrimary] or [isFocused] changes.
+///
+/// It ignores high-frequency updates (like distance changes or visible fraction).
+/// Use this for performance-critical lists where you only need boolean states.
+class ScrollSpyItemLite<T> extends StatefulWidget {
+  /// Creates a lite focus-aware item for [id].
+  const ScrollSpyItemLite({
+    super.key,
+    required this.id,
+    required this.builder,
+    this.child,
+  });
+
+  /// Unique ID used by the controller to track this item.
+  final T id;
+
+  /// Called when the item's primary/focused status toggles.
+  final ScrollSpyItemLiteBuilder<T> builder;
+
+  /// Optional subtree that does not depend on focus state.
+  final Widget? child;
+
+  @override
+  State<ScrollSpyItemLite<T>> createState() => _ScrollSpyItemLiteState<T>();
+}
+
+class _ScrollSpyItemLiteState<T> extends State<ScrollSpyItemLite<T>> {
+  ScrollSpyScopeState<T>? _scope;
+  T? _registeredId;
+  RenderBox? _probeBox;
+  bool _registerScheduled = false;
+
+  ValueListenable<bool>? _isPrimary;
+  ValueListenable<bool>? _isFocused;
+  Listenable? _merged;
+
+  @override
+  void initState() {
+    super.initState();
+    _scheduleRegister();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _scheduleRegister();
+  }
+
+  @override
+  void didUpdateWidget(covariant ScrollSpyItemLite<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.id != widget.id) {
+      _unregister(oldWidget.id);
+      _scheduleRegister();
+    }
+  }
+
+  @override
+  void dispose() {
+    _unregister(_registeredId);
+    super.dispose();
+  }
+
+  void _scheduleRegister() {
+    if (_registerScheduled) return;
+    _registerScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _registerScheduled = false;
+      if (!mounted) return;
+      _registerIfPossible();
+    });
+  }
+
+  void _registerIfPossible() {
+    final ScrollSpyScopeState<T>? newScope = ScrollSpyScope.maybeOf<T>(
+      context,
+    );
+    if (newScope == null) return;
+
+    final RenderBox? box = _probeBox;
+    if (box == null || !box.attached || !box.hasSize) return;
+
+    if (!identical(_scope, newScope)) {
+      _unregister(_registeredId);
+      _scope = newScope;
+    }
+
+    final T id = widget.id;
+    if (_registeredId == id) {
+      _scope!.registerItem(id, context: context, box: box);
+      return;
+    }
+
+    _registeredId = id;
+    _scope!.registerItem(id, context: context, box: box);
+  }
+
+  void _unregister(T? id) {
+    if (id == null) return;
+    _scope?.unregisterItem(id);
+    if (_registeredId == id) _registeredId = null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scope = ScrollSpyScope.maybeOf<T>(context);
+    assert(
+      scope != null,
+      'ScrollSpyItemLite<$T> must be placed under a ScrollSpyScope<$T>.',
+    );
+
+    final controller = scope!.controller;
+    final id = widget.id;
+
+    // Cache merged listenable to avoid rebuild-time allocations.
+    final p = controller.itemIsPrimaryOf(id);
+    final f = controller.itemIsFocusedOf(id);
+
+    if (!identical(p, _isPrimary) ||
+        !identical(f, _isFocused) ||
+        _merged == null) {
+      _isPrimary = p;
+      _isFocused = f;
+      _merged = Listenable.merge(<Listenable>[p, f]);
+    }
+
+    return _ScrollSpyProbe(
+      onProbeBox: _handleProbeBox,
+      child: AnimatedBuilder(
+        animation: _merged!,
+        child: widget.child,
+        builder: (context, child) {
+          return widget.builder(
+            context,
+            _isPrimary!.value,
+            _isFocused!.value,
+            child,
+          );
+        },
       ),
     );
   }
