@@ -1,3 +1,13 @@
+## 0.2.4 — 2025-12-20
+
+Docs-only release with header polish and naming update.
+
+### Changed
+- Updated the README title to ScrollSpy.
+- Refined the README header layout with a linked demo preview.
+
+---
+
 ## 0.2.3 — 2025-12-20
 
 Docs-only release with the new package icon screenshot.

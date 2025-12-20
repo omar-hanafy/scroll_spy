@@ -1,4 +1,4 @@
-# scroll_spy
+# ScrollSpy
 
 <table style="border:none;">
   <tr style="border:none;">
@@ -67,7 +67,7 @@ Add to `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  scroll_spy: ^0.2.0
+  scroll_spy: ^0.2.4
 ```
 
 Then:
