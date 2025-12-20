@@ -1,3 +1,12 @@
+## 0.2.5 — 2025-12-20
+
+Docs-only release removing the oversize demo screenshot entry.
+
+### Changed
+- Removed the demo GIF from pubspec screenshots to satisfy pub.dev limits.
+
+---
+
 ## 0.2.4 — 2025-12-20
 
 Docs-only release with header polish and naming update.
