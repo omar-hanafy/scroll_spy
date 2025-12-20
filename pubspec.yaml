@@ -1,6 +1,6 @@
 name: scroll_spy
 description: Compute focused items and a stable primary item in a scrollable viewport (feed/autoplay/analytics).
-version: 0.2.0
+version: 0.2.1
 repository: https://github.com/omar-hanafy/scroll_spy
 issue_tracker: https://github.com/omar-hanafy/scroll_spy/issues
 

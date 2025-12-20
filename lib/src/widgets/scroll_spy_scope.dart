@@ -46,9 +46,12 @@ class ScrollSpyScope<T> extends StatefulWidget {
     required this.policy,
     this.stability = const ScrollSpyStability(),
     this.updatePolicy = const ScrollSpyUpdatePolicy.perFrame(),
+    this.viewportInsets = EdgeInsets.zero,
+    this.insetsAffectVisibility = true,
     this.scrollController,
     this.notificationDepth = 0,
     this.notificationPredicate,
+    this.metricsNotificationPredicate,
     this.debug = false,
     this.debugConfig,
     required this.child,
@@ -74,6 +77,13 @@ class ScrollSpyScope<T> extends StatefulWidget {
   /// Controls how often the focus engine runs (per-frame vs. scroll-end).
   final ScrollSpyUpdatePolicy updatePolicy;
 
+  /// Insets to deflate the viewport rect (e.g. for pinned headers).
+  /// The "effective" viewport used for focus logic will be the full rect minus these insets.
+  final EdgeInsets viewportInsets;
+
+  /// If true (default), items completely covered by [viewportInsets] are considered not visible.
+  final bool insetsAffectVisibility;
+
   /// An optional external scroll controller for the child scrollable.
   ///
   /// **Behavior:**
@@ -97,6 +107,13 @@ class ScrollSpyScope<T> extends StatefulWidget {
   /// nested structure and need to target a specific scrollable by type or property).
   /// Returns `true` to process the notification.
   final bool Function(ScrollNotification notification)? notificationPredicate;
+
+  /// A custom filter for scroll metrics notifications.
+  ///
+  /// This mirrors [notificationPredicate] but applies to [ScrollMetricsNotification].
+  /// Returns `true` to process the notification.
+  final bool Function(ScrollMetricsNotification notification)?
+      metricsNotificationPredicate;
 
   /// Whether to paint a debug overlay on top of the child.
   ///
@@ -170,6 +187,8 @@ class ScrollSpyScopeState<T> extends State<ScrollSpyScope<T>>
       stability: widget.stability,
       updatePolicy: widget.updatePolicy,
       includeItemRects: _shouldIncludeItemRects,
+      viewportInsets: widget.viewportInsets,
+      insetsAffectVisibility: widget.insetsAffectVisibility,
     );
   }
 
@@ -194,6 +213,8 @@ class ScrollSpyScopeState<T> extends State<ScrollSpyScope<T>>
         oldWidget.stability != widget.stability ||
         oldWidget.updatePolicy != widget.updatePolicy ||
         oldWidget.controller != widget.controller ||
+        oldWidget.viewportInsets != widget.viewportInsets ||
+        oldWidget.insetsAffectVisibility != widget.insetsAffectVisibility ||
         oldWidget.debug != widget.debug ||
         oldWidget.debugConfig != widget.debugConfig;
 
@@ -209,6 +230,8 @@ class ScrollSpyScopeState<T> extends State<ScrollSpyScope<T>>
         stability: widget.stability,
         updatePolicy: widget.updatePolicy,
         includeItemRects: _shouldIncludeItemRects,
+        viewportInsets: widget.viewportInsets,
+        insetsAffectVisibility: widget.insetsAffectVisibility,
       );
     }
   }
@@ -263,6 +286,10 @@ class ScrollSpyScopeState<T> extends State<ScrollSpyScope<T>>
 
   bool _onScrollMetricsNotification(ScrollMetricsNotification n) {
     if (n.depth != widget.notificationDepth) return false;
+    if (widget.metricsNotificationPredicate != null &&
+        !widget.metricsNotificationPredicate!(n)) {
+      return false;
+    }
     return _engine.handleScrollMetricsNotification(n);
   }
 

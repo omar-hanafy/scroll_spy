@@ -58,6 +58,8 @@ class ScrollSpyEngine<T> {
     required ScrollSpyStability stability,
     required ScrollSpyUpdatePolicy updatePolicy,
     required bool includeItemRects,
+    EdgeInsets viewportInsets = EdgeInsets.zero,
+    bool insetsAffectVisibility = true,
   })  : _controller = controller,
         _registry = registry,
         _region = region,
@@ -65,6 +67,8 @@ class ScrollSpyEngine<T> {
         _stability = stability,
         _updatePolicy = updatePolicy,
         _includeItemRects = includeItemRects,
+        _viewportInsets = viewportInsets,
+        _insetsAffectVisibility = insetsAffectVisibility,
         _debugFrame = ValueNotifier<debug.ScrollSpyDebugFrame<T>?>(
           debug.ScrollSpyDebugFrame.empty<T>(),
         ) {
@@ -78,6 +82,8 @@ class ScrollSpyEngine<T> {
   ScrollSpyPolicy<T> _policy;
   ScrollSpyStability _stability;
   ScrollSpyUpdatePolicy _updatePolicy;
+  EdgeInsets _viewportInsets;
+  bool _insetsAffectVisibility;
 
   bool _includeItemRects;
 
@@ -168,6 +174,8 @@ class ScrollSpyEngine<T> {
     required ScrollSpyStability stability,
     required ScrollSpyUpdatePolicy updatePolicy,
     required bool includeItemRects,
+    EdgeInsets? viewportInsets,
+    bool? insetsAffectVisibility,
   }) {
     if (_disposed) return;
 
@@ -177,11 +185,19 @@ class ScrollSpyEngine<T> {
     final bool stabilityChanged = _stability != stability;
     final bool updatePolicyChanged = _updatePolicy != updatePolicy;
     final bool rectsChanged = _includeItemRects != includeItemRects;
+    final EdgeInsets resolvedViewportInsets = viewportInsets ?? _viewportInsets;
+    final bool resolvedInsetsAffectVisibility =
+        insetsAffectVisibility ?? _insetsAffectVisibility;
+    final bool insetsChanged = _viewportInsets != resolvedViewportInsets;
+    final bool visibilityChanged =
+        _insetsAffectVisibility != resolvedInsetsAffectVisibility;
 
     _controller = controller;
     _region = region;
     _policy = policy;
     _stability = stability;
+    _viewportInsets = resolvedViewportInsets;
+    _insetsAffectVisibility = resolvedInsetsAffectVisibility;
 
     if (updatePolicyChanged) {
       _updatePolicy = updatePolicy;
@@ -197,7 +213,9 @@ class ScrollSpyEngine<T> {
         policyChanged ||
         stabilityChanged ||
         updatePolicyChanged ||
-        rectsChanged) {
+        rectsChanged ||
+        insetsChanged ||
+        visibilityChanged) {
       // Force a recompute with the new configuration.
       _requestCompute(immediate: true);
     }
@@ -474,6 +492,8 @@ class ScrollSpyEngine<T> {
       region: _region,
       axis: axis,
       includeItemRects: _includeItemRects,
+      viewportInsets: _viewportInsets,
+      insetsAffectVisibility: _insetsAffectVisibility,
     );
 
     final DateTime now = DateTime.now();
@@ -494,11 +514,12 @@ class ScrollSpyEngine<T> {
 
       _debugFrame.value = debug.ScrollSpyDebugFrame<T>(
         sequence: ++_debugSequence,
-        viewportRect: geom.viewportRect,
+        viewportRect: geom.effectiveViewportRect,
         focusRegionRect: _buildFocusRegionRect(
-          viewportRect: geom.viewportRect,
+          viewportRect: geom.effectiveViewportRect,
           axis: axis,
           region: _region,
+          anchorOffsetPx: geom.anchorOffsetPx,
         ),
         focusRegionLabel: _buildFocusRegionLabel(_region),
         primaryId: null,
@@ -534,11 +555,12 @@ class ScrollSpyEngine<T> {
 
     _debugFrame.value = debug.ScrollSpyDebugFrame<T>(
       sequence: ++_debugSequence,
-      viewportRect: geom.viewportRect,
+      viewportRect: geom.effectiveViewportRect,
       focusRegionRect: _buildFocusRegionRect(
-        viewportRect: geom.viewportRect,
+        viewportRect: geom.effectiveViewportRect,
         axis: axis,
         region: _region,
+        anchorOffsetPx: geom.anchorOffsetPx,
       ),
       focusRegionLabel: _buildFocusRegionLabel(_region),
       primaryId: selection.primaryId,
@@ -552,19 +574,9 @@ class ScrollSpyEngine<T> {
     required Rect viewportRect,
     required Axis axis,
     required ScrollSpyRegion region,
+    required double? anchorOffsetPx,
   }) {
-    if (viewportRect.isEmpty) return null;
-
-    final double viewportMainExtent =
-        axis == Axis.vertical ? viewportRect.height : viewportRect.width;
-
-    final ScrollSpyAnchor anchor = switch (region) {
-      ScrollSpyLineRegion(:final anchor) => anchor,
-      ScrollSpyZoneRegion(:final anchor) => anchor,
-      ScrollSpyCustomRegion(:final anchor) => anchor,
-    };
-
-    final double anchorOffsetPx = anchor.resolveFromStart(viewportMainExtent);
+    if (viewportRect.isEmpty || anchorOffsetPx == null) return null;
 
     final double thicknessPx = switch (region) {
       ScrollSpyLineRegion(:final thicknessPx) =>

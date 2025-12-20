@@ -37,9 +37,12 @@ class ScrollSpyListView<T> extends StatefulWidget {
     required this.policy,
     required this.stability,
     required this.updatePolicy,
+    required this.viewportInsets,
+    required this.insetsAffectVisibility,
     required this.scrollController,
     required this.notificationDepth,
     required this.notificationPredicate,
+    required this.metricsNotificationPredicate,
     required this.debug,
     required this.debugConfig,
     required this.scrollDirection,
@@ -66,6 +69,12 @@ class ScrollSpyListView<T> extends StatefulWidget {
   /// Update cadence for engine compute passes.
   final ScrollSpyUpdatePolicy updatePolicy;
 
+  /// Insets to deflate the viewport rect (e.g. for pinned headers).
+  final EdgeInsets viewportInsets;
+
+  /// If true (default), items completely covered by [viewportInsets] are considered not visible.
+  final bool insetsAffectVisibility;
+
   /// Scroll controller for the underlying ListView.
   final ScrollController? scrollController;
 
@@ -74,6 +83,10 @@ class ScrollSpyListView<T> extends StatefulWidget {
 
   /// Optional predicate to further filter scroll notifications.
   final bool Function(ScrollNotification notification)? notificationPredicate;
+
+  /// Optional predicate to further filter scroll metrics notifications.
+  final bool Function(ScrollMetricsNotification notification)?
+      metricsNotificationPredicate;
 
   /// Whether to show the debug overlay.
   final bool debug;
@@ -101,9 +114,13 @@ class ScrollSpyListView<T> extends StatefulWidget {
     required ScrollSpyPolicy<T> policy,
     ScrollSpyStability stability = const ScrollSpyStability(),
     ScrollSpyUpdatePolicy updatePolicy = const ScrollSpyUpdatePolicy.perFrame(),
+    EdgeInsets viewportInsets = EdgeInsets.zero,
+    bool insetsAffectVisibility = true,
     ScrollController? scrollController,
     int notificationDepth = 0,
     bool Function(ScrollNotification notification)? notificationPredicate,
+    bool Function(ScrollMetricsNotification notification)?
+        metricsNotificationPredicate,
     bool debug = false,
     ScrollSpyDebugConfig? debugConfig,
     // ListView.builder params:
@@ -138,9 +155,12 @@ class ScrollSpyListView<T> extends StatefulWidget {
       policy: policy,
       stability: stability,
       updatePolicy: updatePolicy,
+      viewportInsets: viewportInsets,
+      insetsAffectVisibility: insetsAffectVisibility,
       scrollController: scrollController,
       notificationDepth: notificationDepth,
       notificationPredicate: notificationPredicate,
+      metricsNotificationPredicate: metricsNotificationPredicate,
       debug: debug,
       debugConfig: debugConfig,
       scrollDirection: scrollDirection,
@@ -185,9 +205,13 @@ class ScrollSpyListView<T> extends StatefulWidget {
     required ScrollSpyPolicy<T> policy,
     ScrollSpyStability stability = const ScrollSpyStability(),
     ScrollSpyUpdatePolicy updatePolicy = const ScrollSpyUpdatePolicy.perFrame(),
+    EdgeInsets viewportInsets = EdgeInsets.zero,
+    bool insetsAffectVisibility = true,
     ScrollController? scrollController,
     int notificationDepth = 0,
     bool Function(ScrollNotification notification)? notificationPredicate,
+    bool Function(ScrollMetricsNotification notification)?
+        metricsNotificationPredicate,
     bool debug = false,
     ScrollSpyDebugConfig? debugConfig,
     // ListView.separated params:
@@ -219,9 +243,12 @@ class ScrollSpyListView<T> extends StatefulWidget {
       policy: policy,
       stability: stability,
       updatePolicy: updatePolicy,
+      viewportInsets: viewportInsets,
+      insetsAffectVisibility: insetsAffectVisibility,
       scrollController: scrollController,
       notificationDepth: notificationDepth,
       notificationPredicate: notificationPredicate,
+      metricsNotificationPredicate: metricsNotificationPredicate,
       debug: debug,
       debugConfig: debugConfig,
       scrollDirection: scrollDirection,
@@ -331,9 +358,12 @@ class _ScrollSpyListViewState<T> extends State<ScrollSpyListView<T>> {
       policy: widget.policy,
       stability: widget.stability,
       updatePolicy: widget.updatePolicy,
+      viewportInsets: widget.viewportInsets,
+      insetsAffectVisibility: widget.insetsAffectVisibility,
       scrollController: effectiveEngineController,
       notificationDepth: widget.notificationDepth,
       notificationPredicate: widget.notificationPredicate,
+      metricsNotificationPredicate: widget.metricsNotificationPredicate,
       debug: widget.debug,
       debugConfig: widget.debugConfig,
       child: scrollable,
@@ -363,9 +393,12 @@ class ScrollSpyGridView<T> extends StatefulWidget {
     required this.policy,
     required this.stability,
     required this.updatePolicy,
+    required this.viewportInsets,
+    required this.insetsAffectVisibility,
     required this.scrollController,
     required this.notificationDepth,
     required this.notificationPredicate,
+    required this.metricsNotificationPredicate,
     required this.debug,
     required this.debugConfig,
     required this.scrollDirection,
@@ -391,6 +424,12 @@ class ScrollSpyGridView<T> extends StatefulWidget {
   /// Update cadence for engine compute passes.
   final ScrollSpyUpdatePolicy updatePolicy;
 
+  /// Insets to deflate the viewport rect (e.g. for pinned headers).
+  final EdgeInsets viewportInsets;
+
+  /// If true (default), items completely covered by [viewportInsets] are considered not visible.
+  final bool insetsAffectVisibility;
+
   /// Scroll controller for the underlying GridView.
   final ScrollController? scrollController;
 
@@ -399,6 +438,10 @@ class ScrollSpyGridView<T> extends StatefulWidget {
 
   /// Optional predicate to further filter scroll notifications.
   final bool Function(ScrollNotification notification)? notificationPredicate;
+
+  /// Optional predicate to further filter scroll metrics notifications.
+  final bool Function(ScrollMetricsNotification notification)?
+      metricsNotificationPredicate;
 
   /// Whether to show the debug overlay.
   final bool debug;
@@ -423,9 +466,13 @@ class ScrollSpyGridView<T> extends StatefulWidget {
     required ScrollSpyPolicy<T> policy,
     ScrollSpyStability stability = const ScrollSpyStability(),
     ScrollSpyUpdatePolicy updatePolicy = const ScrollSpyUpdatePolicy.perFrame(),
+    EdgeInsets viewportInsets = EdgeInsets.zero,
+    bool insetsAffectVisibility = true,
     ScrollController? scrollController,
     int notificationDepth = 0,
     bool Function(ScrollNotification notification)? notificationPredicate,
+    bool Function(ScrollMetricsNotification notification)?
+        metricsNotificationPredicate,
     bool debug = false,
     ScrollSpyDebugConfig? debugConfig,
     // GridView.builder params:
@@ -458,9 +505,12 @@ class ScrollSpyGridView<T> extends StatefulWidget {
       policy: policy,
       stability: stability,
       updatePolicy: updatePolicy,
+      viewportInsets: viewportInsets,
+      insetsAffectVisibility: insetsAffectVisibility,
       scrollController: scrollController,
       notificationDepth: notificationDepth,
       notificationPredicate: notificationPredicate,
+      metricsNotificationPredicate: metricsNotificationPredicate,
       debug: debug,
       debugConfig: debugConfig,
       scrollDirection: scrollDirection,
@@ -570,9 +620,12 @@ class _ScrollSpyGridViewState<T> extends State<ScrollSpyGridView<T>> {
       policy: widget.policy,
       stability: widget.stability,
       updatePolicy: widget.updatePolicy,
+      viewportInsets: widget.viewportInsets,
+      insetsAffectVisibility: widget.insetsAffectVisibility,
       scrollController: effectiveEngineController,
       notificationDepth: widget.notificationDepth,
       notificationPredicate: widget.notificationPredicate,
+      metricsNotificationPredicate: widget.metricsNotificationPredicate,
       debug: widget.debug,
       debugConfig: widget.debugConfig,
       child: scrollable,
@@ -599,9 +652,12 @@ class ScrollSpyCustomScrollView<T> extends StatefulWidget {
     required this.policy,
     this.stability = const ScrollSpyStability(),
     this.updatePolicy = const ScrollSpyUpdatePolicy.perFrame(),
+    this.viewportInsets = EdgeInsets.zero,
+    this.insetsAffectVisibility = true,
     this.scrollController,
     this.notificationDepth = 0,
     this.notificationPredicate,
+    this.metricsNotificationPredicate,
     this.debug = false,
     this.debugConfig,
     this.scrollDirection = Axis.vertical,
@@ -638,6 +694,12 @@ class ScrollSpyCustomScrollView<T> extends StatefulWidget {
   /// Update cadence for engine compute passes.
   final ScrollSpyUpdatePolicy updatePolicy;
 
+  /// Insets to deflate the viewport rect (e.g. for pinned headers).
+  final EdgeInsets viewportInsets;
+
+  /// If true (default), items completely covered by [viewportInsets] are considered not visible.
+  final bool insetsAffectVisibility;
+
   /// Optional scroll controller for the CustomScrollView.
   final ScrollController? scrollController;
 
@@ -646,6 +708,10 @@ class ScrollSpyCustomScrollView<T> extends StatefulWidget {
 
   /// Optional predicate to further filter scroll notifications.
   final bool Function(ScrollNotification notification)? notificationPredicate;
+
+  /// Optional predicate to further filter scroll metrics notifications.
+  final bool Function(ScrollMetricsNotification notification)?
+      metricsNotificationPredicate;
 
   /// Whether to show the debug overlay.
   final bool debug;
@@ -798,9 +864,12 @@ class _ScrollSpyCustomScrollViewState<T>
       policy: widget.policy,
       stability: widget.stability,
       updatePolicy: widget.updatePolicy,
+      viewportInsets: widget.viewportInsets,
+      insetsAffectVisibility: widget.insetsAffectVisibility,
       scrollController: effectiveEngineController,
       notificationDepth: widget.notificationDepth,
       notificationPredicate: widget.notificationPredicate,
+      metricsNotificationPredicate: widget.metricsNotificationPredicate,
       debug: widget.debug,
       debugConfig: widget.debugConfig,
       child: scrollable,
@@ -830,9 +899,12 @@ class ScrollSpyPageView<T> extends StatefulWidget {
     required this.policy,
     required this.stability,
     required this.updatePolicy,
+    required this.viewportInsets,
+    required this.insetsAffectVisibility,
     required this.pageController,
     required this.notificationDepth,
     required this.notificationPredicate,
+    required this.metricsNotificationPredicate,
     required this.debug,
     required this.debugConfig,
     required this.scrollDirection,
@@ -870,6 +942,12 @@ class ScrollSpyPageView<T> extends StatefulWidget {
   /// Update cadence for engine compute passes.
   final ScrollSpyUpdatePolicy updatePolicy;
 
+  /// Insets to deflate the viewport rect (e.g. for pinned headers).
+  final EdgeInsets viewportInsets;
+
+  /// If true (default), items completely covered by [viewportInsets] are considered not visible.
+  final bool insetsAffectVisibility;
+
   /// Optional external [PageController].
   ///
   /// If null, this widget will create and own an internal controller.
@@ -880,6 +958,10 @@ class ScrollSpyPageView<T> extends StatefulWidget {
 
   /// Optional predicate to further filter scroll notifications.
   final bool Function(ScrollNotification notification)? notificationPredicate;
+
+  /// Optional predicate to further filter scroll metrics notifications.
+  final bool Function(ScrollMetricsNotification notification)?
+      metricsNotificationPredicate;
 
   /// Whether to show the debug overlay.
   final bool debug;
@@ -950,9 +1032,13 @@ class ScrollSpyPageView<T> extends StatefulWidget {
     required ScrollSpyPolicy<T> policy,
     ScrollSpyStability stability = const ScrollSpyStability(),
     ScrollSpyUpdatePolicy updatePolicy = const ScrollSpyUpdatePolicy.perFrame(),
+    EdgeInsets viewportInsets = EdgeInsets.zero,
+    bool insetsAffectVisibility = true,
     PageController? pageController,
     int notificationDepth = 0,
     bool Function(ScrollNotification notification)? notificationPredicate,
+    bool Function(ScrollMetricsNotification notification)?
+        metricsNotificationPredicate,
     bool debug = false,
     ScrollSpyDebugConfig? debugConfig,
     // PageView.builder params:
@@ -982,9 +1068,12 @@ class ScrollSpyPageView<T> extends StatefulWidget {
       policy: policy,
       stability: stability,
       updatePolicy: updatePolicy,
+      viewportInsets: viewportInsets,
+      insetsAffectVisibility: insetsAffectVisibility,
       pageController: pageController,
       notificationDepth: notificationDepth,
       notificationPredicate: notificationPredicate,
+      metricsNotificationPredicate: metricsNotificationPredicate,
       debug: debug,
       debugConfig: debugConfig,
       scrollDirection: scrollDirection,
@@ -1101,6 +1190,9 @@ class _ScrollSpyPageViewState<T> extends State<ScrollSpyPageView<T>> {
       notificationPredicate: widget.notificationPredicate,
       debug: widget.debug,
       debugConfig: widget.debugConfig,
+      viewportInsets: widget.viewportInsets,
+      insetsAffectVisibility: widget.insetsAffectVisibility,
+      metricsNotificationPredicate: widget.metricsNotificationPredicate,
       child: pv,
     );
   }

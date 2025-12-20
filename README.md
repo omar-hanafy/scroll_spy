@@ -277,15 +277,70 @@ ScrollSpyUpdatePolicy.hybrid(
 
 ---
 
+## Pinned headers / obstructed viewport (SliverAppBar, tabs, SafeArea, bottom nav)
+
+If part of your viewport is covered by pinned headers (e.g. `SliverAppBar(pinned: true)` + pinned tabs)
+or overlays (SafeArea padding, bottom navigation bar), provide `viewportInsets` so ScrollSpy’s focus
+line/zone sits **within the unobstructed portion of the viewport**.
+
+```dart
+final spy = ScrollSpyController<int>();
+
+// Example: SliverAppBar + pinned TabBar = 56 + 48 = 104px pinned height.
+// (Adjust to your actual pinned heights; include status bar padding if needed.)
+const pinnedHeight = 104.0;
+
+return ScrollSpyCustomScrollView<int>(
+  controller: spy,
+  region: const ScrollSpyRegion.line(anchor: ScrollSpyAnchor.pixels(0)),
+  policy: const ScrollSpyPolicy.closestToAnchor(),
+  viewportInsets: const EdgeInsets.only(top: pinnedHeight),
+  slivers: [
+    const SliverAppBar(
+      pinned: true,
+      title: Text('Pinned AppBar'),
+    ),
+    // pinned tabs ...
+    SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, i) {
+          return ScrollSpyItem<int>(
+            id: i,
+            builder: (context, focus, child) => ListTile(
+              title: Text('Section $i'),
+              selected: focus.isPrimary,
+            ),
+          );
+        },
+        childCount: 20,
+      ),
+    ),
+  ],
+);
+```
+
+By default, `viewportInsets` also affects visibility (items behind the inset are not considered visible/focused).
+If you need to only offset the anchor but still consider the full viewport visible, set
+`insetsAffectVisibility: false`.
+
+Similar use cases:
+* `SafeArea` top/bottom padding
+* bottom nav bars / player overlays:
+  `viewportInsets: EdgeInsets.only(bottom: kBottomNavigationBarHeight + MediaQuery.paddingOf(context).bottom)`
+
+---
+
 ## Nested scrollables (important)
 
 If your list items contain nested scrollables (horizontal carousels, etc.), use
-`notificationDepth` (and/or `notificationPredicate`) so only the correct
-scrollable drives focus:
+`notificationDepth` plus predicates (`notificationPredicate` and/or
+`metricsNotificationPredicate`) so only the correct scrollable drives focus:
 
 ```dart
 ScrollSpyScope<int>(
   notificationDepth: 0, // default
+  notificationPredicate: (n) => true,
+  metricsNotificationPredicate: (n) => true,
   child: ...
 )
 ```

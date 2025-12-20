@@ -1,3 +1,19 @@
+## 0.2.1 — 2025-12-20
+
+Insets-aware viewport support plus metrics filtering.
+
+### Added
+- `viewportInsets` and `insetsAffectVisibility` on `ScrollSpyScope` and all wrapper widgets.
+- `metricsNotificationPredicate` to filter `ScrollMetricsNotification` signals.
+- Geometry guard to skip entries from mismatched viewports (nested scrollables safety).
+- Tests for viewport insets + metrics predicate behavior.
+
+### Changed
+- Focus anchor and region evaluation now use the effective (insets-deflated) viewport.
+- Debug overlay now visualizes the effective viewport bounds by default.
+
+---
+
 ## 0.2.0 — 2025-12-20
 
 Performance-focused release with low-overhead per-item signals for large feeds.

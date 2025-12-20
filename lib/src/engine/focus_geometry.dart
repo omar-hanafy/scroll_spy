@@ -20,18 +20,41 @@ class ScrollSpyGeometryResult<T> {
   /// Use [ScrollSpyGeometry.compute] to build this with correct coordinate spaces.
   const ScrollSpyGeometryResult({
     required this.viewportRect,
+    required this.effectiveViewportRect,
     required this.viewportGlobalRect,
     required this.axis,
     required this.items,
+    this.fullViewportRect = Rect.zero,
+    this.fullViewportGlobalRect = Rect.zero,
+    this.viewportInsets = EdgeInsets.zero,
+    this.insetsAffectVisibility = true,
+    this.anchorOffsetPx,
   });
 
-  /// Viewport rect in viewport-local coordinates.
+  /// Effective viewport rect after applying [viewportInsets] (viewport-local coords).
   ///
-  /// The viewport’s top-left is `(0, 0)` in this coordinate space.
+  /// When insets are non-zero, this rect can have a non-zero origin.
   final Rect viewportRect;
 
-  /// Viewport rect in global coordinates.
+  /// Effective viewport rect used for logic, deflated by insets.
+  ///
+  /// This is the same as [viewportRect] but explicitly named to avoid confusion.
+  final Rect effectiveViewportRect;
+
+  /// Effective viewport rect after applying [viewportInsets] (global coords).
   final Rect viewportGlobalRect;
+
+  /// Full viewport rect without insets (viewport-local coords).
+  final Rect fullViewportRect;
+
+  /// Full viewport rect without insets (global coords).
+  final Rect fullViewportGlobalRect;
+
+  /// The insets used to deflate the viewport.
+  final EdgeInsets viewportInsets;
+
+  /// Whether [viewportInsets] affect visibility checks.
+  final bool insetsAffectVisibility;
 
   /// The axis used to interpret "main axis" measurements (anchor position,
   /// distance-to-anchor, region extent).
@@ -45,6 +68,9 @@ class ScrollSpyGeometryResult<T> {
   /// but fully outside the viewport).
   final List<ScrollSpyItemFocus<T>> items;
 
+  /// The resolved absolute anchor position in viewport-local pixels.
+  final double? anchorOffsetPx;
+
   /// Returns an empty geometry result.
   ///
   /// This is typically used when the engine cannot yet resolve a viewport
@@ -52,9 +78,15 @@ class ScrollSpyGeometryResult<T> {
   factory ScrollSpyGeometryResult.empty({Axis axis = Axis.vertical}) {
     return ScrollSpyGeometryResult<T>(
       viewportRect: Rect.zero,
+      effectiveViewportRect: Rect.zero,
       viewportGlobalRect: Rect.zero,
+      fullViewportRect: Rect.zero,
+      fullViewportGlobalRect: Rect.zero,
+      viewportInsets: EdgeInsets.zero,
+      insetsAffectVisibility: true,
       axis: axis,
       items: const [],
+      anchorOffsetPx: null,
     );
   }
 }
@@ -91,6 +123,8 @@ class ScrollSpyGeometry {
     required ScrollSpyRegion region,
     required Axis axis,
     required bool includeItemRects,
+    EdgeInsets viewportInsets = EdgeInsets.zero,
+    bool insetsAffectVisibility = true,
   }) {
     RenderBox? viewportBox;
 
@@ -116,15 +150,38 @@ class ScrollSpyGeometry {
     }
 
     final Offset viewportGlobalTopLeft = viewportBox.localToGlobal(Offset.zero);
-    final Rect viewportGlobalRect = viewportGlobalTopLeft & viewportBox.size;
-    final Rect viewportRect = Offset.zero & viewportBox.size;
+    final Rect fullViewportGlobalRect =
+        viewportGlobalTopLeft & viewportBox.size;
+    final Rect fullViewportRect = Offset.zero & viewportBox.size;
 
-    final double viewportMainExtent =
-        axis == Axis.vertical ? viewportRect.height : viewportRect.width;
+    final bool hasInsets = viewportInsets != EdgeInsets.zero;
 
+    // 1. Compute effective viewport based on insets.
+    final Rect effectiveViewportRect = hasInsets
+        ? _deflateViewportRect(fullViewportRect, viewportInsets)
+        : fullViewportRect;
+
+    final Rect effectiveViewportGlobalRect = hasInsets
+        ? _deflateViewportRect(fullViewportGlobalRect, viewportInsets)
+        : fullViewportGlobalRect;
+
+    // Guard against insets larger than the viewport size.
+    if (effectiveViewportRect.width <= 0 || effectiveViewportRect.height <= 0) {
+      return ScrollSpyGeometryResult<T>.empty(axis: axis);
+    }
+
+    // Visibility and region evaluation can optionally ignore insets.
+    final Rect visibilityRect =
+        insetsAffectVisibility ? effectiveViewportRect : fullViewportRect;
+
+    // Region evaluation always uses the effective viewport.
+    final Rect evaluationViewportRect = effectiveViewportRect;
+
+    // 2. Resolve anchor. The anchor is ALWAYS resolved relative to the *effective* viewport.
     final double anchorOffsetPx = _resolveAnchorOffsetPx(
       region: region,
-      viewportMainExtent: viewportMainExtent,
+      viewportRect: effectiveViewportRect,
+      axis: axis,
     );
 
     final List<ScrollSpyItemFocus<T>> items = <ScrollSpyItemFocus<T>>[];
@@ -135,6 +192,14 @@ class ScrollSpyGeometry {
       final RenderBox ro = entry.box;
       if (!ro.hasSize || !ro.attached) continue;
 
+      // Robustness guard: skip entries that don't belong to the selected viewport.
+      final RenderAbstractViewport itemViewport = RenderAbstractViewport.of(ro);
+      final RenderBox? itemViewportBox =
+          itemViewport is RenderBox ? itemViewport as RenderBox : null;
+      if (itemViewportBox == null || !identical(itemViewportBox, viewportBox)) {
+        continue;
+      }
+
       // Compute item rect in viewport-local coordinates.
       //
       // IMPORTANT:
@@ -142,7 +207,7 @@ class ScrollSpyGeometry {
       // break under ancestor transforms (e.g. scale/rotation in the widget tree).
       final Rect itemRect = _itemRectInViewportSpace(ro, viewportBox);
 
-      final Rect visibleRect = itemRect.intersect(viewportRect);
+      final Rect visibleRect = itemRect.intersect(visibilityRect);
       final double visibleFraction = _visibleFraction(
         itemRect: itemRect,
         visibleRect: visibleRect,
@@ -161,7 +226,7 @@ class ScrollSpyGeometry {
           ? region.evaluate(
               ScrollSpyRegionInput(
                 itemRectInViewport: itemRect,
-                viewportRect: viewportRect,
+                viewportRect: evaluationViewportRect,
                 axis: axis,
                 anchorOffsetPx: anchorOffsetPx,
               ),
@@ -189,10 +254,17 @@ class ScrollSpyGeometry {
     }
 
     return ScrollSpyGeometryResult<T>(
-      viewportRect: viewportRect,
-      viewportGlobalRect: viewportGlobalRect,
+      viewportRect:
+          effectiveViewportRect, // Backward compatibility for tests/usage expecting "the viewport"
+      effectiveViewportRect: effectiveViewportRect,
+      viewportGlobalRect: effectiveViewportGlobalRect,
+      fullViewportRect: fullViewportRect,
+      fullViewportGlobalRect: fullViewportGlobalRect,
+      viewportInsets: viewportInsets,
+      insetsAffectVisibility: insetsAffectVisibility,
       axis: axis,
       items: items,
+      anchorOffsetPx: anchorOffsetPx,
     );
   }
 
@@ -233,7 +305,8 @@ class ScrollSpyGeometry {
 
   static double _resolveAnchorOffsetPx({
     required ScrollSpyRegion region,
-    required double viewportMainExtent,
+    required Rect viewportRect,
+    required Axis axis,
   }) {
     final ScrollSpyAnchor anchor = switch (region) {
       ScrollSpyLineRegion(:final anchor) => anchor,
@@ -241,7 +314,25 @@ class ScrollSpyGeometry {
       ScrollSpyCustomRegion(:final anchor) => anchor,
     };
 
-    return anchor.resolveFromStart(viewportMainExtent);
+    return anchor.resolveInViewport(viewportRect, axis);
+  }
+
+  static Rect _deflateViewportRect(Rect rect, EdgeInsets insets) {
+    if (insets == EdgeInsets.zero) return rect;
+
+    final double left =
+        (rect.left + insets.left).clamp(rect.left, rect.right).toDouble();
+    final double top =
+        (rect.top + insets.top).clamp(rect.top, rect.bottom).toDouble();
+    final double right =
+        (rect.right - insets.right).clamp(rect.left, rect.right).toDouble();
+    final double bottom =
+        (rect.bottom - insets.bottom).clamp(rect.top, rect.bottom).toDouble();
+
+    final double normalizedRight = right < left ? left : right;
+    final double normalizedBottom = bottom < top ? top : bottom;
+
+    return Rect.fromLTRB(left, top, normalizedRight, normalizedBottom);
   }
 
   static double _visibleFraction({
