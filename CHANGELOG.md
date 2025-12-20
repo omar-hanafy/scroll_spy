@@ -1,3 +1,13 @@
+## 0.2.2 — 2025-12-20
+
+Docs-only release with refreshed preview media.
+
+### Changed
+- Updated demo gif.
+- Adjusted README preview sizing.
+
+---
+
 ## 0.2.1 — 2025-12-20
 
 Insets-aware viewport support plus metrics filtering.
