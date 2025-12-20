@@ -1,3 +1,15 @@
+## 0.2.3 — 2025-12-20
+
+Docs-only release with the new package icon screenshot.
+
+### Added
+- Added the icon as the primary pub.dev screenshot.
+
+### Changed
+- Updated README preview media to include the icon.
+
+---
+
 ## 0.2.2 — 2025-12-20
 
 Docs-only release with refreshed preview media.

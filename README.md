@@ -3,6 +3,9 @@
 Viewport-aware focus detection for scrollables. Compute focused items and a
 stable primary item for feeds, autoplay, analytics, and prefetching.
 
+<a href="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.png">
+  <img src="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.png" alt="scroll_spy icon" width="260" />
+</a>
 <a href="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.gif">
   <img src="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.gif" alt="scroll_spy demo" width="360" />
 </a>
