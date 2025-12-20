@@ -1,16 +1,30 @@
 # scroll_spy
 
-Viewport-aware focus detection for scrollables. Compute focused items and a
-stable primary item for feeds, autoplay, analytics, and prefetching.
+<table style="border:none;">
+  <tr style="border:none;">
+    <td style="border:none; vertical-align:top;">
+      <a href="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.png">
+        <img src="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.png" alt="scroll_spy icon" width="140" />
+      </a>
+    </td>
+    <td style="border:none; vertical-align:top; padding-left:16px;">
+      <p>
+        Viewport-aware focus detection for scrollables. Compute focused items
+        and a stable primary item for feeds, autoplay, analytics, and
+        prefetching.
+      </p>
+    </td>
+  </tr>
+</table>
 
-<a href="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.png">
-  <img src="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.png" alt="scroll_spy icon" width="260" />
-</a>
-<a href="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.gif">
-  <img src="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.gif" alt="scroll_spy demo" width="360" />
-</a>
-
-Live demo: https://omar-hanafy.github.io/scroll-spy/
+<p align="center">
+  <a href="https://omar-hanafy.github.io/scroll-spy/">
+    <img src="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.gif" alt="scroll_spy demo" width="360" />
+  </a>
+</p>
+<p align="center">
+  <a href="https://omar-hanafy.github.io/scroll-spy/">Live demo</a>
+</p>
 
 ---
 
