@@ -191,7 +191,6 @@ class ScrollSpyListView<T> extends StatefulWidget {
           addAutomaticKeepAlives: addAutomaticKeepAlives,
           addRepaintBoundaries: addRepaintBoundaries,
           addSemanticIndexes: addSemanticIndexes,
-          // ignore: deprecated_member_use
           findChildIndexCallback: findChildIndexCallback,
         );
       },
@@ -236,7 +235,13 @@ class ScrollSpyListView<T> extends StatefulWidget {
     bool addRepaintBoundaries = true,
     bool addSemanticIndexes = true,
     int? Function(Key)? findChildIndexCallback,
+    int? Function(Key)? findItemIndexCallback,
   }) {
+    assert(
+      findChildIndexCallback == null || findItemIndexCallback == null,
+      'Cannot provide both findItemIndexCallback and findChildIndexCallback.',
+    );
+
     return ScrollSpyListView<T>._(
       key: key,
       controller: controller,
@@ -257,7 +262,9 @@ class ScrollSpyListView<T> extends StatefulWidget {
       itemExtentBuilder: null,
       hitTestBehavior: hitTestBehavior,
       scrollableBuilder: ({ScrollController? controller, bool? primary}) {
-        return ListView.separated(
+        final int childCount = itemCount == 0 ? 0 : itemCount * 2 - 1;
+
+        return ListView.custom(
           controller: controller,
           scrollDirection: scrollDirection,
           reverse: reverse,
@@ -265,20 +272,35 @@ class ScrollSpyListView<T> extends StatefulWidget {
           physics: physics,
           shrinkWrap: shrinkWrap,
           padding: padding,
-          itemBuilder: itemBuilder,
-          separatorBuilder: separatorBuilder,
-          itemCount: itemCount,
           cacheExtent: cacheExtent,
           dragStartBehavior: dragStartBehavior,
           keyboardDismissBehavior: keyboardDismissBehavior,
           restorationId: restorationId,
           clipBehavior: clipBehavior,
           hitTestBehavior: hitTestBehavior,
-          addAutomaticKeepAlives: addAutomaticKeepAlives,
-          addRepaintBoundaries: addRepaintBoundaries,
-          addSemanticIndexes: addSemanticIndexes,
-          // ignore: deprecated_member_use
-          findChildIndexCallback: findChildIndexCallback,
+          semanticChildCount: itemCount,
+          childrenDelegate: SliverChildBuilderDelegate(
+            (BuildContext context, int index) {
+              final int itemIndex = index ~/ 2;
+              if (index.isEven) {
+                return itemBuilder(context, itemIndex);
+              }
+              return separatorBuilder(context, itemIndex);
+            },
+            findChildIndexCallback: findItemIndexCallback != null
+                ? (Key key) {
+                    final int? itemIndex = findItemIndexCallback(key);
+                    return itemIndex == null ? null : itemIndex * 2;
+                  }
+                : findChildIndexCallback,
+            childCount: childCount,
+            addAutomaticKeepAlives: addAutomaticKeepAlives,
+            addRepaintBoundaries: addRepaintBoundaries,
+            addSemanticIndexes: addSemanticIndexes,
+            semanticIndexCallback: (Widget widget, int index) {
+              return index.isEven ? index ~/ 2 : null;
+            },
+          ),
         );
       },
     );
@@ -540,7 +562,6 @@ class ScrollSpyGridView<T> extends StatefulWidget {
           addAutomaticKeepAlives: addAutomaticKeepAlives,
           addRepaintBoundaries: addRepaintBoundaries,
           addSemanticIndexes: addSemanticIndexes,
-          // ignore: deprecated_member_use
           findChildIndexCallback: findChildIndexCallback,
         );
       },
@@ -1176,7 +1197,6 @@ class _ScrollSpyPageViewState<T> extends State<ScrollSpyPageView<T>> {
       hitTestBehavior: widget.hitTestBehavior,
       scrollBehavior: widget.scrollBehavior,
       padEnds: widget.padEnds,
-      // ignore: deprecated_member_use
       findChildIndexCallback: widget.findChildIndexCallback,
       itemBuilder: widget.itemBuilder,
       itemCount: widget.itemCount,

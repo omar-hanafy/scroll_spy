@@ -80,8 +80,8 @@ class _FeedPageState extends State<FeedPage> {
     final double visualCenterOffset = (viewportHeight / 2) + (topObscured / 2);
 
     // Padding used in ListView (Must match build method logic)
-    final double listTopPadding =
-        (visualCenterOffset - (_itemExtent / 2)).clamp(0.0, double.infinity);
+    final double listTopPadding = (visualCenterOffset - (_itemExtent / 2))
+        .clamp(0.0, double.infinity);
 
     // 2. Initialize Index ONCE
     //    We effectively "invert" the target calculation to find current index.
@@ -89,10 +89,13 @@ class _FeedPageState extends State<FeedPage> {
     //    CurrentPixels + VisualCenter = Pad + Index*Size + Size/2
     //    CurrentPixels + VisualCenter - Pad - Size/2 = Index*Size
     final double currentPixels = _scrollController.position.pixels;
-    
+
     // Fallback index calculation
     int targetIndex =
-        ((currentPixels + visualCenterOffset - listTopPadding - (_itemExtent / 2)) /
+        ((currentPixels +
+                    visualCenterOffset -
+                    listTopPadding -
+                    (_itemExtent / 2)) /
                 _itemExtent)
             .round();
 
@@ -119,7 +122,7 @@ class _FeedPageState extends State<FeedPage> {
       //    ItemCenter = TopPad + (Index * Size) + (Size / 2)
       final double itemCenter =
           listTopPadding + (targetIndex * _itemExtent) + (_itemExtent / 2);
-      
+
       //    ScrollPos = ItemCenter - VisualCenterOffset
       final double targetScroll = itemCenter - visualCenterOffset;
 
@@ -198,12 +201,20 @@ class _FeedPageState extends State<FeedPage> {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final double viewportHeight = constraints.maxHeight;
-            final double visualCenter = (viewportHeight / 2) + (topObscured / 2);
+            final double visualCenter =
+                (viewportHeight / 2) + (topObscured / 2);
             final double halfItem = _itemExtent / 2;
 
             // Padding to ensure First and Last items can be centered
-            final double topListPad = (visualCenter - halfItem).clamp(0.0, double.infinity);
-            final double bottomListPad = ((viewportHeight - visualCenter) - halfItem).clamp(0.0, double.infinity);
+            final double topListPad = (visualCenter - halfItem).clamp(
+              0.0,
+              double.infinity,
+            );
+            final double bottomListPad =
+                ((viewportHeight - visualCenter) - halfItem).clamp(
+                  0.0,
+                  double.infinity,
+                );
 
             return ListView.builder(
               controller: _scrollController,
