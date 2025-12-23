@@ -9,7 +9,8 @@ This document is my default policy for how I manage all published package repos.
 
 ## PR-only merges
 - No direct pushes to main or dev.
-- PRs require code owner approval (1 approval).
+- Solo maintainer: PRs required but 0 approvals; code owner reviews disabled.
+- With contributors: PRs require code owner approval (1 approval).
 - Admins cannot bypass protections.
 
 ## Required checks (blocking)
@@ -35,7 +36,8 @@ This document is my default policy for how I manage all published package repos.
 ## Branch protection settings
 - Require status checks to pass and use strict mode.
 - Required checks: "Test on stable", "Test on beta", "pub-dry-run".
-- Require code owner reviews and dismiss stale approvals on new pushes.
+- Solo maintainer: required approving reviews = 0, code owner reviews disabled.
+- With contributors: require code owner reviews and dismiss stale approvals on new pushes.
 - Block force pushes and branch deletions.
 
 ## Notes
