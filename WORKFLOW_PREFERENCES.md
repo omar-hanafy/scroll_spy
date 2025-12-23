@@ -40,6 +40,15 @@ This document is my default policy for how I manage all published package repos.
 - With contributors: require code owner reviews and dismiss stale approvals on new pushes.
 - Block force pushes and branch deletions.
 
+## New repo checklist
+- Create a `dev` branch and apply the same protections as `main`.
+- Add workflow files: `ci.yml`, `publish.yml`, `publish-dry-run.yml`, `auto-release.yml`, `label-release.yml`.
+- Add `.github/CODEOWNERS` (even if solo).
+- Configure pub.dev Trusted Publisher tag pattern: `<package>-v{{version}}`.
+- Pick branch protection mode:
+  - Solo: approvals = 0, code owner reviews off.
+  - With contributors: approvals = 1, code owner reviews on.
+
 ## Notes
 - If publish fails after a tag, bump the version and re-release; avoid deleting tags.
 - Keep this file in each repo and update the package/tag prefix where needed.
