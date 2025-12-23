@@ -1,0 +1,74 @@
+name: Auto Tag & Release (scroll_spy)
+
+on:
+  push:
+    branches: [main, dev]
+
+concurrency:
+  group: auto-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tag-and-release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read version
+        id: vars
+        run: |
+          set -euo pipefail
+          version=$(awk -F': ' '/^version: /{print $2}' pubspec.yaml)
+          if [ -z "$version" ]; then
+            echo "Unable to read version from pubspec.yaml."
+            exit 1
+          fi
+          branch="${GITHUB_REF_NAME}"
+          tag="scroll_spy-v${version}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Validate version for branch
+        run: |
+          set -euo pipefail
+          version="${{ steps.vars.outputs.version }}"
+          branch="${{ steps.vars.outputs.branch }}"
+          if [ "$branch" = "main" ] && [[ "$version" == *-* ]]; then
+            echo "Main must use a stable version (no pre-release): $version"
+            exit 1
+          fi
+          if [ "$branch" = "dev" ] && [[ "$version" != *-* ]]; then
+            echo "Dev must use a pre-release version: $version"
+            exit 1
+          fi
+
+      - name: Ensure tag does not exist
+        run: |
+          set -euo pipefail
+          tag="${{ steps.vars.outputs.tag }}"
+          if git ls-remote --tags origin "refs/tags/$tag" | grep -q "$tag"; then
+            echo "Tag already exists: $tag"
+            exit 1
+          fi
+
+      - name: Create tag
+        run: |
+          set -euo pipefail
+          tag="${{ steps.vars.outputs.tag }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "$tag"
+          git push origin "$tag"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.vars.outputs.tag }}
+          name: ${{ steps.vars.outputs.tag }}
+          generate_release_notes: true
+          prerelease: ${{ steps.vars.outputs.branch == 'dev' }}
