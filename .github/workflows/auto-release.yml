@@ -12,6 +12,8 @@ jobs:
   tag-and-release:
     permissions:
       contents: write
+    outputs:
+      version_bumped: ${{ steps.bump.outputs.version_bumped }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -100,3 +102,13 @@ jobs:
           name: ${{ steps.vars.outputs.tag }}
           generate_release_notes: true
           prerelease: ${{ steps.vars.outputs.branch == 'dev' }}
+
+  publish:
+    needs: tag-and-release
+    if: needs.tag-and-release.outputs.version_bumped == 'true'
+    permissions:
+      contents: read
+      id-token: write
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+    with:
+      working-directory: .

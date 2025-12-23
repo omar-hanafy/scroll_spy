@@ -1,6 +1,7 @@
 name: Publish scroll_spy to pub.dev
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - "scroll_spy-v*"
