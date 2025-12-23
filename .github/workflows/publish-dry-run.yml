@@ -27,7 +27,8 @@ jobs:
         working-directory: ${{ env.PACKAGE_DIR }}
         run: flutter pub get
 
-      - name: Enforce version bump
+      - name: Detect version bump
+        id: version
         working-directory: ${{ env.PACKAGE_DIR }}
         run: |
           set -euo pipefail
@@ -39,10 +40,12 @@ jobs:
             exit 1
           fi
           if [ "$base_version" = "$head_version" ]; then
-            echo "pubspec.yaml version not bumped (base: $base_version, head: $head_version)."
-            exit 1
+            echo "version_bumped=false" >> "$GITHUB_OUTPUT"
+            echo "No version bump detected (base: $base_version, head: $head_version)."
+          else
+            echo "version_bumped=true" >> "$GITHUB_OUTPUT"
+            echo "Version bump detected: $base_version -> $head_version"
           fi
-          echo "Version bump detected: $base_version -> $head_version"
 
       - name: Validate version channel for target branch
         working-directory: ${{ env.PACKAGE_DIR }}

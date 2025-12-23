@@ -2,7 +2,7 @@
 - 
 
 ## Checklist
-- [ ] Version bumped in `pubspec.yaml`
+- [ ] Version bumped in `pubspec.yaml` (release PRs only)
 - [ ] `dart format .`
 - [ ] `dart analyze` (or `flutter analyze` for Flutter packages)
 - [ ] `dart test` (or `flutter test` for Flutter packages)

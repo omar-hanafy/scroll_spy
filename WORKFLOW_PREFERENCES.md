@@ -16,11 +16,11 @@ This document is my default policy for how I manage all published package repos.
 - Flutter CI: format, analyze, test on stable and beta (beta is non-blocking but must report).
 - Pub dry-run: `flutter pub publish --dry-run`.
 - Pana: full score only.
-- Version bump: pubspec.yaml version must change vs the PR base.
 - Version channel: main requires stable versions; dev requires pre-release versions.
+- Release PRs (version bump) are auto-labeled `release`.
 
 ## Release and publishing
-- On merge to main or dev, create tag `scroll_spy-v<version>` and a GitHub Release.
+- On merge to main or dev, create tag `scroll_spy-v<version>` and a GitHub Release if pubspec.yaml version changed.
 - main releases: standard release (not prerelease).
 - dev releases: prerelease.
 - Tag must match pubspec.yaml version exactly.
@@ -30,7 +30,7 @@ This document is my default policy for how I manage all published package repos.
 ## Tagging and versioning
 - main uses stable semver (X.Y.Z).
 - dev uses pre-release semver (X.Y.Z-dev.N, X.Y.Z-beta.N, X.Y.Z-rc.N).
-- Every PR must bump version.
+- Version bumps are required only for release PRs.
 
 ## Branch protection settings
 - Require status checks to pass and use strict mode.
