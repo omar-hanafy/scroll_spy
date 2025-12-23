@@ -1,3 +1,12 @@
+## 0.2.7-dev.1 — 2025-12-23
+
+Development pre-release for upcoming changes.
+
+### Changed
+- Enable manual publish workflow dispatch with a tag input.
+
+---
+
 ## 0.2.6 — 2025-12-23
 
 Maintenance release with separated-list index mapping fixes and tooling cleanup.
