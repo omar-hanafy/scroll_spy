@@ -1,3 +1,20 @@
+## 0.2.6 — 2025-12-23
+
+Maintenance release with separated-list index mapping fixes and tooling cleanup.
+
+### Added
+- `findItemIndexCallback` support for `ScrollSpyListView.separated`.
+- Test coverage for separated list index mapping.
+
+### Fixed
+- Correct item-to-child index mapping for separated lists.
+- Eliminated deprecated `findChildIndexCallback` warnings on newer Flutter SDKs.
+
+### Changed
+- Refreshed the example app.
+
+---
+
 ## 0.2.5 — 2025-12-20
 
 Docs-only release removing the oversize demo screenshot entry.

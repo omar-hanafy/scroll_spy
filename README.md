@@ -67,7 +67,7 @@ Add to `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  scroll_spy: ^0.2.5
+  scroll_spy: ^0.2.6
 ```
 
 Then:
