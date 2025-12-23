@@ -191,6 +191,7 @@ class ScrollSpyListView<T> extends StatefulWidget {
           addAutomaticKeepAlives: addAutomaticKeepAlives,
           addRepaintBoundaries: addRepaintBoundaries,
           addSemanticIndexes: addSemanticIndexes,
+          // ignore: deprecated_member_use
           findChildIndexCallback: findChildIndexCallback,
         );
       },
@@ -276,6 +277,7 @@ class ScrollSpyListView<T> extends StatefulWidget {
           addAutomaticKeepAlives: addAutomaticKeepAlives,
           addRepaintBoundaries: addRepaintBoundaries,
           addSemanticIndexes: addSemanticIndexes,
+          // ignore: deprecated_member_use
           findChildIndexCallback: findChildIndexCallback,
         );
       },
@@ -538,6 +540,7 @@ class ScrollSpyGridView<T> extends StatefulWidget {
           addAutomaticKeepAlives: addAutomaticKeepAlives,
           addRepaintBoundaries: addRepaintBoundaries,
           addSemanticIndexes: addSemanticIndexes,
+          // ignore: deprecated_member_use
           findChildIndexCallback: findChildIndexCallback,
         );
       },
@@ -1173,6 +1176,7 @@ class _ScrollSpyPageViewState<T> extends State<ScrollSpyPageView<T>> {
       hitTestBehavior: widget.hitTestBehavior,
       scrollBehavior: widget.scrollBehavior,
       padEnds: widget.padEnds,
+      // ignore: deprecated_member_use
       findChildIndexCallback: widget.findChildIndexCallback,
       itemBuilder: widget.itemBuilder,
       itemCount: widget.itemCount,
