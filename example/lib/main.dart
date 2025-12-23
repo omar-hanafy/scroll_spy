@@ -42,6 +42,10 @@ class _FeedPageState extends State<FeedPage> {
   bool _autoScrolling = false;
   bool _showDebug = true;
 
+  // Constants to keep list and scroll logic synchronized
+  static const int _itemCount = 20;
+  static const double _itemExtent = 500.0;
+
   @override
   void dispose() {
     _focusController.dispose();
@@ -52,8 +56,10 @@ class _FeedPageState extends State<FeedPage> {
   void _toggleAutoScroll() {
     if (_autoScrolling) {
       setState(() => _autoScrolling = false);
-      // Stop scrolling
-      _scrollController.position.hold(() {});
+      // Stop scrolling immediately
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_scrollController.offset);
+      }
       return;
     }
 
@@ -62,29 +68,89 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   Future<void> _startAutoScroll() async {
+    // 1. Re-calculate Visual Params (Must match build method logic)
+    if (!_scrollController.hasClients) return;
+
+    final double topPadding = MediaQuery.of(context).padding.top;
+    final double appBarHeight = kToolbarHeight;
+    final double topObscured = topPadding + appBarHeight;
+    final double viewportHeight = _scrollController.position.viewportDimension;
+
+    // The visual center is shifted down by half the obscured top area.
+    final double visualCenterOffset = (viewportHeight / 2) + (topObscured / 2);
+
+    // Padding used in ListView (Must match build method logic)
+    final double listTopPadding = (visualCenterOffset - (_itemExtent / 2))
+        .clamp(0.0, double.infinity);
+
+    // 2. Initialize Index ONCE
+    //    We effectively "invert" the target calculation to find current index.
+    //    TargetScroll = (Pad + Index*Size + Size/2) - VisualCenter
+    //    CurrentPixels + VisualCenter = Pad + Index*Size + Size/2
+    //    CurrentPixels + VisualCenter - Pad - Size/2 = Index*Size
+    final double currentPixels = _scrollController.position.pixels;
+
+    // Fallback index calculation
+    int targetIndex =
+        ((currentPixels +
+                    visualCenterOffset -
+                    listTopPadding -
+                    (_itemExtent / 2)) /
+                _itemExtent)
+            .round();
+
+    // Prefer Spy's opinion if valid
+    final int? spyPrimary = _focusController.snapshot.value.primaryId;
+    if (spyPrimary != null) {
+      targetIndex = spyPrimary;
+    }
+
     while (_autoScrolling && mounted) {
       if (!_scrollController.hasClients) break;
-      final max = _scrollController.position.maxScrollExtent;
-      final current = _scrollController.offset;
 
-      if (current >= max) {
+      // 3. Constant Step
+      targetIndex++;
+
+      // Handle Wrap-around
+      if (targetIndex >= _itemCount) {
         _scrollController.jumpTo(0);
+        await Future.delayed(const Duration(milliseconds: 200));
+        targetIndex = 1; // Start at second item since 0 is already centered
       }
 
-      // Smooth auto scroll to next item approx
+      // 4. Calculate Exact Target
+      //    ItemCenter = TopPad + (Index * Size) + (Size / 2)
+      final double itemCenter =
+          listTopPadding + (targetIndex * _itemExtent) + (_itemExtent / 2);
+
+      //    ScrollPos = ItemCenter - VisualCenterOffset
+      final double targetScroll = itemCenter - visualCenterOffset;
+
+      // 5. Clamp
+      final double max = _scrollController.position.maxScrollExtent;
+      final double effectiveTarget = targetScroll.clamp(0.0, max);
+
       await _scrollController.animateTo(
-        current + 400,
-        duration: const Duration(seconds: 2),
-        curve: Curves.easeInOutSine,
+        effectiveTarget,
+        duration: const Duration(milliseconds: 1200),
+        curve: Curves.easeInOutCubic,
       );
-      if (!mounted) break;
-      // Pause briefly on the item
-      await Future.delayed(const Duration(milliseconds: 500));
+
+      if (!mounted || !_autoScrolling) break;
+      await Future.delayed(const Duration(milliseconds: 800));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Visual Center Logic
+    final double topPadding = MediaQuery.of(context).padding.top;
+    final double appBarHeight = kToolbarHeight;
+    final double topObscured = topPadding + appBarHeight;
+
+    // Anchor logic for Spy (matches visual center)
+    final double anchorOffset = topObscured / 2;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -118,32 +184,51 @@ class _FeedPageState extends State<FeedPage> {
       // 2. Wrap your list in a ScrollSpyScope
       body: ScrollSpyScope<int>(
         controller: _focusController,
-        // Define the "Focus Zone" (e.g. center 300px)
+        scrollController: _scrollController,
+        // Update Zone: Match the visual center
         region: ScrollSpyRegion.zone(
-          anchor: const ScrollSpyAnchor.fraction(0.5),
+          anchor: ScrollSpyAnchor.fraction(0.5, offsetPx: anchorOffset),
           extentPx: 300,
         ),
-        // Define how to pick the "Primary" item (Closest to center)
         policy: const ScrollSpyPolicy.closestToAnchor(),
-        // Optional: Debug overlay to visualize the zone
         debug: _showDebug,
         debugConfig: const ScrollSpyDebugConfig(
           showFocusRegion: true,
           showLabels: true,
           showPrimaryOutline: true,
-          visibleFillOpacity: 0.0, // Clean look, just outlines
+          visibleFillOpacity: 0.0,
         ),
-        child: ListView.builder(
-          controller: _scrollController,
-          itemCount: 20,
-          // Make items large enough to be interesting
-          itemExtent: 500,
-          itemBuilder: (context, index) {
-            // 3. Wrap each item in ScrollSpyItem
-            return ScrollSpyItem<int>(
-              id: index,
-              builder: (context, focus, _) {
-                return _InteractiveFeedItem(index: index, focus: focus);
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final double viewportHeight = constraints.maxHeight;
+            final double visualCenter =
+                (viewportHeight / 2) + (topObscured / 2);
+            final double halfItem = _itemExtent / 2;
+
+            // Padding to ensure First and Last items can be centered
+            final double topListPad = (visualCenter - halfItem).clamp(
+              0.0,
+              double.infinity,
+            );
+            final double bottomListPad =
+                ((viewportHeight - visualCenter) - halfItem).clamp(
+                  0.0,
+                  double.infinity,
+                );
+
+            return ListView.builder(
+              controller: _scrollController,
+              itemCount: _itemCount,
+              itemExtent: _itemExtent,
+              padding: EdgeInsets.only(top: topListPad, bottom: bottomListPad),
+              itemBuilder: (context, index) {
+                // 3. Wrap each item in ScrollSpyItem
+                return ScrollSpyItem<int>(
+                  id: index,
+                  builder: (context, focus, _) {
+                    return _InteractiveFeedItem(index: index, focus: focus);
+                  },
+                );
               },
             );
           },

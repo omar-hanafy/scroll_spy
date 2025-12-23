@@ -1,0 +1,76 @@
+name: Label Release PR
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect version bump
+        id: bump
+        run: |
+          set -euo pipefail
+          base_sha="${{ github.event.pull_request.base.sha }}"
+          base_version=$(git show "$base_sha:pubspec.yaml" | awk -F': ' '/^version: /{print $2}')
+          head_version=$(awk -F': ' '/^version: /{print $2}' pubspec.yaml)
+          if [ -z "$base_version" ] || [ -z "$head_version" ]; then
+            echo "Unable to read version from pubspec.yaml."
+            exit 1
+          fi
+          if [ "$base_version" = "$head_version" ]; then
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "bumped=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Update release label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const label = 'release';
+            const shouldAdd = '${{ steps.bump.outputs.bumped }}' === 'true';
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+
+            async function ensureLabel() {
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name: label });
+              } catch (error) {
+                if (error.status === 404) {
+                  await github.rest.issues.createLabel({
+                    owner,
+                    repo,
+                    name: label,
+                    color: '0E8A16',
+                    description: 'Release PR (version bump)'
+                  });
+                } else {
+                  throw error;
+                }
+              }
+            }
+
+            await ensureLabel();
+            const existing = context.payload.pull_request.labels.map((l) => l.name);
+            if (shouldAdd && !existing.includes(label)) {
+              await github.rest.issues.addLabels({ owner, repo, issue_number, labels: [label] });
+              core.info('Added release label');
+              return;
+            }
+            if (!shouldAdd && existing.includes(label)) {
+              await github.rest.issues.removeLabel({ owner, repo, issue_number, name: label });
+              core.info('Removed release label');
+              return;
+            }
+            core.info('No label change needed');

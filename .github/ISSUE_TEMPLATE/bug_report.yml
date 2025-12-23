@@ -7,7 +7,7 @@ body:
     id: summary
     attributes:
       label: Summary
-      description: What is happening? Include what you expected to happen.
+      description: What happened? Include expected vs actual.
     validations:
       required: true
   - type: textarea
@@ -25,22 +25,29 @@ body:
     id: logs
     attributes:
       label: Logs / output
-      description: Paste any relevant logs, stack traces, or screenshots.
+      description: Paste relevant logs, stack traces, or screenshots.
       render: shell
     validations:
       required: false
   - type: input
-    id: version
+    id: package-version
     attributes:
       label: Package version
-      placeholder: 0.1.0
+      placeholder: 1.2.3
     validations:
       required: true
   - type: input
-    id: flutter
+    id: sdk-version
     attributes:
-      label: Flutter version
-      placeholder: "flutter --version"
+      label: SDK version
+      description: Output of `dart --version` or `flutter --version`.
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: OS / Platform
+      placeholder: macOS 14, Ubuntu 22.04, Windows 11
     validations:
       required: true
   - type: dropdown

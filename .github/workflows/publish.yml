@@ -1,0 +1,39 @@
+name: Publish scroll_spy to pub.dev
+
+on:
+  push:
+    tags:
+      - "scroll_spy-v*"
+
+jobs:
+  verify-tag-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate tag matches pubspec.yaml version
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          version_from_tag="${tag#scroll_spy-v}"
+          pubspec_version=$(awk -F': ' '/^version: /{print $2}' pubspec.yaml)
+          if [ -z "$pubspec_version" ]; then
+            echo "Unable to read version from pubspec.yaml."
+            exit 1
+          fi
+          if [ "$version_from_tag" != "$pubspec_version" ]; then
+            echo "Tag version ($version_from_tag) does not match pubspec.yaml version ($pubspec_version)."
+            exit 1
+          fi
+
+  publish:
+    needs: verify-tag-version
+    permissions:
+      contents: read
+      id-token: write
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+    with:
+      working-directory: .
+      # environment: pub.dev
