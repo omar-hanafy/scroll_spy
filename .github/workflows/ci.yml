@@ -1,25 +1,46 @@
-name: CI
+name: Flutter CI (scroll_spy)
 
 on:
-  pull_request:
   push:
-    branches: [main]
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PACKAGE_DIR: .
 
 jobs:
-  analyze_test:
+  test:
+    name: Test on ${{ matrix.channel }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    strategy:
+      matrix:
+        channel: [stable, beta]
+    continue-on-error: ${{ matrix.channel == 'beta' }}
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          channel: ${{ matrix.channel }}
           cache: true
       - name: Flutter version
         run: flutter --version
       - name: Install dependencies
+        working-directory: ${{ env.PACKAGE_DIR }}
         run: flutter pub get
+      - name: Check formatting
+        working-directory: ${{ env.PACKAGE_DIR }}
+        run: dart format --output=none --set-exit-if-changed .
       - name: Analyze
+        working-directory: ${{ env.PACKAGE_DIR }}
         run: flutter analyze
       - name: Run tests
+        working-directory: ${{ env.PACKAGE_DIR }}
         run: flutter test
