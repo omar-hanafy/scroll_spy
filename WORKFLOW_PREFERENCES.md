@@ -16,7 +16,7 @@ This document is my default policy for how I manage all published package repos.
 - Flutter CI: format, analyze, test on stable and beta (beta is non-blocking but must report).
 - Pub dry-run: `flutter pub publish --dry-run`.
 - Pana: full score only.
-- Version channel: main requires stable versions; dev requires pre-release versions.
+- Version channel: main requires stable versions; dev requires pre-release versions (release PRs only).
 - Release PRs (version bump) are auto-labeled `release`.
 
 ## Release and publishing

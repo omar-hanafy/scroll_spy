@@ -48,6 +48,7 @@ jobs:
           fi
 
       - name: Validate version channel for target branch
+        if: steps.version.outputs.version_bumped == 'true'
         working-directory: ${{ env.PACKAGE_DIR }}
         run: |
           set -euo pipefail
