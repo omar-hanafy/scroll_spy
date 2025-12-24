@@ -19,6 +19,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.TAG_PUSH_PAT }}
 
       - name: Detect version bump in push
         id: bump
@@ -37,6 +38,17 @@ jobs:
             echo "version_bumped=true" >> "$GITHUB_OUTPUT"
           else
             echo "version_bumped=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Require TAG_PUSH_PAT
+        if: steps.bump.outputs.version_bumped == 'true'
+        env:
+          TAG_PUSH_PAT: ${{ secrets.TAG_PUSH_PAT }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TAG_PUSH_PAT:-}" ]; then
+            echo "TAG_PUSH_PAT is not set."
+            exit 1
           fi
 
       - name: Skip release when no version bump
@@ -102,13 +114,3 @@ jobs:
           name: ${{ steps.vars.outputs.tag }}
           generate_release_notes: true
           prerelease: ${{ steps.vars.outputs.branch == 'dev' }}
-
-  publish:
-    needs: tag-and-release
-    if: needs.tag-and-release.outputs.version_bumped == 'true'
-    permissions:
-      contents: read
-      id-token: write
-    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
-    with:
-      working-directory: .
