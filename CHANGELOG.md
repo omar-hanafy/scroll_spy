@@ -1,3 +1,13 @@
+## 0.2.7 — 2025-12-24
+
+Release automation maintenance (no API changes).
+
+### Changed
+- Improved tag-based publishing automation.
+- Cleaned up repo workflow documentation (canonical guide).
+
+---
+
 ## 0.2.6 — 2025-12-23
 
 Maintenance release with separated-list index mapping fixes and tooling cleanup.
