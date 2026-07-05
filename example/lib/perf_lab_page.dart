@@ -89,8 +89,10 @@ class _PerfLabPageState extends State<PerfLabPage> {
                 const SizedBox(width: 16),
                 _Hud(label: 'worst frame', valueMs: _worstMs),
                 const Spacer(),
-                Text('$_itemCount items',
-                    style: Theme.of(context).textTheme.labelMedium),
+                Text(
+                  '$_itemCount items',
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
               ],
             ),
           ),
@@ -124,8 +126,8 @@ class _PerfLabPageState extends State<PerfLabPage> {
                           color: isPrimary
                               ? const Color(0xFF34C759)
                               : (isFocused
-                                  ? const Color(0xFFFFCC00)
-                                  : Colors.transparent),
+                                    ? const Color(0xFFFFCC00)
+                                    : Colors.transparent),
                         ),
                       ),
                       child: child,
@@ -206,8 +208,10 @@ class _HeavyCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('User $index',
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  'User $index',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
                 Text(
                   'A heavier feed card with avatar, gradient and shadows '
                   'to simulate real content.',

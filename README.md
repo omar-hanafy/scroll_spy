@@ -52,10 +52,18 @@
   - per-frame
   - scroll-end only (debounced)
   - hybrid (per-frame drag + throttled ballistic + final settle)
-- Built for scroll performance: O(N mounted) focus computation + O(1) targeted
-  updates. ScrollSpy minimizes rebuild fan-out with per-item notifiers and
-  diff-only global signals, and offers tunable focus detection. Often faster in
-  real feeds; choose the right update policy and listeners for your use case.
+- **Built for scroll performance**
+  - During steady scrolling the engine derives each item's position with O(1)
+    arithmetic from a cached scroll-space anchor: no render-tree walks, no
+    matrix math, no allocations on the hot path.
+  - Snapshots and per-item focus objects are materialized lazily, only for
+    state something actually listens to; booleans-first consumers pay for
+    booleans only.
+  - Rebuild fan-out is minimized with per-item notifiers and diff-only global
+    signals.
+  - Items under transforms or exotic custom slivers are detected automatically
+    and measured with a general path, so correctness never depends on your
+    layout being "standard".
 - **Debug overlay**
   - paints focus region + primary/focused outlines + optional labels
 
@@ -67,7 +75,7 @@ Add to `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  scroll_spy: ^0.2.7
+  scroll_spy: ^1.0.0
 ```
 
 Then:
@@ -276,15 +284,21 @@ ScrollSpyPolicy<int>.custom(
 
 ---
 
-## Update policies (performance)
+## Update policies (semantics, not CPU lifelines)
 
-- `perFrame()`
+The engine's compute pass costs on the order of tens of microseconds even with
+hundreds of mounted items, so `perFrame()` is a safe default for feeds. Choose
+a different policy for *semantic* reasons, not to save CPU:
+
+- `perFrame()` (recommended default)
   Most responsive. Computes at most once per frame while scrolling.
 - `onScrollEnd(debounce: ...)`
-  Cheapest CPU. Computes only after scroll settles.
-- `hybrid(...)` (recommended for many feeds)
-  Per-frame while dragging, throttled during ballistic fling, always compute on
-  scroll end.
+  State updates only after the scroll settles. Right when downstream reactions
+  should fire at rest (analytics impressions, autoplay-on-settle).
+- `hybrid(...)`
+  Per-frame while dragging, throttled during ballistic fling, always a final
+  settle compute. Useful to limit rebuild pressure for UIs that listen to
+  continuous metrics (`itemFocusOf`) rather than booleans.
 
 ```dart
 ScrollSpyUpdatePolicy.hybrid(
