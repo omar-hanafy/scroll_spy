@@ -31,3 +31,6 @@ example/pubspec.lock
 .flutter-plugins-dependencies
 /build/
 /coverage/
+
+# Raw screen recordings used to regenerate the demo GIF; kept local, too large for git.
+screenshots/*.mp4
