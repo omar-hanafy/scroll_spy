@@ -38,6 +38,7 @@ void main() {
                       controller: scrollController,
                       itemExtent: 100,
                       itemCount: 30,
+                      // ignore: deprecated_member_use
                       cacheExtent: 5000,
                       itemBuilder: (context, index) {
                         return ScrollSpyItem<int>(
@@ -115,6 +116,7 @@ void main() {
                       controller: scrollController,
                       itemExtent: 100,
                       itemCount: 30,
+                      // ignore: deprecated_member_use
                       cacheExtent: 5000,
                       itemBuilder: (context, index) {
                         return ScrollSpyItem<int>(

@@ -6,7 +6,7 @@ void main() {
   group('ScrollSpyScope metricsNotificationPredicate', () {
     Future<int> currentSequence(WidgetTester tester, GlobalKey scopeKey) async {
       final state = scopeKey.currentState as ScrollSpyScopeState<int>;
-      return state.engine.debugFrame.value?.sequence ?? 0;
+      return state.engine.debugComputePasses;
     }
 
     Future<void> pumpUntilComputed(WidgetTester tester) async {

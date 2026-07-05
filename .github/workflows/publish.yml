@@ -1,62 +1,16 @@
-name: Publish scroll_spy to pub.dev
+name: Publish to pub.dev
 
 on:
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: "Tag to publish (e.g. scroll_spy-v1.2.3)"
-        required: true
-        type: string
   push:
     tags:
-      - "scroll_spy-v*"
+      - 'scroll_spy-v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  verify-tag-version:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    env:
-      PUBLISH_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ env.PUBLISH_TAG }}
-          fetch-depth: 0
-
-      - name: Validate tag matches pubspec.yaml version
-        run: |
-          set -euo pipefail
-          tag="${PUBLISH_TAG}"
-          version_from_tag="${tag#scroll_spy-v}"
-          pubspec_version=$(awk -F': ' '/^version: /{print $2}' pubspec.yaml)
-          if [ -z "$pubspec_version" ]; then
-            echo "Unable to read version from pubspec.yaml."
-            exit 1
-          fi
-          if [ "$version_from_tag" != "$pubspec_version" ]; then
-            echo "Tag version ($version_from_tag) does not match pubspec.yaml version ($pubspec_version)."
-            exit 1
-          fi
-
   publish:
-    needs: verify-tag-version
-    runs-on: ubuntu-latest
     permissions:
-      contents: read
       id-token: write
-    env:
-      PUBLISH_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ env.PUBLISH_TAG }}
-          fetch-depth: 0
-      - uses: dart-lang/setup-dart@e630b99d28a3b71860378cafdc2a067c71107f94
-      - uses: flutter-actions/setup-flutter@54feb1e258158303e041b9eaf89314dcfbf6d38a
-      - name: Install dependencies
-        run: dart pub get
-      - name: Publish - dry run
-        run: dart pub publish --dry-run
-      - name: Publish to pub.dev
-        run: dart pub publish -f
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
