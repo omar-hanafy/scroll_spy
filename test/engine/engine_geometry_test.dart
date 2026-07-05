@@ -5,7 +5,7 @@ import 'package:scroll_spy/src/engine/engine_geometry.dart';
 import 'package:scroll_spy/src/engine/item_slot.dart';
 
 class _Probe extends SingleChildRenderObjectWidget {
-  const _Probe({super.key, required this.onBox, super.child});
+  const _Probe({required this.onBox, super.child});
 
   final void Function(RenderBox box) onBox;
 
@@ -43,8 +43,7 @@ void _expectMatchesGroundTruth(
   final origin = box.localToGlobal(Offset.zero, ancestor: vpBox);
   final mainStart = axis == Axis.vertical ? origin.dy : origin.dx;
   final crossStart = axis == Axis.vertical ? origin.dx : origin.dy;
-  final mainExtent =
-      axis == Axis.vertical ? box.size.height : box.size.width;
+  final mainExtent = axis == Axis.vertical ? box.size.height : box.size.width;
 
   expect(slot.mainStart, moreOrLessEquals(mainStart, epsilon: 0.01),
       reason: 'mainStart of item ${slot.id}');
@@ -162,10 +161,7 @@ void main() {
       slots[entry.key] = slot;
     }
 
-    tester
-        .state<ScrollableState>(find.byType(Scrollable))
-        .position
-        .jumpTo(150);
+    tester.state<ScrollableState>(find.byType(Scrollable)).position.jumpTo(150);
     await tester.pump();
 
     geometry.beginPass(viewport: viewport, axisHint: Axis.vertical);
@@ -281,10 +277,7 @@ void main() {
     expect(slot.mainEnd, moreOrLessEquals(expected.bottom, epsilon: 0.01));
     expect(slot.crossStartNow, moreOrLessEquals(expected.left, epsilon: 0.01));
 
-    tester
-        .state<ScrollableState>(find.byType(Scrollable))
-        .position
-        .jumpTo(80);
+    tester.state<ScrollableState>(find.byType(Scrollable)).position.jumpTo(80);
     await tester.pump();
 
     geometry.beginPass(viewport: viewport, axisHint: Axis.vertical);
@@ -344,10 +337,7 @@ void main() {
     expect(itemSlot.tier, GeometryTier.fast);
     expect(itemSlot.mainStart, moreOrLessEquals(300, epsilon: 0.01));
 
-    tester
-        .state<ScrollableState>(find.byType(Scrollable))
-        .position
-        .jumpTo(120);
+    tester.state<ScrollableState>(find.byType(Scrollable)).position.jumpTo(120);
     await tester.pump();
 
     geometry.beginPass(viewport: viewport, axisHint: Axis.vertical);

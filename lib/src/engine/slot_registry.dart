@@ -1,4 +1,3 @@
-import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:scroll_spy/src/engine/item_slot.dart';

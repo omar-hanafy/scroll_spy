@@ -3,6 +3,8 @@ import 'dart:ui' show Rect;
 import 'package:flutter/widgets.dart' show Axis;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:scroll_spy/scroll_spy.dart';
+import 'package:scroll_spy/src/public/scroll_spy_region.dart'
+    show RegionScratch;
 
 const _viewport = Rect.fromLTWH(0, 0, 400, 800);
 
@@ -29,9 +31,12 @@ void _expectParity(
     itemStart: itemStart,
     itemEnd: itemEnd,
     anchorPos: anchorPos,
-    itemRect: () => itemRect,
-    viewportRect: _viewport,
-    axis: Axis.vertical,
+    input: () => ScrollSpyRegionInput(
+      itemRectInViewport: itemRect,
+      viewportRect: _viewport,
+      axis: Axis.vertical,
+      anchorOffsetPx: anchorPos,
+    ),
   );
 
   expect(out.isFocused, expected.isFocused,
@@ -101,9 +106,12 @@ void main() {
         itemStart: 100,
         itemEnd: 200,
         anchorPos: 400,
-        itemRect: () => const Rect.fromLTRB(0, 100, 400, 200),
-        viewportRect: _viewport,
-        axis: Axis.vertical,
+        input: () => const ScrollSpyRegionInput(
+          itemRectInViewport: Rect.fromLTRB(0, 100, 400, 200),
+          viewportRect: _viewport,
+          axis: Axis.vertical,
+          anchorOffsetPx: 400,
+        ),
       );
 
       expect(seen, isNotNull);

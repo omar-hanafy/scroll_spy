@@ -39,7 +39,8 @@ class ScrollSpyController<T> {
         initialSnapshot ?? ScrollSpySnapshot<T>.empty();
     _snapshot = _LazySnapshotNotifier<T>(initial, _materializeLatest);
     _primaryId = ValueNotifier<T?>(initial.primaryId);
-    _focusedIds = ValueNotifier<Set<T>>(Set<T>.unmodifiable(initial.focusedIds));
+    _focusedIds =
+        ValueNotifier<Set<T>>(Set<T>.unmodifiable(initial.focusedIds));
   }
 
   late final ValueNotifier<T?> _primaryId;

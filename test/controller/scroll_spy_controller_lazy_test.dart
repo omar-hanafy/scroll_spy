@@ -136,8 +136,7 @@ void main() {
       expect(controller.debugMaterializedSnapshots, 0);
     });
 
-    test('focusedIds keeps the same instance when membership is unchanged',
-        () {
+    test('focusedIds keeps the same instance when membership is unchanged', () {
       final controller = ScrollSpyController<int>();
       addTearDown(controller.dispose);
 

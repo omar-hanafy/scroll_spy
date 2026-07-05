@@ -124,8 +124,7 @@ void main() {
       expect(slots[0].isPrimary, isFalse);
     });
 
-    test('minPrimaryDuration blocks switching even if candidate would win',
-        () {
+    test('minPrimaryDuration blocks switching even if candidate would win', () {
       final previousSince = now - const Duration(milliseconds: 50);
       final slots = [
         makeSlot(

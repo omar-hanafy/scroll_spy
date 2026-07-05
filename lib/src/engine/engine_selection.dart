@@ -4,7 +4,7 @@ import 'package:scroll_spy/src/public/scroll_spy_stability.dart';
 import 'package:scroll_spy/src/utils/equality.dart';
 
 /// Result of a selection pass.
-final class SelectionResult<T> {
+final class PrimarySelection<T> {
   /// The chosen primary id, or null.
   T? primaryId;
 
@@ -30,16 +30,16 @@ final class EngineSelection {
 
   /// Selects the next primary and writes `isPrimary` flags on [slots]
   /// (exactly one true, or none). Unmeasurable slots are ignored.
-  static SelectionResult<T> select<T>({
+  static PrimarySelection<T> select<T>({
     required List<ItemSlot<T>> slots,
     required ScrollSpyPolicy<T> policy,
     required ScrollSpyStability stability,
     required T? previousPrimaryId,
     required Duration? previousPrimarySince,
     required Duration now,
-    SelectionResult<T>? into,
+    PrimarySelection<T>? into,
   }) {
-    final SelectionResult<T> result = into ?? SelectionResult<T>();
+    final PrimarySelection<T> result = into ?? PrimarySelection<T>();
 
     ItemSlot<T>? bestFocused;
     ItemSlot<T>? bestVisible;

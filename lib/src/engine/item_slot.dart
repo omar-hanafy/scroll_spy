@@ -27,6 +27,7 @@ enum GeometryTier {
 /// validation fingerprints, and the latest computed metrics all live here as
 /// plain fields so a steady-state compute pass allocates nothing.
 final class ItemSlot<T> {
+  /// Creates a slot for [id] with a stable [registrationOrder].
   ItemSlot({required this.id, required this.registrationOrder});
 
   /// The item identifier used by the scope/controller.
@@ -42,8 +43,8 @@ final class ItemSlot<T> {
   /// The probe render object used for geometry.
   RenderBox? box;
 
-  // Geometry anchor (linear scroll model). Valid when [tier] != unmeasured.
-
+  /// Geometry derivation strategy; anchors below are valid when this is not
+  /// [GeometryTier.unmeasured].
   GeometryTier tier = GeometryTier.unmeasured;
 
   /// Viewport epoch the anchor was captured under; anchors from an older
@@ -77,8 +78,10 @@ final class ItemSlot<T> {
   /// `sliver.constraints.precedingScrollExtent` at capture time.
   double precedingExtent0 = 0;
 
-  /// Probe box size at capture time.
+  /// Probe box width at capture time.
   double boxW0 = 0;
+
+  /// Probe box height at capture time.
   double boxH0 = 0;
 
   // Latest computed metrics. Valid when [measurable] is true.
@@ -86,24 +89,45 @@ final class ItemSlot<T> {
   /// Whether the item could be measured on the latest pass.
   bool measurable = false;
 
+  /// Whether any part of the item intersects the visibility bounds.
   bool isVisible = false;
+
+  /// Whether the item intersects the configured focus region.
   bool isFocused = false;
+
+  /// Whether the item is the selected primary winner.
   bool isPrimary = false;
+
+  /// Visible area fraction (0..1) for the latest pass.
   double visibleFraction = 0;
+
+  /// Signed main-axis distance from the item center to the anchor.
   double distanceToAnchorPx = double.infinity;
+
+  /// Normalized center-closeness metric from the region (0..1).
   double focusProgress = 0;
+
+  /// Normalized region-band overlap metric (0..1).
   double focusOverlapFraction = 0;
 
-  // Item rect in viewport coordinates for the latest pass, decomposed along
-  // the engine axis.
+  /// Item main-axis start in viewport coordinates for the latest pass.
   double mainStart = 0;
+
+  /// Item main-axis end in viewport coordinates for the latest pass.
   double mainEnd = 0;
+
+  /// Item cross-axis start in viewport coordinates for the latest pass.
   double crossStartNow = 0;
+
+  /// Item cross-axis end in viewport coordinates for the latest pass.
   double crossEndNow = 0;
 
-  /// Materialized rects for the latest pass. Populated only when the engine
-  /// is configured with `includeItemRects` (debug); null otherwise.
+  /// Materialized item rect for the latest pass. Populated only when the
+  /// engine is configured with `includeItemRects` (debug); null otherwise.
   Rect? itemRectCache;
+
+  /// Materialized visible-portion rect for the latest pass; see
+  /// [itemRectCache].
   Rect? visibleRectCache;
 
   /// Drops the geometry anchor so the next pass performs a full measure.

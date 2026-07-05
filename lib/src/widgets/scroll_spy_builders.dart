@@ -181,6 +181,7 @@ class ScrollSpyListView<T> extends StatefulWidget {
           prototypeItem: prototypeItem,
           itemBuilder: itemBuilder,
           itemCount: itemCount,
+          // ignore: deprecated_member_use
           cacheExtent: cacheExtent,
           semanticChildCount: semanticChildCount,
           dragStartBehavior: dragStartBehavior,
@@ -272,6 +273,7 @@ class ScrollSpyListView<T> extends StatefulWidget {
           physics: physics,
           shrinkWrap: shrinkWrap,
           padding: padding,
+          // ignore: deprecated_member_use
           cacheExtent: cacheExtent,
           dragStartBehavior: dragStartBehavior,
           keyboardDismissBehavior: keyboardDismissBehavior,
@@ -552,6 +554,7 @@ class ScrollSpyGridView<T> extends StatefulWidget {
           gridDelegate: gridDelegate,
           itemBuilder: itemBuilder,
           itemCount: itemCount,
+          // ignore: deprecated_member_use
           cacheExtent: cacheExtent,
           semanticChildCount: semanticChildCount,
           dragStartBehavior: dragStartBehavior,
@@ -864,6 +867,7 @@ class _ScrollSpyCustomScrollViewState<T>
       shrinkWrap: widget.shrinkWrap,
       center: widget.center,
       anchor: widget.anchor,
+      // ignore: deprecated_member_use
       cacheExtent: widget.cacheExtent,
       semanticChildCount: widget.semanticChildCount,
       dragStartBehavior: widget.dragStartBehavior,

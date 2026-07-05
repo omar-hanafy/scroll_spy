@@ -274,19 +274,21 @@ sealed class ScrollSpyRegion {
   /// Allocation-free evaluation used by the engine hot path.
   ///
   /// Writes the same result as [evaluate] into [out] using main-axis scalars.
-  /// Built-in regions never allocate here; [ScrollSpyRegion.custom] builds a
-  /// [ScrollSpyRegionInput] via [itemRect] and delegates to its evaluator
-  /// (allocation is the documented cost of custom regions).
+  /// Built-in regions never allocate here and never call [input];
+  /// [ScrollSpyRegion.custom] obtains a full [ScrollSpyRegionInput] from
+  /// [input] and delegates to its evaluator (allocation is the documented
+  /// cost of custom regions). Callers should pass a single reused closure.
   @internal
   void evaluateMainAxisInto(
     RegionScratch out, {
     required double itemStart,
     required double itemEnd,
     required double anchorPos,
-    required Rect Function() itemRect,
-    required Rect viewportRect,
-    required Axis axis,
+    required ScrollSpyRegionInput Function() input,
   });
+
+  /// The anchor that positions this region within the viewport.
+  ScrollSpyAnchor get anchor;
 
   /// Creates a region defined by a single line (or a very thin band) at the anchor.
   ///
@@ -337,6 +339,7 @@ sealed class ScrollSpyRegion {
 @immutable
 final class ScrollSpyLineRegion extends ScrollSpyRegion {
   /// The anchor that positions the line/band.
+  @override
   final ScrollSpyAnchor anchor;
 
   /// Thickness of the line band. If 0, treated as an infinitesimal line.
@@ -401,9 +404,7 @@ final class ScrollSpyLineRegion extends ScrollSpyRegion {
     required double itemStart,
     required double itemEnd,
     required double anchorPos,
-    required Rect Function() itemRect,
-    required Rect viewportRect,
-    required Axis axis,
+    required ScrollSpyRegionInput Function() input,
   }) {
     final itemExtent = itemEnd - itemStart;
 
@@ -429,9 +430,8 @@ final class ScrollSpyLineRegion extends ScrollSpyRegion {
 
     out.isFocused = true;
     out.focusProgress = (1.0 - (distance / itemHalf)).clamp(0.0, 1.0);
-    out.overlapFraction = thicknessPx == 0.0
-        ? 1.0
-        : (overlapPx / thicknessPx).clamp(0.0, 1.0);
+    out.overlapFraction =
+        thicknessPx == 0.0 ? 1.0 : (overlapPx / thicknessPx).clamp(0.0, 1.0);
   }
 
   @override
@@ -452,6 +452,7 @@ final class ScrollSpyLineRegion extends ScrollSpyRegion {
 @immutable
 final class ScrollSpyZoneRegion extends ScrollSpyRegion {
   /// The anchor that centers the zone.
+  @override
   final ScrollSpyAnchor anchor;
 
   /// Total zone thickness along the main axis.
@@ -498,9 +499,7 @@ final class ScrollSpyZoneRegion extends ScrollSpyRegion {
     required double itemStart,
     required double itemEnd,
     required double anchorPos,
-    required Rect Function() itemRect,
-    required Rect viewportRect,
-    required Axis axis,
+    required ScrollSpyRegionInput Function() input,
   }) {
     final halfExtent = (extentPx / 2.0).clamp(1e-6, double.infinity);
     final overlapPx = _overlapPx(
@@ -538,6 +537,7 @@ final class ScrollSpyZoneRegion extends ScrollSpyRegion {
 @immutable
 final class ScrollSpyCustomRegion extends ScrollSpyRegion {
   /// The anchor used for distance-to-anchor and debug labeling.
+  @override
   final ScrollSpyAnchor anchor;
 
   /// Custom evaluation callback.
@@ -564,18 +564,9 @@ final class ScrollSpyCustomRegion extends ScrollSpyRegion {
     required double itemStart,
     required double itemEnd,
     required double anchorPos,
-    required Rect Function() itemRect,
-    required Rect viewportRect,
-    required Axis axis,
+    required ScrollSpyRegionInput Function() input,
   }) {
-    final result = evaluate(
-      ScrollSpyRegionInput(
-        itemRectInViewport: itemRect(),
-        viewportRect: viewportRect,
-        axis: axis,
-        anchorOffsetPx: anchorPos,
-      ),
-    );
+    final result = evaluate(input());
     out.isFocused = result.isFocused;
     out.focusProgress = result.focusProgress;
     out.overlapFraction = result.overlapFraction;

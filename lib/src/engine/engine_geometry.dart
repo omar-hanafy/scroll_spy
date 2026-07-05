@@ -101,7 +101,7 @@ final class EngineGeometry {
     bool canFast = false;
 
     if (viewport is RenderViewportBase) {
-      final RenderViewportBase base = viewport as RenderViewportBase;
+      final RenderViewportBase base = viewport;
       final AxisDirection axisDirection = base.axisDirection;
       axis = axisDirectionToAxis(axisDirection);
       dir = (axisDirection == AxisDirection.down ||
@@ -148,7 +148,8 @@ final class EngineGeometry {
         slot.anchorEpoch == _epoch &&
         _fastAnchorValid(slot)) {
       fastHits++;
-      final double mainStart = slot.mainStart0 - _dir * (_pixels - slot.pixels0);
+      final double mainStart =
+          slot.mainStart0 - _dir * (_pixels - slot.pixels0);
       slot
         ..mainStart = mainStart
         ..mainEnd = mainStart + slot.mainExtent

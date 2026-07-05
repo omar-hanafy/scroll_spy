@@ -11,6 +11,7 @@ import 'package:scroll_spy/src/public/scroll_spy_models.dart';
 /// public objects ([ScrollSpySnapshot], [ScrollSpyItemFocus]) are materialized
 /// lazily, only for state someone listens to.
 final class EngineFrame<T> {
+  /// Creates a frame backed by the engine's live registry and materializer.
   EngineFrame({
     required this.slotOf,
     required this.materializeSnapshot,
