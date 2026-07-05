@@ -1,4 +1,4 @@
-## 1.0.0 - 2026-07-05
+## 1.0.0-dev.1 - 2026-07-05
 
 Engine rebuild focused on scroll performance. The public API you use in apps
 (widgets, controller listenables, regions, policies, stability, update

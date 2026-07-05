@@ -4,22 +4,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:scroll_spy/scroll_spy.dart';
 
+import '../common.dart';
+import '../theme.dart';
+
 /// A dense-feed stress page for DevTools timeline work.
 ///
-/// - 1000 items driven by [ScrollSpyItemLite] (booleans-first hot path).
+/// - 1,000 items driven by [ScrollSpyItemLite] (booleans-first hot path).
 /// - Optional "heavy items" toggle to simulate real feed cards.
-/// - A frame-time HUD (avg / worst build+raster over the last 120 frames)
-///   so regressions are visible without leaving the app.
+/// - A frame-time HUD (avg / worst build+raster over the last 120 frames) so
+///   regressions are visible without leaving the app.
 class PerfLabPage extends StatefulWidget {
-  const PerfLabPage({super.key});
+  const PerfLabPage({super.key, required this.info});
+
+  final DemoInfo info;
 
   @override
   State<PerfLabPage> createState() => _PerfLabPageState();
 }
 
 class _PerfLabPageState extends State<PerfLabPage> {
-  final ScrollSpyController<int> _spy = ScrollSpyController();
+  final ScrollSpyController<int> _spy = ScrollSpyController<int>();
   final ScrollController _scroll = ScrollController();
+
+  // Stable instance: the HUD rebuilds every frame, and this policy has no
+  // value equality, so recreating it per build would reconfigure the scope
+  // on every frame.
+  final ScrollSpyUpdatePolicy _updatePolicy = ScrollSpyUpdatePolicy.hybrid();
 
   static const int _itemCount = 1000;
 
@@ -68,34 +78,23 @@ class _PerfLabPageState extends State<PerfLabPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Perf lab'),
-        actions: [
-          IconButton(
-            icon: Icon(_heavyItems ? Icons.photo : Icons.crop_square),
-            tooltip: 'Toggle heavy items',
-            onPressed: () => setState(() => _heavyItems = !_heavyItems),
+    return DemoScaffold(
+      title: widget.info.title,
+      accent: widget.info.accent,
+      description: widget.info.description,
+      apis: widget.info.apis,
+      actions: [
+        IconButton(
+          tooltip: 'Toggle heavy items',
+          icon: Icon(
+            _heavyItems ? Icons.photo_rounded : Icons.crop_square_rounded,
           ),
-        ],
-      ),
+          onPressed: () => setState(() => _heavyItems = !_heavyItems),
+        ),
+      ],
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                _Hud(label: 'avg frame', valueMs: _avgMs),
-                const SizedBox(width: 16),
-                _Hud(label: 'worst frame', valueMs: _worstMs),
-                const Spacer(),
-                Text(
-                  '$_itemCount items',
-                  style: Theme.of(context).textTheme.labelMedium,
-                ),
-              ],
-            ),
-          ),
+          _Hud(avgMs: _avgMs, worstMs: _worstMs, itemCount: _itemCount),
           Expanded(
             child: ScrollSpyScope<int>(
               controller: _spy,
@@ -105,6 +104,7 @@ class _PerfLabPageState extends State<PerfLabPage> {
                 extentPx: 240,
               ),
               policy: const ScrollSpyPolicy.closestToAnchor(),
+              updatePolicy: _updatePolicy,
               stability: const ScrollSpyStability(
                 hysteresisPx: 24,
                 minPrimaryDuration: Duration(milliseconds: 120),
@@ -124,9 +124,9 @@ class _PerfLabPageState extends State<PerfLabPage> {
                         border: Border.all(
                           width: 2,
                           color: isPrimary
-                              ? const Color(0xFF34C759)
+                              ? SpyColors.primary
                               : (isFocused
-                                    ? const Color(0xFFFFCC00)
+                                    ? SpyColors.focused
                                     : Colors.transparent),
                         ),
                       ),
@@ -144,23 +144,61 @@ class _PerfLabPageState extends State<PerfLabPage> {
 }
 
 class _Hud extends StatelessWidget {
-  const _Hud({required this.label, required this.valueMs});
+  const _Hud({
+    required this.avgMs,
+    required this.worstMs,
+    required this.itemCount,
+  });
 
-  final String label;
-  final double valueMs;
+  final double avgMs;
+  final double worstMs;
+  final int itemCount;
 
   @override
   Widget build(BuildContext context) {
-    final good = valueMs < 8.0;
+    return Container(
+      color: SpyColors.surface,
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+      child: Row(
+        children: [
+          _stat('avg frame', avgMs),
+          const SizedBox(width: 20),
+          _stat('worst frame', worstMs),
+          const Spacer(),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              const SectionLabel('items'),
+              const SizedBox(height: 3),
+              Text(
+                '$itemCount',
+                style: const TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w800,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _stat(String label, double ms) {
+    final bool good = ms < 8.0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: Theme.of(context).textTheme.labelSmall),
+        SectionLabel(label),
+        const SizedBox(height: 3),
         Text(
-          '${valueMs.toStringAsFixed(1)} ms',
+          '${ms.toStringAsFixed(1)} ms',
           style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: good ? const Color(0xFF34C759) : const Color(0xFFFF3B30),
+            fontSize: 19,
+            fontWeight: FontWeight.w800,
+            color: good ? SpyColors.primary : SpyColors.region,
+            fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
       ],
@@ -176,8 +214,13 @@ class _LightCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: index.isEven ? const Color(0xFF1A1A1A) : const Color(0xFF141414),
-      child: Center(child: Text('item $index')),
+      color: index.isEven ? const Color(0xFF14141B) : const Color(0xFF101015),
+      child: Center(
+        child: Text(
+          'item $index',
+          style: const TextStyle(color: SpyColors.muted),
+        ),
+      ),
     );
   }
 }
@@ -191,17 +234,13 @@ class _HeavyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.primaries[index % Colors.primaries.length].shade900,
-            const Color(0xFF101010),
-          ],
-        ),
-      ),
+      decoration: BoxDecoration(gradient: demoGradient(index)),
       child: Row(
         children: [
-          CircleAvatar(child: Text('${index % 100}')),
+          CircleAvatar(
+            backgroundColor: Colors.white24,
+            child: Text('${index % 100}'),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -210,14 +249,17 @@ class _HeavyCard extends StatelessWidget {
               children: [
                 Text(
                   'User $index',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
                 Text(
-                  'A heavier feed card with avatar, gradient and shadows '
-                  'to simulate real content.',
+                  'A heavier feed card with avatar, gradient and shadows to '
+                  'simulate real content.',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.85)),
                 ),
               ],
             ),
