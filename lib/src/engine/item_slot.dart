@@ -1,6 +1,8 @@
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
+import 'package:scroll_spy/src/public/scroll_spy_models.dart';
+
 /// How an item's geometry is derived on a compute pass.
 enum GeometryTier {
   /// No valid anchor; a full measure is required before use.
@@ -107,6 +109,26 @@ final class ItemSlot<T> {
     tier = GeometryTier.unmeasured;
     sliver = null;
     sliverChild = null;
+  }
+
+  /// Materializes an immutable [ScrollSpyItemFocus] from the current metrics.
+  ///
+  /// Only called for slots someone is observing (per-item listeners, snapshot
+  /// materialization, custom policy comparators); the steady-state hot path
+  /// never materializes.
+  ScrollSpyItemFocus<T> toItemFocus({Rect? itemRect, Rect? visibleRect}) {
+    return ScrollSpyItemFocus<T>(
+      id: id,
+      isVisible: isVisible,
+      isFocused: isFocused,
+      isPrimary: isPrimary,
+      visibleFraction: visibleFraction,
+      distanceToAnchorPx: distanceToAnchorPx,
+      focusProgress: focusProgress,
+      focusOverlapFraction: focusOverlapFraction,
+      itemRectInViewport: itemRect,
+      visibleRectInViewport: visibleRect,
+    );
   }
 
   /// Marks the item unmeasurable and resets metrics to the unknown state.
