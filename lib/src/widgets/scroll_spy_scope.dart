@@ -2,8 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import 'package:scroll_spy/src/debug/debug_config.dart';
 import 'package:scroll_spy/src/debug/debug_overlay.dart';
-import 'package:scroll_spy/src/engine/focus_engine.dart';
-import 'package:scroll_spy/src/engine/focus_registry.dart';
+import 'package:scroll_spy/src/engine/engine.dart';
 import 'package:scroll_spy/src/public/scroll_spy_controller.dart';
 import 'package:scroll_spy/src/public/scroll_spy_policy.dart';
 import 'package:scroll_spy/src/public/scroll_spy_region.dart';
@@ -169,7 +168,6 @@ class ScrollSpyScope<T> extends StatefulWidget {
 /// - wrap items with `ScrollSpyItem` for registration.
 class ScrollSpyScopeState<T> extends State<ScrollSpyScope<T>>
     with WidgetsBindingObserver {
-  late final ScrollSpyRegistry<T> _registry;
   late ScrollSpyEngine<T> _engine;
 
   @override
@@ -177,15 +175,13 @@ class ScrollSpyScopeState<T> extends State<ScrollSpyScope<T>>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    _registry = ScrollSpyRegistry<T>();
-
     _engine = ScrollSpyEngine<T>(
       controller: widget.controller,
-      registry: _registry,
       region: widget.region,
       policy: widget.policy,
       stability: widget.stability,
       updatePolicy: widget.updatePolicy,
+      debugEnabled: widget.debug,
       includeItemRects: _shouldIncludeItemRects,
       viewportInsets: widget.viewportInsets,
       insetsAffectVisibility: widget.insetsAffectVisibility,
@@ -229,6 +225,7 @@ class ScrollSpyScopeState<T> extends State<ScrollSpyScope<T>>
         policy: widget.policy,
         stability: widget.stability,
         updatePolicy: widget.updatePolicy,
+        debugEnabled: widget.debug,
         includeItemRects: _shouldIncludeItemRects,
         viewportInsets: widget.viewportInsets,
         insetsAffectVisibility: widget.insetsAffectVisibility,

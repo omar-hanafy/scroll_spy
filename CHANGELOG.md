@@ -1,9 +1,43 @@
-## 0.2.7-dev.1 — 2025-12-23
+## 1.0.0-dev.1 - 2026-07-05
 
-Development pre-release for upcoming changes.
+Engine rebuild focused on scroll performance. The public API you use in apps
+(widgets, controller listenables, regions, policies, stability, update
+policies, wrappers, debug overlay) is unchanged; typical apps upgrade with no
+code changes.
 
 ### Changed
-- Enable manual publish workflow dispatch with a tag input.
+- The focus engine was rebuilt around a cached linear scroll model: during
+  steady scrolling, item positions are derived with O(1) arithmetic per item
+  instead of per-frame render-tree walks, and the hot path performs no
+  allocations. Items under transforms or custom slivers are detected
+  automatically and measured with a general (still allocation-free) path.
+- Snapshots and `ScrollSpyItemFocus` objects are now materialized lazily,
+  only for state something actually listens to. `ScrollSpySnapshot.computedAt`
+  reflects when that snapshot instance was materialized.
+- Primary stability timing (`minPrimaryDuration`) is now monotonic; wall-clock
+  changes can no longer break or shorten stability windows.
+- Debug-frame bookkeeping now runs only when `ScrollSpyScope(debug: true)`;
+  a non-debug scope spends nothing on debug support.
+
+### Added
+- `ScrollSpyRegion.anchor` is available on the sealed base type.
+
+### Removed (breaking)
+- The old engine internals are no longer exported:
+  `ScrollSpySelection`, `ScrollSpyGeometry`, `ScrollSpyGeometryResult`,
+  `ScrollSpyRegistry`, `ScrollSpyRegistryEntry`, and `ScrollSpyDiff`.
+- `ScrollSpyController.commitFrame` was replaced by an internal engine commit
+  path; the controller is no longer fed with hand-built snapshots.
+
+---
+
+## 0.2.7 — 2025-12-24
+
+Release automation maintenance (no API changes).
+
+### Changed
+- Improved tag-based publishing automation.
+- Cleaned up repo workflow documentation (canonical guide).
 
 ---
 

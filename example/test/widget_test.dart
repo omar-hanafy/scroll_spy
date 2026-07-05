@@ -1,20 +1,17 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// Smoke test for the showcase app.
 
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:scroll_spy_example/main.dart';
 
 void main() {
-  testWidgets('example app builds', (WidgetTester tester) async {
+  testWidgets('showcase app builds and shows the gallery', (tester) async {
     await tester.pumpWidget(const ShowcaseApp());
     await tester.pump();
 
-    expect(find.byType(FeedPage), findsOneWidget);
-    expect(find.text('Scroll Spy'), findsOneWidget);
+    expect(find.byType(HomeGalleryPage), findsOneWidget);
+    expect(find.text('scroll_spy'), findsOneWidget);
+    // The gallery lists demos.
+    expect(find.text('Autoplay feed'), findsOneWidget);
   });
 }

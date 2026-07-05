@@ -35,6 +35,7 @@ void main() {
                       itemExtent: 100.0,
                       // Make sure many (ideally all) children are built/registered,
                       // so shrinking actually removes registered items.
+                      // ignore: deprecated_member_use
                       cacheExtent: 5000.0,
                       itemBuilder: (context, index) {
                         return ScrollSpyItem<int>(
