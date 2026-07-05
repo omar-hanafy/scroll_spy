@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:scroll_spy/scroll_spy.dart';
 
+import 'perf_lab_page.dart';
+
 void main() {
   runApp(const ShowcaseApp());
 }
@@ -171,6 +173,13 @@ class _FeedPageState extends State<FeedPage> {
             icon: Icon(_showDebug ? Icons.layers_clear : Icons.layers),
             tooltip: 'Toggle Focus Overlay',
             onPressed: () => setState(() => _showDebug = !_showDebug),
+          ),
+          IconButton(
+            icon: const Icon(Icons.speed),
+            tooltip: 'Perf lab',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const PerfLabPage()),
+            ),
           ),
         ],
       ),
