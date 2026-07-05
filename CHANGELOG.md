@@ -21,8 +21,6 @@ code changes.
 
 ### Added
 - `ScrollSpyRegion.anchor` is available on the sealed base type.
-- The example app gained a "Perf lab" page (dense 1000-item feed with a
-  frame-time HUD) for profiling with DevTools.
 
 ### Removed (breaking)
 - The old engine internals are no longer exported:
