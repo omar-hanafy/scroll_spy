@@ -123,6 +123,18 @@ class ScrollSpyEngine<T> {
   @visibleForTesting
   EngineGeometry get debugGeometry => _geometry;
 
+  /// Number of currently registered item slots.
+  @visibleForTesting
+  int get debugRegisteredCount => _registry.length;
+
+  /// Runs one synchronous compute pass, bypassing scheduling. Benchmarks and
+  /// invariant tests only; production computes always run post-frame.
+  @visibleForTesting
+  void debugComputeNow() {
+    _dirty = true;
+    _computeIfDirty();
+  }
+
   // Per-pass state consumed by the reused region-input closure and the
   // debug/snapshot materializers.
   ItemSlot<T>? _regionSlot;
