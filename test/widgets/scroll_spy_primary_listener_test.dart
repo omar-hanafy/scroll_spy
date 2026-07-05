@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:scroll_spy/scroll_spy.dart';
 
+import '../helpers/focus_fixtures.dart';
+
 void main() {
   group('ScrollSpyPrimaryListener', () {
     testWidgets(

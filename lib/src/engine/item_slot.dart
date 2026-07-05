@@ -101,6 +101,11 @@ final class ItemSlot<T> {
   double crossStartNow = 0;
   double crossEndNow = 0;
 
+  /// Materialized rects for the latest pass. Populated only when the engine
+  /// is configured with `includeItemRects` (debug); null otherwise.
+  Rect? itemRectCache;
+  Rect? visibleRectCache;
+
   /// Drops the geometry anchor so the next pass performs a full measure.
   ///
   /// Latest metrics are intentionally preserved: they describe the last
@@ -147,5 +152,7 @@ final class ItemSlot<T> {
     mainEnd = 0;
     crossStartNow = 0;
     crossEndNow = 0;
+    itemRectCache = null;
+    visibleRectCache = null;
   }
 }

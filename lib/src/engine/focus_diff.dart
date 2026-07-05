@@ -1,3 +1,7 @@
+// ignore_for_file: invalid_use_of_visible_for_testing_member
+// Transitional bridge onto the v1 commit path; this file is deleted with the
+// legacy engine.
+import 'package:scroll_spy/src/engine/engine_frame.dart';
 import 'package:scroll_spy/src/public/scroll_spy_controller.dart';
 import 'package:scroll_spy/src/public/scroll_spy_models.dart';
 
@@ -24,6 +28,6 @@ final class ScrollSpyDiff {
     required ScrollSpyController<T> controller,
     required ScrollSpySnapshot<T> next,
   }) {
-    controller.commitFrame(next);
+    controller.commit(EngineFrame<T>.fromSnapshot(next));
   }
 }

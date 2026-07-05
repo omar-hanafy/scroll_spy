@@ -1,4 +1,12 @@
 import 'package:scroll_spy/scroll_spy.dart';
+import 'package:scroll_spy/src/engine/engine_frame.dart';
+
+/// Lets controller tests express engine commits in terms of public snapshots.
+extension ControllerCommitFrame<T> on ScrollSpyController<T> {
+  void commitFrame(ScrollSpySnapshot<T> snapshot) {
+    commit(EngineFrame<T>.fromSnapshot(snapshot));
+  }
+}
 
 /// Creates a deterministic [ScrollSpyItemFocus<int>] for unit tests.
 ScrollSpyItemFocus<int> makeFocusItem({
