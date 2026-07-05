@@ -44,6 +44,10 @@ final class ItemSlot<T> {
 
   GeometryTier tier = GeometryTier.unmeasured;
 
+  /// Viewport epoch the anchor was captured under; anchors from an older
+  /// epoch (viewport identity/size/axis changed) are not trusted.
+  int anchorEpoch = -1;
+
   /// Main-axis start in viewport coordinates at capture time.
   double mainStart0 = 0;
 
