@@ -1,0 +1,28 @@
+{
+  "name": "scroll-spy",
+  "version": "1.0.1",
+  "description": "Package-specific skills for the scroll_spy Flutter package: integration, primary-selection tuning, diagnosis, performance optimization, v0.2-to-v1 migration, and visibility_detector conversion.",
+  "keywords": [
+    "flutter",
+    "dart",
+    "scroll",
+    "viewport",
+    "autoplay",
+    "feed",
+    "visibility"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "ScrollSpy Assistant",
+    "shortDescription": "Skills for the scroll_spy Flutter package.",
+    "longDescription": "Adds package-specific skills for scroll_spy, the viewport focus detection package for Flutter: correct integration into feeds and carousels, primary-selection stability tuning, symptom-based diagnosis, rebuild-pressure optimization, migration from 0.2.x to 1.x, and conversion from visibility_detector.",
+    "developerName": "Omar Hanafy",
+    "category": "Development",
+    "websiteUrl": "https://github.com/omar-hanafy/scroll_spy",
+    "defaultPrompt": [
+      "Integrate scroll_spy autoplay into my feed",
+      "My scroll_spy primary flickers while scrolling",
+      "Migrate my project from scroll_spy 0.2 to 1.0"
+    ]
+  }
+}

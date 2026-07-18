@@ -33,3 +33,16 @@ docs/
 # The demo GIF is served from GitHub in the README; 25 MB does not belong in
 # the package archive. The PNG icon stays (pubspec screenshots).
 screenshots/scroll_spy.gif
+
+# Raw screen recordings (gitignored, but .pubignore replaces .gitignore, so
+# without this line a locally built archive would include the 38 MB mp4).
+screenshots/*.mp4
+
+# AI coding-assistant plugin distribution (Claude Code / Codex). Installed
+# from the GitHub repository, never from the pub.dev archive; shipping only
+# the visible parts (hidden manifests are auto-excluded by pub) would produce
+# a broken partial plugin, so the whole tree stays out.
+plugins/
+AGENTS.md
+CLAUDE.md
+tool/

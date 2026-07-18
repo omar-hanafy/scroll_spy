@@ -1,0 +1,23 @@
+{
+  "name": "scroll-spy",
+  "displayName": "ScrollSpy Assistant",
+  "version": "1.0.1",
+  "description": "Package-specific skills for the scroll_spy Flutter package: integration, primary-selection tuning, diagnosis, performance optimization, v0.2-to-v1 migration, and visibility_detector conversion.",
+  "author": {
+    "name": "Omar Hanafy",
+    "url": "https://github.com/omar-hanafy"
+  },
+  "homepage": "https://github.com/omar-hanafy/scroll_spy",
+  "repository": "https://github.com/omar-hanafy/scroll_spy",
+  "license": "MIT",
+  "keywords": [
+    "flutter",
+    "dart",
+    "scroll",
+    "viewport",
+    "autoplay",
+    "feed",
+    "visibility"
+  ],
+  "skills": "./skills/"
+}

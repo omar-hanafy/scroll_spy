@@ -1,0 +1,31 @@
+{
+  "name": "scroll-spy",
+  "owner": {
+    "name": "Omar Hanafy"
+  },
+  "description": "AI coding-assistant plugins for the scroll_spy Flutter package.",
+  "plugins": [
+    {
+      "name": "scroll-spy",
+      "source": "./plugins/scroll-spy",
+      "displayName": "ScrollSpy Assistant",
+      "description": "Package-specific skills for integrating, tuning, diagnosing, optimizing, and migrating the scroll_spy Flutter package.",
+      "version": "1.0.1",
+      "author": {
+        "name": "Omar Hanafy"
+      },
+      "homepage": "https://github.com/omar-hanafy/scroll_spy",
+      "repository": "https://github.com/omar-hanafy/scroll_spy",
+      "license": "MIT",
+      "category": "development",
+      "keywords": [
+        "flutter",
+        "dart",
+        "scroll",
+        "viewport",
+        "autoplay",
+        "feed"
+      ]
+    }
+  ]
+}

@@ -33,6 +33,46 @@
 
 ---
 
+## AI coding-assistant support (agent plugin)
+
+scroll_spy ships an installable **agent plugin** for **Claude Code** and
+**OpenAI Codex** - package-specific skills your coding assistant uses while it
+works on *your* app (this is tooling for your AI assistant, not a runtime
+feature of the Dart package). It covers integration, primary-selection
+tuning, diagnosis, performance, migrating 0.x to 1.x, and converting from
+`visibility_detector`.
+
+Claude Code (CLI/desktop/web, v2+):
+
+```
+/plugin marketplace add omar-hanafy/scroll_spy
+/plugin install scroll-spy@scroll-spy
+```
+
+OpenAI Codex (CLI v0.144+; also usable from the ChatGPT desktop app; the
+Codex IDE extension does not load plugins):
+
+```
+codex plugin marketplace add omar-hanafy/scroll_spy
+codex plugin add scroll-spy@scroll-spy
+```
+
+Start a **new session** after installing, then just describe your task:
+
+> "Add scroll_spy autoplay to my feed so exactly one video plays."
+> "My scroll_spy primary flickers between two cards - fix it."
+
+or invoke a skill explicitly: `/scroll-spy:integrate-scroll-spy` in Claude
+Code, `$integrate-scroll-spy` in Codex. Skills target scroll_spy 1.x (the
+migration skill also reads 0.x projects).
+
+The plugin is instructions-only (no hooks, no MCP servers, no executable
+scripts, no network access) and installs from this GitHub repository, not from
+the pub.dev archive. Full capability list, update/uninstall, and
+troubleshooting: [docs/ai-assistant.md](docs/ai-assistant.md).
+
+---
+
 ## What it answers
 
 Every scrolling feed eventually needs to know:
