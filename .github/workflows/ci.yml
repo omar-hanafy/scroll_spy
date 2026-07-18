@@ -44,3 +44,12 @@ jobs:
       - name: Run tests
         working-directory: ${{ env.PACKAGE_DIR }}
         run: flutter test
+
+  ai-plugin:
+    name: Validate AI plugin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+      - name: Validate plugin manifests, skills, and version sync
+        run: dart run tool/validate_ai_plugin.dart

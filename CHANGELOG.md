@@ -1,3 +1,22 @@
+## 1.0.1 - 2026-07-18
+
+No runtime changes; the Dart/Flutter API is identical to 1.0.0.
+
+### Added
+- AI coding-assistant support: an installable agent plugin for Claude Code
+  and OpenAI Codex, distributed from the GitHub repository (see the
+  "AI coding-assistant support" section in the README). Six package-specific
+  skills: integration, primary-selection stability tuning, symptom-based
+  diagnosis, rebuild-pressure/performance optimization, a 0.x to 1.x
+  migration workflow, and conversion from `visibility_detector`. The plugin
+  is instructions-only (no hooks, MCP servers, executable scripts, or
+  network access) and is excluded from the pub.dev archive.
+- Repository guidance for coding agents (`AGENTS.md`, `CLAUDE.md`) and a CI
+  validator (`tool/validate_ai_plugin.dart`) that keeps plugin manifests,
+  marketplace catalogs, skills, and the package version in sync.
+
+---
+
 ## 1.0.0 - 2026-07-05
 
 Engine rebuild focused on scroll performance. The public API you use in apps

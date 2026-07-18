@@ -1,0 +1,19 @@
+{
+  "name": "scroll-spy",
+  "interface": {
+    "displayName": "ScrollSpy Plugins"
+  },
+  "plugins": [
+    {
+      "name": "scroll-spy",
+      "source": {
+        "source": "local",
+        "path": "./plugins/scroll-spy"
+      },
+      "category": "Development",
+      "policy": {
+        "installation": "AVAILABLE"
+      }
+    }
+  ]
+}
