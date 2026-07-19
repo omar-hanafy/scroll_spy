@@ -7,25 +7,25 @@ import 'package:flutter/material.dart';
 /// colors the built-in debug overlay paints.
 abstract final class SpyColors {
   /// App background (near-black).
-  static const Color bg = Color(0xFF0B0B0F);
+  static const Color bg = Color(0xFF070908);
 
   /// Base surface for cards and sheets.
-  static const Color surface = Color(0xFF16161E);
+  static const Color surface = Color(0xFF0B0E0C);
 
   /// Elevated surface (controls, chips).
-  static const Color surfaceHigh = Color(0xFF20202B);
+  static const Color surfaceHigh = Color(0xFF161B17);
 
   /// Hairline stroke (white at low opacity).
-  static const Color stroke = Color(0x1AFFFFFF);
+  static const Color stroke = Color(0xFF252B26);
 
-  /// Brand accent (violet).
-  static const Color accent = Color(0xFF7C5CFF);
+  /// Brand signal green.
+  static const Color accent = Color(0xFF4DF477);
 
-  /// Secondary accent (cyan).
-  static const Color accent2 = Color(0xFF22D3EE);
+  /// Secondary brand foreground.
+  static const Color accent2 = Color(0xFFF2F5EF);
 
   /// Muted foreground for secondary text.
-  static const Color muted = Color(0xFF8C8C9A);
+  static const Color muted = Color(0xFF9CA59D);
 
   // --- Focus-state colors (aligned with ScrollSpyDebugConfig defaults) ---
 

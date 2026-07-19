@@ -1,5 +1,9 @@
 # scroll_spy showcase
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.png" alt="scroll_spy Primary Rail logo" width="96" />
+</p>
+
 A multi-demo showcase app for the [`scroll_spy`](../) package (1.x). Each
 screen is a self-contained, real-world use case that exercises a different part
 of the public API. Open a demo and tap the ⓘ button in the app bar to see

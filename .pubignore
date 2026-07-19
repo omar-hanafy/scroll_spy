@@ -29,6 +29,7 @@ migrate_working_dir/
 
 # Internal design/planning documents; not part of the published package.
 docs/
+brand/
 
 # Repository-only product site and comparison benchmark.
 website/

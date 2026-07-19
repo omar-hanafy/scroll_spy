@@ -1,3 +1,38 @@
+## 1.0.3 - 2026-07-19
+
+No public runtime API changes; existing scroll_spy 1.x integrations keep the
+same behavior.
+
+### Added
+- The Primary Rail brand system: reproducible SVG masters, light and dark
+  marks, launcher-safe compositions, maskable artwork, and a deterministic
+  asset-generation script.
+- Branded Android adaptive and round icons plus Android 12, iOS, and legacy
+  launch-screen artwork for the example app.
+- Installable product-site icons and manifest metadata for favicons, Apple
+  touch icons, and normal and maskable PWA icons.
+
+### Changed
+- Unified the package README, product site, social preview, Flutter example,
+  web app, Android, iOS, and macOS around the near-black, signal-green, and
+  bone Primary Rail identity.
+- Replaced the example's stock Flutter launcher artwork and Material radar
+  glyph with the package's own mark.
+- Accepted Flutter's current Android Gradle compatibility flags and iOS/macOS
+  Swift Package Manager wiring so native showcase builds stay clean on the
+  current stable toolchain.
+- Removed the standalone branding image from the pub.dev screenshot carousel
+  to follow current pub.dev guidance. The logo remains at the top of the
+  README rendered on pub.dev, while the real autoplay screenshot remains the
+  package thumbnail.
+- Updated all package and assistant-plugin version references to 1.0.3.
+
+### Fixed
+- Ensured the Pages staging parent exists on clean CI checkouts before
+  allocating its temporary build directory.
+
+---
+
 ## 1.0.2 - 2026-07-19
 
 No public runtime API changes; existing scroll_spy 1.x integrations keep the
