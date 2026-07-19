@@ -3,6 +3,7 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 build_root="$repo_root/build/pages"
+mkdir -p "$repo_root/build"
 staging_root="$(mktemp -d "$repo_root/build/pages-stage.XXXXXX")"
 staging_site="$staging_root/scroll-spy"
 
