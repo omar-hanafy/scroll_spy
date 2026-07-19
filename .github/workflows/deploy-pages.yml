@@ -4,9 +4,11 @@ on:
   push:
     branches: [main]
     paths:
+      - 'brand/**'
       - 'website/**'
       - 'example/**'
       - 'tool/build_pages.sh'
+      - 'tool/generate_brand_assets.sh'
       - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 
@@ -27,6 +29,10 @@ jobs:
         with:
           channel: stable
           cache: true
+      - name: Install brand asset renderer
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes imagemagick librsvg2-bin
       - name: Build crawlable site and Flutter demo
         run: bash tool/build_pages.sh
       - name: Check out Pages repository

@@ -12,6 +12,8 @@ cleanup() {
 }
 trap cleanup EXIT
 
+bash "$repo_root/tool/generate_brand_assets.sh"
+
 cd "$repo_root/example"
 flutter build web --release --wasm --base-href /scroll-spy/demo/
 
@@ -23,8 +25,14 @@ touch "$staging_site/.nojekyll"
 test -f "$staging_site/index.html"
 test -f "$staging_site/comparison.html"
 test -f "$staging_site/guides/flutter-video-autoplay-feed.html"
+test -f "$staging_site/site.webmanifest"
+test -f "$staging_site/assets/favicon-16.png"
+test -f "$staging_site/assets/apple-touch-icon.png"
+test -f "$staging_site/assets/scroll-spy-mark-dark.svg"
 test -f "$staging_site/demo/main.dart.wasm"
 test -f "$staging_site/demo/assets/assets/scroll_spy_feed.mp4"
+test -f "$staging_site/demo/assets/assets/scroll_spy_mark.png"
+test -f "$staging_site/demo/icons/Icon-maskable-512.png"
 grep -Fq '<base href="/scroll-spy/demo/">' "$staging_site/demo/index.html"
 
 mkdir -p "$build_root/scroll-spy"

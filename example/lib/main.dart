@@ -59,7 +59,7 @@ class _Hero extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF1A1330), SpyColors.bg],
+          colors: [Color(0xFF123E1E), SpyColors.bg],
         ),
       ),
       child: Column(
@@ -68,15 +68,18 @@ class _Hero extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 46,
-                height: 46,
+                width: 52,
+                height: 52,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [SpyColors.accent, Color(0xFF4423B0)],
-                  ),
-                  borderRadius: BorderRadius.circular(13),
+                  color: SpyColors.bg,
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: SpyColors.stroke),
                 ),
-                child: const Icon(Icons.radar_rounded, color: Colors.white),
+                padding: const EdgeInsets.all(7),
+                child: Image.asset(
+                  'assets/scroll_spy_mark.png',
+                  semanticLabel: 'scroll_spy Primary Rail logo',
+                ),
               ),
               const SizedBox(width: 12),
               const _VersionPill(),
@@ -129,7 +132,7 @@ class _VersionPill extends StatelessWidget {
         border: Border.all(color: SpyColors.accent.withValues(alpha: 0.35)),
       ),
       child: const Text(
-        'v1.0.2',
+        'v1.0.3',
         style: TextStyle(
           color: SpyColors.accent,
           fontWeight: FontWeight.w700,

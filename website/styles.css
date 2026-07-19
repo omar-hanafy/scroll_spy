@@ -114,12 +114,10 @@ a {
 }
 
 .wordmark-mark {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border: 2px solid var(--signal);
-  border-radius: 50%;
-  box-shadow: 0 0 18px rgb(77 244 119 / 60%);
+  display: block;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
 }
 
 nav {

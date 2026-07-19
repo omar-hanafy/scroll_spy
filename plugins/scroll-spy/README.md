@@ -1,5 +1,9 @@
 # ScrollSpy Assistant
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.png" alt="scroll_spy Primary Rail logo" width="96" />
+</p>
+
 Package-specific AI coding-assistant plugin for
 [scroll_spy](https://pub.dev/packages/scroll_spy), the viewport focus
 detection package for Flutter. One plugin tree serves both Claude Code and

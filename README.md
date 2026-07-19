@@ -1,7 +1,7 @@
 # scroll_spy
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.png" alt="scroll_spy icon" width="112" />
+  <img src="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.png" alt="scroll_spy Primary Rail logo" width="128" />
 </p>
 
 <h3 align="center">Know what is visible. Choose one stable winner.</h3>
@@ -120,7 +120,7 @@ inspect its scenario and run it on your own hardware.
 
 ```yaml
 dependencies:
-  scroll_spy: ^1.0.2
+  scroll_spy: ^1.0.3
 ```
 
 ```dart
