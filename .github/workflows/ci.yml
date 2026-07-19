@@ -35,6 +35,9 @@ jobs:
       - name: Install dependencies
         working-directory: ${{ env.PACKAGE_DIR }}
         run: flutter pub get
+      - name: Install benchmark dependencies
+        working-directory: benchmark
+        run: flutter pub get
       - name: Check formatting
         working-directory: ${{ env.PACKAGE_DIR }}
         run: dart format --output=none --set-exit-if-changed .
@@ -53,9 +56,6 @@ jobs:
       - name: Run example tests
         working-directory: example
         run: flutter test
-      - name: Install benchmark dependencies
-        working-directory: benchmark
-        run: flutter pub get
       - name: Analyze benchmark
         working-directory: benchmark
         run: flutter analyze
