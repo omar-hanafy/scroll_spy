@@ -1,6 +1,6 @@
 name: scroll_spy
 description: Detect visible items and select one stable primary item in Flutter scrollables for video autoplay, analytics, reading position, and prefetching.
-version: 1.0.4
+version: 1.0.5
 homepage: https://omar-hanafy.github.io/scroll-spy/
 repository: https://github.com/omar-hanafy/scroll_spy
 issue_tracker: https://github.com/omar-hanafy/scroll_spy/issues
