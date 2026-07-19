@@ -120,7 +120,7 @@ inspect its scenario and run it on your own hardware.
 
 ```yaml
 dependencies:
-  scroll_spy: ^1.0.3
+  scroll_spy: ^1.0.4
 ```
 
 ```dart
