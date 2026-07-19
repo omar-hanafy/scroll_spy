@@ -1,3 +1,14 @@
+## 1.0.4 - 2026-07-19
+
+No public runtime API changes; existing scroll_spy 1.x integrations keep the
+same behavior.
+
+### Fixed
+- Slowed the README and pub.dev demo GIF from 11 to 22 seconds so focus
+  transitions and primary-item changes are easier to follow.
+
+---
+
 ## 1.0.3 - 2026-07-19
 
 No public runtime API changes; existing scroll_spy 1.x integrations keep the

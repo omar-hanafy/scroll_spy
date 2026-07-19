@@ -132,7 +132,7 @@ class _VersionPill extends StatelessWidget {
         border: Border.all(color: SpyColors.accent.withValues(alpha: 0.35)),
       ),
       child: const Text(
-        'v1.0.3',
+        'v1.0.4',
         style: TextStyle(
           color: SpyColors.accent,
           fontWeight: FontWeight.w700,
