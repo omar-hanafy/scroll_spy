@@ -1,3 +1,20 @@
+## 1.0.5 - 2026-07-19
+
+No public runtime API changes; existing scroll_spy 1.x integrations keep the
+same behavior.
+
+### Added
+- A prominent README link to the official ScrollSpy Assistant plugin for
+  Claude Code and OpenAI Codex.
+
+### Fixed
+- Restored the complete 371-frame, 31-second README and pub.dev demo GIF from
+  the original optimized recording.
+- Versioned the external GIF URL so pub.dev refreshes its cached image instead
+  of continuing to serve the shorter replacement.
+
+---
+
 ## 1.0.4 - 2026-07-19
 
 No public runtime API changes; existing scroll_spy 1.x integrations keep the

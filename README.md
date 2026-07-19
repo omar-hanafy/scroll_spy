@@ -12,6 +12,11 @@
   carousels, and prefetching.
 </p>
 
+> **Want your AI agent to handle the integration?**
+> [Install the official ScrollSpy Assistant plugin](#ai-coding-assistant-support)
+> for Claude Code or OpenAI Codex. It teaches your agent exactly how to
+> integrate, tune, and migrate this package.
+
 <p align="center">
   <a href="https://pub.dev/packages/scroll_spy"><img src="https://img.shields.io/pub/v/scroll_spy.svg" alt="pub package" /></a>
   <a href="https://pub.dev/packages/scroll_spy/score"><img src="https://img.shields.io/pub/points/scroll_spy" alt="pub points" /></a>
@@ -21,7 +26,7 @@
 
 <p align="center">
   <a href="https://omar-hanafy.github.io/scroll-spy/demo/">
-    <img src="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.gif" alt="scroll_spy demo" width="360" />
+    <img src="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.gif?v=1.0.5" alt="scroll_spy demo" width="360" />
   </a>
 </p>
 <p align="center">
@@ -120,7 +125,7 @@ inspect its scenario and run it on your own hardware.
 
 ```yaml
 dependencies:
-  scroll_spy: ^1.0.4
+  scroll_spy: ^1.0.5
 ```
 
 ```dart
