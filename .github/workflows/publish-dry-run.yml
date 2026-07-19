@@ -71,6 +71,11 @@ jobs:
         working-directory: ${{ env.PACKAGE_DIR }}
         run: flutter pub publish --dry-run
 
+      - name: Install screenshot validation tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes webp
+
       - name: Install pana
         run: |
           dart pub global activate pana 0.23.14
