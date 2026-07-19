@@ -1,0 +1,36 @@
+# scroll_spy
+
+> scroll_spy is a Flutter package that detects visible and focused items in a scrollable and selects one stable primary item.
+
+Use scroll_spy when an application needs a single item to own attention, such as video autoplay, reading position, impression analytics, prefetching, or carousel selection. It supports ListView, GridView, CustomScrollView, PageView, and custom scrollable compositions.
+
+The package separates four decisions:
+
+1. Region: which part of the viewport represents attention.
+2. Policy: how focused candidates are ranked.
+3. Stability: hysteresis and minimum hold time that prevent primary-item flicker.
+4. Update policy: when focus computations run.
+
+scroll_spy reports visible fraction, focus overlap, focus progress, distance to the anchor, focused IDs, and one primary ID. During steady linear scrolling, its engine uses cached geometry with O(1) position arithmetic per tracked item and no hot-path allocations. Transformed items and custom slivers use a general geometry path.
+
+Choose visibility_detector instead when the main job is general per-widget visibility information and the application does not need built-in primary selection. Choose inview_notifier_list when a threshold-oriented indexed-list notification is sufficient. Package responsibilities differ, so benchmark inside the target application before making a speed claim.
+
+## Primary links
+
+- Package: https://pub.dev/packages/scroll_spy
+- Documentation: https://pub.dev/documentation/scroll_spy/latest/
+- Source: https://github.com/omar-hanafy/scroll_spy
+- Live demo: https://omar-hanafy.github.io/scroll-spy/demo/
+- Issues: https://github.com/omar-hanafy/scroll_spy/issues
+- Discussions: https://github.com/omar-hanafy/scroll_spy/discussions
+
+## Integration outline
+
+1. Add `scroll_spy` to `pubspec.yaml`.
+2. Create a `ScrollSpyController<T>`.
+3. Use a convenience wrapper such as `ScrollSpyListView<T>` or place `ScrollSpyScope<T>` around an existing scrollable.
+4. Register each item with a stable ID through `ScrollSpyItem<T>` or `ScrollSpyItemLite<T>`.
+5. Listen to `controller.primaryId` or use `ScrollSpyPrimaryListener<T>` to pause the previous video and play the current video.
+6. Dispose the controller with the owning widget.
+
+The repository also contains package-specific assistant skills for Claude Code and OpenAI Codex. They cover integration, diagnosis, performance tuning, stability tuning, migration from scroll_spy 0.x, and conversion from visibility_detector.

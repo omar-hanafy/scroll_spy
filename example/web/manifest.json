@@ -1,11 +1,11 @@
 {
-    "name": "scroll_spy_example",
-    "short_name": "scroll_spy_example",
+    "name": "scroll_spy Flutter demos",
+    "short_name": "scroll_spy demo",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#0B0F12",
+    "theme_color": "#0B0F12",
+    "description": "Interactive viewport focus and video autoplay demos for the scroll_spy Flutter package.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

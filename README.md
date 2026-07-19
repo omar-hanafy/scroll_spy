@@ -1,77 +1,44 @@
 # scroll_spy
 
-<table style="border:none;">
-  <tr style="border:none;">
-    <td style="border:none; vertical-align:top;">
-      <a href="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.png">
-        <img src="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.png" alt="scroll_spy icon" width="140" />
-      </a>
-    </td>
-    <td style="border:none; vertical-align:top; padding-left:16px;">
-      <p>
-        Viewport-aware focus detection for Flutter scrollables. Know which
-        items are visible, which are focused, and which single item is the
-        stable <b>primary</b> - for autoplay feeds, reading position,
-        impression analytics, carousels, and prefetching.
-      </p>
-      <p>
-        <a href="https://pub.dev/packages/scroll_spy"><img src="https://img.shields.io/pub/v/scroll_spy.svg" alt="pub package" /></a>
-        <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license" /></a>
-      </p>
-    </td>
-  </tr>
-</table>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.png" alt="scroll_spy icon" width="112" />
+</p>
+
+<h3 align="center">Know what is visible. Choose one stable winner.</h3>
 
 <p align="center">
-  <a href="https://omar-hanafy.github.io/scroll-spy/">
+  Viewport focus detection and stable primary item selection for Flutter
+  scrollables, built for video autoplay feeds, analytics, reading position,
+  carousels, and prefetching.
+</p>
+
+<p align="center">
+  <a href="https://pub.dev/packages/scroll_spy"><img src="https://img.shields.io/pub/v/scroll_spy.svg" alt="pub package" /></a>
+  <a href="https://pub.dev/packages/scroll_spy/score"><img src="https://img.shields.io/pub/points/scroll_spy" alt="pub points" /></a>
+  <a href="https://github.com/omar-hanafy/scroll_spy/actions/workflows/ci.yml"><img src="https://github.com/omar-hanafy/scroll_spy/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license" /></a>
+</p>
+
+<p align="center">
+  <a href="https://omar-hanafy.github.io/scroll-spy/demo/">
     <img src="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.gif" alt="scroll_spy demo" width="360" />
   </a>
 </p>
 <p align="center">
-  <a href="https://omar-hanafy.github.io/scroll-spy/"><b>Try the live demo</b></a>
+  <a href="https://omar-hanafy.github.io/scroll-spy/"><b>Product guide</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://omar-hanafy.github.io/scroll-spy/demo/"><b>Real video feed demo</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://pub.dev/documentation/scroll_spy/latest/"><b>API docs</b></a>
 </p>
 
 ---
 
-## AI coding-assistant support (agent plugin)
-
-scroll_spy ships an installable **agent plugin** for **Claude Code** and
-**OpenAI Codex** - package-specific skills your coding assistant uses while it
-works on *your* app (this is tooling for your AI assistant, not a runtime
-feature of the Dart package). It covers integration, primary-selection
-tuning, diagnosis, performance, migrating 0.x to 1.x, and converting from
-`visibility_detector`.
-
-Claude Code (CLI/desktop/web, v2+):
-
-```
-/plugin marketplace add omar-hanafy/scroll_spy
-/plugin install scroll-spy@scroll-spy
-```
-
-OpenAI Codex (CLI v0.144+; also usable from the ChatGPT desktop app; the
-Codex IDE extension does not load plugins):
-
-```
-codex plugin marketplace add omar-hanafy/scroll_spy
-codex plugin add scroll-spy@scroll-spy
-```
-
-Start a **new session** after installing, then just describe your task:
-
-> "Add scroll_spy autoplay to my feed so exactly one video plays."
-> "My scroll_spy primary flickers between two cards - fix it."
-
-or invoke a skill explicitly: `/scroll-spy:integrate-scroll-spy` in Claude
-Code, `$integrate-scroll-spy` in Codex. Skills target scroll_spy 1.x (the
-migration skill also reads 0.x projects).
-
-The plugin is instructions-only (no hooks, no MCP servers, no executable
-scripts, no network access) and installs from this GitHub repository, not from
-the pub.dev archive. Full capability list, update/uninstall, and
-troubleshooting: [docs/ai-assistant.md](docs/ai-assistant.md).
-
----
+scroll_spy is the layer between raw Flutter widget visibility and a product
+decision. It reports every visible and focused item, then applies an explicit
+policy and stability rules to select one `primaryId`. A video engine can pause
+the previous ID and play the next without two half-visible cards fighting over
+audio.
 
 ## What it answers
 
@@ -127,13 +94,33 @@ scroll event
 - **A real debug overlay.** Paint the focus region, item bounds, and
   primary/focused outlines directly over your list while you tune it.
 
+## How it differs from visibility detection
+
+Choose by the decision your screen needs:
+
+| Package | Core job | One primary winner | Built-in anti-flicker |
+|---|---|---:|---:|
+| **scroll_spy** | Decide which visible item should own attention | Yes | Hysteresis + minimum hold |
+| [`visibility_detector`](https://pub.dev/packages/visibility_detector) | Report how much of an individual widget is visible | Application code | Application code |
+| [`inview_notifier_list`](https://pub.dev/packages/inview_notifier_list) | Notify an indexed list child when it enters a configured in-view range | Application code | Application code |
+
+Use `visibility_detector` when per-widget visibility information is the whole
+job. Use `inview_notifier_list` when simple indexed-list threshold notification
+is enough. Use scroll_spy when multiple visible items compete and exactly one
+must drive playback, highlighting, reading position, or another attention-based
+side effect.
+
+This comparison describes package responsibilities, not a universal speed
+ranking. The [comparison benchmark](benchmark/) is reproducible so you can
+inspect its scenario and run it on your own hardware.
+
 ---
 
 ## Install
 
 ```yaml
 dependencies:
-  scroll_spy: ^1.0.0
+  scroll_spy: ^1.0.2
 ```
 
 ```dart
@@ -303,7 +290,7 @@ Three region shapes:
 
 ```dart
 // Zone (recommended default): a band centered on the anchor.
-// Robust for feeds - focus does not drop when an item drifts slightly off-center.
+// Keeps feed focus from dropping when an item drifts slightly off-center.
 ScrollSpyRegion.zone(
   anchor: const ScrollSpyAnchor.fraction(0.5),
   extentPx: 200,
@@ -636,7 +623,7 @@ realistic pattern with an in-app list of the APIs it uses:
 
 | Demo | Pattern | Highlights |
 |---|---|---|
-| Autoplay feed | video-feed autoplay | zone region, stability, `ScrollSpyPrimaryListener`, `focusProgress` effects |
+| Autoplay feed | real bundled video playback | one active player, bounded neighbor pool, lifecycle-safe pause/dispose |
 | Playground | interactive lab | every region/policy/stability/update-policy knob, live debug overlay |
 | Reading progress | docs / articles | line region, `ScrollSpyCustomScrollView`, TOC highlighting |
 | Impression tracking | analytics | `visibleFraction` thresholds, visibility listeners, event log |
@@ -649,7 +636,69 @@ cd example
 flutter run
 ```
 
-Or just open the [live web demo](https://omar-hanafy.github.io/scroll-spy/).
+Or open the [live web demo](https://omar-hanafy.github.io/scroll-spy/demo/).
+
+The autoplay example uses bundled media, so it is repeatable without depending
+on a remote video host. Its small player pool keeps the current item and nearby
+items warm while disposing controllers that move outside that window. See
+[`feed_autoplay_page.dart`](example/lib/demos/feed_autoplay_page.dart) and
+[`feed_video_pool.dart`](example/lib/demos/feed_video_pool.dart).
+
+---
+
+## Reproducible comparison benchmark
+
+The [`benchmark`](benchmark/) app compares complete, documented integration
+patterns for scroll_spy, `visibility_detector`, and `inview_notifier_list` under
+the same fixed-extent feed and scripted scroll workload. It records mounted
+items, normalized visibility transitions, reactive builds, callbacks, and
+repeated state deliveries.
+
+One reference run on Flutter 3.44.4 produced these deterministic counts with
+201 mounted items and the same 20 normalized visibility transitions:
+
+| Implementation | Reactive builds | Callbacks | Repeated deliveries |
+|---|---:|---:|---:|
+| `scroll_spy` | 40 | 20 | 10 |
+| `inview_notifier_list` | 4,020 | not exposed | 3,990 |
+| `visibility_detector` | 30 | 80 | 60 |
+
+Treat the output as a local engineering measurement, not a permanent package
+leaderboard. Flutter version, device, build mode, list shape, and application
+work all affect the result. A callback and a builder invocation are not equal
+units of CPU work. The harness prints debug step timing only for regression
+checks and does not present it as device frame time or FPS. Read the methodology
+and run it on the hardware and workload that matter to your app.
+
+---
+
+## AI coding-assistant support
+
+scroll_spy ships an installable, instructions-only plugin for Claude Code and
+OpenAI Codex. It teaches an assistant the package's integration, stability,
+diagnosis, performance, 0.x migration, and `visibility_detector` conversion
+workflows. It is development tooling, not part of the Flutter runtime package.
+
+Claude Code:
+
+```
+/plugin marketplace add omar-hanafy/scroll_spy
+/plugin install scroll-spy@scroll-spy
+```
+
+OpenAI Codex:
+
+```
+codex plugin marketplace add omar-hanafy/scroll_spy
+codex plugin add scroll-spy@scroll-spy
+```
+
+Start a new session after installation, then ask for the outcome directly, for
+example: "Add scroll_spy autoplay to my feed so exactly one video plays."
+
+The plugin has no hooks, MCP servers, executable scripts, or network access.
+See [AI assistant setup and troubleshooting](docs/ai-assistant.md) for the full
+capability list and explicit skill names.
 
 ---
 
@@ -696,6 +745,7 @@ Contributions are welcome. Before opening a PR:
 dart format .
 flutter analyze
 flutter test
+dart run tool/validate_ai_plugin.dart
 flutter pub publish --dry-run
 ```
 

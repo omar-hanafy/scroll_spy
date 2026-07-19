@@ -168,6 +168,9 @@ class ScrollSpyScope<T> extends StatefulWidget {
 /// - wrap items with `ScrollSpyItem` for registration.
 class ScrollSpyScopeState<T> extends State<ScrollSpyScope<T>>
     with WidgetsBindingObserver {
+  /// Creates the runtime state for a [ScrollSpyScope].
+  ScrollSpyScopeState();
+
   late ScrollSpyEngine<T> _engine;
 
   @override

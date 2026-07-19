@@ -175,8 +175,8 @@ class _ScrollSpyItemState<T> extends State<ScrollSpyItem<T>> {
   }
 }
 
-/// A "Lite" version of [ScrollSpyItem] that rebuilds ONLY when
-/// [isPrimary] or [isFocused] changes.
+/// A "Lite" version of [ScrollSpyItem] that rebuilds only when
+/// `isPrimary` or `isFocused` changes.
 ///
 /// It ignores high-frequency updates (like distance changes or visible fraction).
 /// Use this for performance-critical lists where you only need boolean states.

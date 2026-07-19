@@ -71,25 +71,16 @@ jobs:
         working-directory: ${{ env.PACKAGE_DIR }}
         run: flutter pub publish --dry-run
 
+      - name: Install screenshot validation tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes webp
+
       - name: Install pana
         run: |
-          dart pub global activate pana
+          dart pub global activate pana 0.23.14
           echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
 
       - name: Run pana (full score required)
         working-directory: ${{ env.PACKAGE_DIR }}
-        run: |
-          set -euo pipefail
-          output=$(pana --no-warning .)
-          echo "$output"
-          score_line=$(echo "$output" | sed -n 's/^[[:space:]]*Points: //p' | head -n1)
-          if [ -z "$score_line" ]; then
-            echo "Could not parse pana score."
-            exit 1
-          fi
-          got=${score_line%%/*}
-          max=${score_line##*/}
-          if [ "$got" -ne "$max" ]; then
-            echo "pana score not perfect: $score_line"
-            exit 1
-          fi
+        run: pana --exit-code-threshold 0 .

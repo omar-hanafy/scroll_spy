@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#070908" />
+    <meta name="color-scheme" content="dark" />
+    <title>scroll_spy vs visibility_detector vs inview_notifier_list</title>
+    <meta
+      name="description"
+      content="A technical comparison of Flutter visibility packages by responsibility, primary-item selection, stability, and reproducible delivery counts."
+    />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://omar-hanafy.github.io/scroll-spy/comparison.html" />
+    <link rel="icon" href="assets/scroll-spy-icon.png" type="image/png" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="Flutter visibility packages answer different questions" />
+    <meta
+      property="og:description"
+      content="Compare scroll_spy, visibility_detector, and inview_notifier_list by the decision your Flutter screen needs."
+    />
+    <meta property="og:url" content="https://omar-hanafy.github.io/scroll-spy/comparison.html" />
+    <meta property="og:image" content="https://omar-hanafy.github.io/scroll-spy/assets/social-preview.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="scroll-progress" aria-hidden="true"><span></span></div>
+    <header class="site-header">
+      <a class="wordmark" href="./" aria-label="scroll_spy home"><span class="wordmark-mark" aria-hidden="true"></span><span>scroll_spy</span></a>
+      <nav aria-label="Primary navigation">
+        <a href="./">Overview</a>
+        <a href="guides/flutter-video-autoplay-feed.html">Autoplay guide</a>
+        <a href="demo/">Live demo</a>
+        <a class="nav-source" href="https://github.com/omar-hanafy/scroll_spy">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="main" class="article-main">
+      <article>
+        <header class="article-hero" data-reveal>
+          <p class="eyebrow"><span></span> Technical comparison</p>
+          <h1>Three visibility jobs. One feed decision.</h1>
+          <p class="article-lede">
+            scroll_spy, visibility_detector, and inview_notifier_list solve
+            related problems, but they do not promise the same result. The useful
+            comparison starts with the question your Flutter screen asks.
+          </p>
+          <p class="article-meta">Methodology checked July 2026 · Flutter 3.44.4 reference run</p>
+        </header>
+
+        <section class="prose" data-reveal>
+          <h2>Short answer</h2>
+          <div class="job-list">
+            <div>
+              <span>01</span>
+              <h3>How much of this widget is painted?</h3>
+              <p>Start with <a href="https://pub.dev/packages/visibility_detector">visibility_detector</a>. It is a general, paint-aware visibility primitive.</p>
+            </div>
+            <div>
+              <span>02</span>
+              <h3>Is this indexed list child inside my range?</h3>
+              <p>Consider <a href="https://pub.dev/packages/inview_notifier_list">inview_notifier_list</a>. Its list wrapper and item builder target that job directly.</p>
+            </div>
+            <div class="job-primary">
+              <span>03</span>
+              <h3>Which visible item should own attention?</h3>
+              <p>Use scroll_spy when the screen needs one policy-selected, stable primary item for autoplay, navigation, analytics, or prefetching.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="prose" data-reveal>
+          <h2>Responsibility matrix</h2>
+          <div class="comparison-table-wrap article-table">
+            <table>
+              <thead>
+                <tr><th>Responsibility</th><th class="selected">scroll_spy</th><th>visibility_detector</th><th>inview_notifier_list</th></tr>
+              </thead>
+              <tbody>
+                <tr><th>Visible state</th><td class="selected">Yes</td><td><b>Yes, paint-aware detail</b></td><td>Yes, configured list range</td></tr>
+                <tr><th>Focused region</th><td class="selected"><b>Line, zone, or custom</b></td><td>Application code</td><td>Range condition</td></tr>
+                <tr><th>Single winner</th><td class="selected"><b>Five policies or custom</b></td><td>Application code</td><td>Application code</td></tr>
+                <tr><th>Winner stability</th><td class="selected"><b>Hysteresis + hold time</b></td><td>Application code</td><td>Application code</td></tr>
+                <tr><th>Global result</th><td class="selected">Primary, focused, visible IDs</td><td>Per-widget callbacks</td><td>Item builder state</td></tr>
+                <tr><th>Debug UI</th><td class="selected">Viewport overlay</td><td>Application code</td><td>Application code</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <aside class="callout">
+            No row makes one package universally better. Paint-aware occlusion,
+            geometry-based focus, and list-range notification are different
+            semantics. Pick the smallest primitive that owns the decision you need.
+          </aside>
+        </section>
+
+        <section class="prose" data-reveal>
+          <h2>A narrow reproducible benchmark</h2>
+          <p>
+            The repository includes a widget-test harness for the common denominator:
+            whether fixed-extent ListView items intersect the viewport. It uses 3,000
+            items, a 400 × 600 viewport, forty 25-pixel jumps, aligned zero delivery
+            intervals, and three actual mounted-item counts. scroll_spy's focus and
+            primary selection are disabled in this scenario.
+          </p>
+          <p>The Flutter 3.44.4 reference run produced the following deterministic API-delivery counts:</p>
+          <div class="comparison-table-wrap article-table">
+            <table>
+              <thead><tr><th>Implementation</th><th>Mounted</th><th>Reactive builds</th><th>Callbacks</th><th>Repeated deliveries</th></tr></thead>
+              <tbody>
+                <tr><td class="selected"><b>scroll_spy</b></td><td>11 / 51 / 201</td><td>40 / 40 / 40</td><td>20</td><td>10</td></tr>
+                <tr><td>inview_notifier_list</td><td>11 / 51 / 201</td><td>220 / 1,020 / 4,020</td><td>not exposed</td><td>190 / 990 / 3,990</td></tr>
+                <tr><td>visibility_detector</td><td>11 / 51 / 201</td><td>30 / 30 / 30</td><td>80</td><td>60</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            All three integrations reported the same 20 normalized visibility
+            transitions and the same final visible sets. The counts show delivery
+            behavior in this one harness. A callback and a builder invocation are not
+            equivalent CPU units, so these numbers are not relative speedups.
+          </p>
+          <p>
+            Debug wall time around `jumpTo` and two test pumps is printed only to catch
+            major harness regressions. It is not device frame time, raster time, GPU
+            time, release throughput, or FPS.
+          </p>
+          <div class="article-actions">
+            <a class="button button-primary" href="https://github.com/omar-hanafy/scroll_spy/tree/main/benchmark">Read the full methodology <span aria-hidden="true">↗</span></a>
+            <a class="button button-quiet" href="https://github.com/omar-hanafy/scroll_spy/blob/main/benchmark/test/visibility_comparison_benchmark_test.dart">Inspect the harness <span aria-hidden="true">↗</span></a>
+          </div>
+        </section>
+
+        <section class="prose" data-reveal>
+          <h2>What to benchmark in your app</h2>
+          <ul>
+            <li>Use the same device, Flutter version, build mode, list, cache extent, and scroll gesture.</li>
+            <li>Separate detection work from video decoding, network fetches, image decoding, and application rebuilds.</li>
+            <li>Measure profile-mode frame timing with DevTools or a FrameTiming harness.</li>
+            <li>Test the semantics you need. Do not disable primary selection if your product depends on it.</li>
+            <li>Record callback, rebuild, and allocation behavior separately.</li>
+          </ul>
+        </section>
+
+        <section class="article-cta" data-reveal>
+          <h2>Need one calm playback owner?</h2>
+          <p>Run the real-video example and inspect every transition before choosing.</p>
+          <div class="article-actions">
+            <a class="button button-primary" href="demo/">Open the demo <span aria-hidden="true">▶</span></a>
+            <a class="button button-quiet" href="guides/flutter-video-autoplay-feed.html">Read the autoplay guide <span aria-hidden="true">↗</span></a>
+          </div>
+        </section>
+      </article>
+    </main>
+
+    <footer>
+      <a class="wordmark" href="./"><span class="wordmark-mark" aria-hidden="true"></span><span>scroll_spy</span></a>
+      <p>Compare responsibilities first, then measure your workload.</p>
+      <div><a href="https://pub.dev/packages/scroll_spy">pub.dev</a><a href="https://github.com/omar-hanafy/scroll_spy">GitHub</a><a href="https://github.com/omar-hanafy/scroll_spy/discussions">Discussions</a></div>
+    </footer>
+  </body>
+</html>

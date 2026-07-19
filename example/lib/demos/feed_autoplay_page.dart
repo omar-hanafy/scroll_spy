@@ -6,36 +6,78 @@ import 'package:scroll_spy/scroll_spy.dart';
 
 import '../common.dart';
 import '../theme.dart';
+import 'feed_video_pool.dart';
 
-/// Flagship demo: a vertical feed where exactly one card is "primary" and
-/// auto-plays, mirroring how a social video feed decides what to play.
+/// Flagship demo: a vertical feed where scroll_spy chooses exactly one real
+/// bundled video to play while nearby controllers remain preloaded.
 class FeedAutoplayPage extends StatefulWidget {
-  const FeedAutoplayPage({super.key, required this.info});
+  const FeedAutoplayPage({super.key, required this.info, this.videoFactory});
 
   final DemoInfo info;
+
+  /// Injectable so lifecycle and resource behavior can be tested without a
+  /// platform video backend.
+  final FeedVideoHandleFactory? videoFactory;
 
   @override
   State<FeedAutoplayPage> createState() => _FeedAutoplayPageState();
 }
 
-class _FeedAutoplayPageState extends State<FeedAutoplayPage> {
+class _FeedAutoplayPageState extends State<FeedAutoplayPage>
+    with WidgetsBindingObserver {
   final ScrollSpyController<int> _spy = ScrollSpyController<int>();
   final ScrollController _scroll = ScrollController();
 
-  /// The current "playing" clip, updated by a primary listener (a side effect,
-  /// not a rebuild of the list).
   final ValueNotifier<int?> _nowPlaying = ValueNotifier<int?>(null);
 
   static const int _itemCount = 24;
   static const double _itemExtent = 440;
 
+  late final FeedVideoPool _videoPool;
+  bool _appIsActive = true;
+  bool _routeIsActive = true;
   bool _debug = false;
   bool _autoScrolling = false;
   Timer? _autoTimer;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    final AppLifecycleState? lifecycleState =
+        WidgetsBinding.instance.lifecycleState;
+    _appIsActive =
+        lifecycleState == null || lifecycleState == AppLifecycleState.resumed;
+    _videoPool = FeedVideoPool(
+      factory: widget.videoFactory ?? createBundledFeedVideo,
+      itemCount: _itemCount,
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // This dependency updates whenever another modal route covers or reveals
+    // the feed, including dialogs and bottom sheets.
+    _routeIsActive = ModalRoute.isCurrentOf(context) ?? true;
+    _syncPlaybackActivity();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _appIsActive = state == AppLifecycleState.resumed;
+    _syncPlaybackActivity();
+  }
+
+  void _syncPlaybackActivity() {
+    unawaited(_videoPool.setActive(_appIsActive && _routeIsActive));
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _autoTimer?.cancel();
+    unawaited(_videoPool.close());
     _spy.dispose();
     _scroll.dispose();
     _nowPlaying.dispose();
@@ -67,6 +109,11 @@ class _FeedAutoplayPageState extends State<FeedAutoplayPage> {
     );
   }
 
+  void _handlePrimaryChanged(int? previous, int? current) {
+    _nowPlaying.value = current;
+    unawaited(_videoPool.setPrimary(current));
+  }
+
   @override
   Widget build(BuildContext context) {
     return DemoScaffold(
@@ -90,12 +137,12 @@ class _FeedAutoplayPageState extends State<FeedAutoplayPage> {
         ),
         label: Text(_autoScrolling ? 'Stop' : 'Auto-scroll'),
       ),
-      bottomBar: _NowPlayingBar(nowPlaying: _nowPlaying),
-      // The listener fires only when the primary id changes: the ideal place to
-      // start/stop real playback. Here it just updates the now-playing bar.
+      bottomBar: _NowPlayingBar(nowPlaying: _nowPlaying, videoPool: _videoPool),
+      // The primary listener is the ownership boundary: pause the outgoing
+      // player, preload neighbors, then play only the incoming primary.
       body: ScrollSpyPrimaryListener<int>(
         controller: _spy,
-        onChanged: (prev, curr) => _nowPlaying.value = curr,
+        onChanged: _handlePrimaryChanged,
         child: LayoutBuilder(
           builder: (context, constraints) {
             final double pad = ((constraints.maxHeight - _itemExtent) / 2)
@@ -127,8 +174,12 @@ class _FeedAutoplayPageState extends State<FeedAutoplayPage> {
                 itemBuilder: (context, index) {
                   return ScrollSpyItem<int>(
                     id: index,
-                    builder: (context, focus, _) =>
-                        _FeedCard(index: index, focus: focus),
+                    builder: (context, focus, _) => _FeedCard(
+                      key: ValueKey<String>('feed-card-$index'),
+                      index: index,
+                      focus: focus,
+                      videoPool: _videoPool,
+                    ),
                   );
                 },
               ),
@@ -141,19 +192,40 @@ class _FeedAutoplayPageState extends State<FeedAutoplayPage> {
 }
 
 class _FeedCard extends StatelessWidget {
-  const _FeedCard({required this.index, required this.focus});
+  const _FeedCard({
+    super.key,
+    required this.index,
+    required this.focus,
+    required this.videoPool,
+  });
 
   final int index;
   final ScrollSpyItemFocus<int> focus;
+  final FeedVideoPool videoPool;
 
   @override
   Widget build(BuildContext context) {
-    // focusProgress (1.0 at the anchor, 0.0 at the zone edge) drives the "come
-    // into focus" animation without any per-frame setState on our side.
-    final double p = focus.focusProgress;
-    final double scale = 0.93 + 0.07 * p;
-    final double opacity = 0.5 + 0.5 * p;
+    return ValueListenableBuilder<int>(
+      valueListenable: videoPool.revision,
+      builder: (context, _, _) {
+        final FeedVideoHandle? handle = videoPool.handleFor(index);
+        if (handle == null) return _buildCard(null, null);
+        return ValueListenableBuilder<FeedVideoState>(
+          valueListenable: handle.state,
+          builder: (context, state, _) => _buildCard(handle, state),
+        );
+      },
+    );
+  }
+
+  Widget _buildCard(FeedVideoHandle? handle, FeedVideoState? videoState) {
+    // focusProgress (1.0 at the anchor, 0.0 at the zone edge) drives the
+    // visual effect. Playback itself changes only when primaryId changes.
+    final double progress = focus.focusProgress;
+    final double scale = 0.93 + 0.07 * progress;
+    final double opacity = 0.5 + 0.5 * progress;
     final bool isPrimary = focus.isPrimary;
+    final bool isPlaying = videoState?.isPlaying ?? false;
 
     return Center(
       child: Opacity(
@@ -175,9 +247,6 @@ class _FeedCard extends StatelessWidget {
                     ]
                   : const [],
             ),
-            // Border in the foreground: painted over the full-bleed content,
-            // so the ring stays rounded instead of being squared off by the
-            // inset child's corners.
             foregroundDecoration: BoxDecoration(
               borderRadius: BorderRadius.circular(22),
               border: Border.all(
@@ -190,20 +259,22 @@ class _FeedCard extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                DecoratedBox(
-                  decoration: BoxDecoration(gradient: demoGradient(index)),
-                ),
-                // Darken toward the bottom for legible text.
+                _VideoBackdrop(index: index, handle: handle, state: videoState),
                 const DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.center,
                       end: Alignment.bottomCenter,
-                      colors: [Colors.transparent, Colors.black54],
+                      colors: [Colors.transparent, Colors.black87],
                     ),
                   ),
                 ),
-                Center(child: _PlayGlyph(playing: isPrimary)),
+                Center(
+                  child: _PlayGlyph(
+                    hasHandle: handle != null,
+                    state: videoState,
+                  ),
+                ),
                 Positioned(
                   left: 16,
                   right: 16,
@@ -235,18 +306,16 @@ class _FeedCard extends StatelessWidget {
                           ),
                           const Spacer(),
                           StatusPill(
-                            label: isPrimary
-                                ? 'PLAYING'
-                                : (focus.isFocused ? 'READY' : 'PAUSED'),
-                            color: isPrimary
+                            label: _statusLabel(videoState),
+                            color: isPlaying
                                 ? SpyColors.primary
                                 : (focus.isFocused
                                       ? SpyColors.focused
                                       : SpyColors.muted),
-                            icon: isPrimary
+                            icon: isPlaying
                                 ? Icons.graphic_eq_rounded
                                 : Icons.pause_rounded,
-                            active: isPrimary || focus.isFocused,
+                            active: isPlaying || focus.isFocused,
                           ),
                         ],
                       ),
@@ -273,7 +342,7 @@ class _FeedCard extends StatelessWidget {
                           Expanded(
                             child: MetricBar(
                               label: 'focus',
-                              value: p,
+                              value: progress,
                               color: SpyColors.primary,
                             ),
                           ),
@@ -289,28 +358,96 @@ class _FeedCard extends StatelessWidget {
       ),
     );
   }
+
+  String _statusLabel(FeedVideoState? state) {
+    if (state?.errorDescription != null) return 'UNAVAILABLE';
+    if (state?.isPlaying ?? false) return 'PLAYING';
+    if (state?.isBuffering ?? false) return 'BUFFERING';
+    if (state?.isInitialized ?? false) return 'PRELOADED';
+    if (state != null) return 'LOADING';
+    return focus.isFocused ? 'READY' : 'PAUSED';
+  }
 }
 
-/// Central play/pause glyph, with an animated equalizer while playing.
-class _PlayGlyph extends StatelessWidget {
-  const _PlayGlyph({required this.playing});
+class _VideoBackdrop extends StatelessWidget {
+  const _VideoBackdrop({
+    required this.index,
+    required this.handle,
+    required this.state,
+  });
 
-  final bool playing;
+  final int index;
+  final FeedVideoHandle? handle;
+  final FeedVideoState? state;
 
   @override
   Widget build(BuildContext context) {
+    if (handle == null || !(state?.isInitialized ?? false)) {
+      return DecoratedBox(
+        decoration: BoxDecoration(gradient: demoGradient(index)),
+      );
+    }
+
+    final double aspectRatio = state!.aspectRatio <= 0 ? 1 : state!.aspectRatio;
+    return ColoredBox(
+      color: Colors.black,
+      child: FittedBox(
+        fit: BoxFit.cover,
+        clipBehavior: Clip.hardEdge,
+        child: SizedBox(
+          width: 1000 * aspectRatio,
+          height: 1000,
+          child: handle!.buildView(),
+        ),
+      ),
+    );
+  }
+}
+
+/// Central player state glyph, with an animated equalizer only while the
+/// platform controller reports actual playback.
+class _PlayGlyph extends StatelessWidget {
+  const _PlayGlyph({required this.hasHandle, required this.state});
+
+  final bool hasHandle;
+  final FeedVideoState? state;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isPlaying = state?.isPlaying ?? false;
+    final bool isLoading =
+        hasHandle &&
+        !(state?.isInitialized ?? false) &&
+        state?.errorDescription == null;
+
+    Widget child;
+    if (state?.errorDescription != null) {
+      child = const Icon(Icons.videocam_off_rounded, color: Colors.white);
+    } else if (isLoading || (state?.isBuffering ?? false)) {
+      child = const Padding(
+        padding: EdgeInsets.all(20),
+        child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white),
+      );
+    } else if (isPlaying) {
+      child = const Padding(padding: EdgeInsets.all(18), child: _Equalizer());
+    } else {
+      child = const Icon(
+        Icons.play_arrow_rounded,
+        color: Colors.white,
+        size: 34,
+      );
+    }
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       width: 66,
       height: 66,
       decoration: BoxDecoration(
-        color: playing ? SpyColors.primary : Colors.black38,
+        color: isPlaying ? SpyColors.primary : Colors.black54,
         shape: BoxShape.circle,
         border: Border.all(color: Colors.white24),
       ),
-      child: playing
-          ? const Padding(padding: EdgeInsets.all(18), child: _Equalizer())
-          : const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 34),
+      child: child,
     );
   }
 }
@@ -324,31 +461,32 @@ class _Equalizer extends StatefulWidget {
 
 class _EqualizerState extends State<_Equalizer>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
+  late final AnimationController _controller = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 700),
   )..repeat(reverse: true);
 
   @override
   void dispose() {
-    _c.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _c,
+      animation: _controller,
       builder: (context, _) {
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.end,
-          children: List.generate(4, (i) {
-            final double phase = (i * 0.25 + _c.value) % 1.0;
-            final double h = 6 + 22 * (0.5 + 0.5 * (phase - 0.5).abs() * 2);
+          children: List<Widget>.generate(4, (index) {
+            final double phase = (index * 0.25 + _controller.value) % 1.0;
+            final double height =
+                6 + 22 * (0.5 + 0.5 * (phase - 0.5).abs() * 2);
             return Container(
               width: 4,
-              height: h.clamp(6, 28),
+              height: height.clamp(6, 28),
               decoration: BoxDecoration(
                 color: Colors.black,
                 borderRadius: BorderRadius.circular(2),
@@ -361,11 +499,13 @@ class _EqualizerState extends State<_Equalizer>
   }
 }
 
-/// Bottom "now playing" bar, rebuilt only when the primary clip changes.
+/// Bottom resource HUD. It exposes the important production invariant in the
+/// live demo: at most three warm controllers and exactly one playing.
 class _NowPlayingBar extends StatelessWidget {
-  const _NowPlayingBar({required this.nowPlaying});
+  const _NowPlayingBar({required this.nowPlaying, required this.videoPool});
 
   final ValueListenable<int?> nowPlaying;
+  final FeedVideoPool videoPool;
 
   @override
   Widget build(BuildContext context) {
@@ -377,29 +517,58 @@ class _NowPlayingBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
           child: ValueListenableBuilder<int?>(
             valueListenable: nowPlaying,
             builder: (context, id, _) {
-              return Row(
-                children: [
-                  Icon(
-                    id == null ? Icons.pause_rounded : Icons.graphic_eq_rounded,
-                    color: id == null ? SpyColors.muted : SpyColors.primary,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    id == null
-                        ? 'Nothing playing'
-                        : 'Now playing - Clip #${id + 1}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14.5,
-                    ),
-                  ),
-                  const Spacer(),
-                  const CodeChip('primaryId', accent: SpyColors.primary),
-                ],
+              return ValueListenableBuilder<int>(
+                valueListenable: videoPool.revision,
+                builder: (context, _, _) {
+                  final int playing = videoPool.playingIndices.length;
+                  return Row(
+                    children: [
+                      Icon(
+                        playing == 1
+                            ? Icons.graphic_eq_rounded
+                            : Icons.pause_rounded,
+                        color: playing == 1
+                            ? SpyColors.primary
+                            : SpyColors.muted,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              id == null
+                                  ? 'Nothing playing'
+                                  : 'Primary - Clip #${id + 1}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                              ),
+                            ),
+                            Text(
+                              '${videoPool.controllerCount}/'
+                              '${videoPool.maxControllerCount} controllers '
+                              'warm - $playing playing',
+                              style: const TextStyle(
+                                color: SpyColors.muted,
+                                fontSize: 11.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const CodeChip('primaryId', accent: SpyColors.primary),
+                    ],
+                  );
+                },
               );
             },
           ),

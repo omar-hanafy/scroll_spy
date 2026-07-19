@@ -293,7 +293,7 @@ class ScrollSpySnapshot<T> {
   ///
   /// In this package’s default engine, this map contains one entry for every
   /// registered item that was **measurable** during this compute pass (mounted,
-  /// attached, and with a valid size) — regardless of whether the item ended up
+  /// attached, and with a valid size) - regardless of whether the item ended up
   /// visible or focused.
   ///
   /// The map can be empty when there are no registered items, or when the

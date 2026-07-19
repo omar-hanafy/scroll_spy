@@ -1,4 +1,4 @@
-# analysis_options.yaml — publishable packages focus
+# analysis_options.yaml - publishable packages focus
 # Conservative defaults + strict import/pubspec hygiene for pub.dev
 
 include: package:flutter_lints/flutter.yaml

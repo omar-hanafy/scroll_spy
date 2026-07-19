@@ -16,7 +16,7 @@ import 'package:scroll_spy/src/debug/debug_config.dart';
 ///   only draws what is available (region + global label).
 ///
 /// Repaint contract:
-/// - Repaints when [frame.sequence] changes (new engine compute), or
+/// - Repaints when `frame.sequence` changes (new engine compute), or
 /// - when [config] values change (value-based equality).
 class ScrollSpyDebugPainter<T> extends CustomPainter {
   /// The frame to visualize.

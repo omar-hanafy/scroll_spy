@@ -1,6 +1,6 @@
 {
   "name": "scroll-spy",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Package-specific skills for the scroll_spy Flutter package: integration, primary-selection tuning, diagnosis, performance optimization, v0.2-to-v1 migration, and visibility_detector conversion.",
   "keywords": [
     "flutter",

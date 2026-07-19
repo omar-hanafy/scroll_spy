@@ -1,3 +1,35 @@
+## 1.0.2 - 2026-07-19
+
+No public runtime API changes; existing scroll_spy 1.x integrations keep the
+same behavior.
+
+### Added
+- A real-video autoplay example with bundled media, exactly one playing item,
+  bounded neighbor preloading, lifecycle-safe pausing, controller disposal, and
+  focused tests for the player-pool policy.
+- A reproducible comparison benchmark for scroll_spy,
+  `visibility_detector`, and `inview_notifier_list`, with explicit scenario and
+  interpretation guidance rather than a universal performance claim.
+- A crawlable product site with semantic HTML, package-specific search
+  metadata, structured data, social preview media, `llms.txt`, and a separate
+  route for the Flutter demo.
+- A reproducible Pages build script and deployment workflow that publishes the
+  static product pages with the Wasm Flutter demo under `/scroll-spy/demo/`.
+
+### Changed
+- Reworked the package description, topics, homepage, screenshots, and README
+  so Flutter developers can find the package by the problems it solves: stable
+  primary selection, video autoplay, attention analytics, reading position,
+  and prefetching.
+- Hardened release automation with tag-only OIDC publishing, actual version
+  bump detection, pinned Pana validation, and example-app analysis/tests in CI.
+- Resolved the remaining dartdoc reference warnings while keeping the public
+  API and runtime behavior unchanged.
+- Corrected the GitHub priority-label catalog so all repository YAML parses
+  cleanly.
+
+---
+
 ## 1.0.1 - 2026-07-18
 
 No runtime changes; the Dart/Flutter API is identical to 1.0.0.
@@ -50,7 +82,7 @@ code changes.
 
 ---
 
-## 0.2.7 — 2025-12-24
+## 0.2.7 - 2025-12-24
 
 Release automation maintenance (no API changes).
 
@@ -60,7 +92,7 @@ Release automation maintenance (no API changes).
 
 ---
 
-## 0.2.6 — 2025-12-23
+## 0.2.6 - 2025-12-23
 
 Maintenance release with separated-list index mapping fixes and tooling cleanup.
 
@@ -77,7 +109,7 @@ Maintenance release with separated-list index mapping fixes and tooling cleanup.
 
 ---
 
-## 0.2.5 — 2025-12-20
+## 0.2.5 - 2025-12-20
 
 Docs-only release removing the oversize demo screenshot entry.
 
@@ -86,7 +118,7 @@ Docs-only release removing the oversize demo screenshot entry.
 
 ---
 
-## 0.2.4 — 2025-12-20
+## 0.2.4 - 2025-12-20
 
 Docs-only release with header polish and naming update.
 
@@ -96,7 +128,7 @@ Docs-only release with header polish and naming update.
 
 ---
 
-## 0.2.3 — 2025-12-20
+## 0.2.3 - 2025-12-20
 
 Docs-only release with the new package icon screenshot.
 
@@ -108,7 +140,7 @@ Docs-only release with the new package icon screenshot.
 
 ---
 
-## 0.2.2 — 2025-12-20
+## 0.2.2 - 2025-12-20
 
 Docs-only release with refreshed preview media.
 
@@ -118,7 +150,7 @@ Docs-only release with refreshed preview media.
 
 ---
 
-## 0.2.1 — 2025-12-20
+## 0.2.1 - 2025-12-20
 
 Insets-aware viewport support plus metrics filtering.
 
@@ -134,7 +166,7 @@ Insets-aware viewport support plus metrics filtering.
 
 ---
 
-## 0.2.0 — 2025-12-20
+## 0.2.0 - 2025-12-20
 
 Performance-focused release with low-overhead per-item signals for large feeds.
 
@@ -159,7 +191,7 @@ Performance-focused release with low-overhead per-item signals for large feeds.
 
 ---
 
-## 0.1.0 — 2025-12-19
+## 0.1.0 - 2025-12-19
 
 Initial public release of **scroll_spy**.
 

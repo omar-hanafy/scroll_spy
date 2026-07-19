@@ -14,14 +14,13 @@ import 'reading_progress_page.dart';
 final List<DemoInfo> kDemos = <DemoInfo>[
   DemoInfo(
     title: 'Autoplay feed',
-    tagline: 'One primary item plays; others pause - the classic feed loop.',
+    tagline: 'One real video plays; nearby controllers stay preloaded.',
     description:
-        'A vertical video-style feed where exactly one card is the primary '
-        '"winner" and auto-plays. Focus is a center zone; the card closest to '
-        'the anchor wins, and stability rules keep it from flickering between '
-        'neighbours. focusProgress drives the scale/opacity of each card, and a '
-        'listener updates the bottom "now playing" bar without rebuilding the '
-        'list.',
+        'A vertical feed with bundled video playback. The center-zone winner '
+        'owns the only playing controller while a bounded pool preloads its '
+        'neighbors and disposes distant players. Stability keeps ownership '
+        'from flickering, focusProgress drives scale and opacity, and route or '
+        'app lifecycle changes pause playback.',
     apis: const [
       'ScrollSpyScope',
       'ScrollSpyItem',

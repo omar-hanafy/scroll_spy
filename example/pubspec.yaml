@@ -32,6 +32,7 @@ dependencies:
     sdk: flutter
   scroll_spy:
     path: ../
+  video_player: ^2.13.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -57,6 +58,9 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/scroll_spy_feed.mp4
 
   # To add assets to your application, add an assets section, like this:
   # assets:

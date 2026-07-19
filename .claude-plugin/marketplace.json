@@ -10,7 +10,7 @@
       "source": "./plugins/scroll-spy",
       "displayName": "ScrollSpy Assistant",
       "description": "Package-specific skills for integrating, tuning, diagnosing, optimizing, and migrating the scroll_spy Flutter package.",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "author": {
         "name": "Omar Hanafy"
       },
