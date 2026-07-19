@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="glow" cx="78%" cy="44%" r="56%">
+      <stop offset="0" stop-color="#4df477" stop-opacity="0.24" />
+      <stop offset="0.54" stop-color="#4df477" stop-opacity="0.05" />
+      <stop offset="1" stop-color="#070908" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#070908" stop-opacity="0" />
+      <stop offset="1" stop-color="#070908" stop-opacity="0.74" />
+    </linearGradient>
+    <clipPath id="screen">
+      <rect x="868" y="64" width="270" height="502" rx="31" />
+    </clipPath>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="22" stdDeviation="24" flood-color="#000000" flood-opacity="0.65" />
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="#070908" />
+  <rect width="1200" height="630" fill="url(#glow)" />
+  <path d="M70 74H1130" stroke="#252b26" />
+  <path d="M70 556H1130" stroke="#252b26" />
+
+  <circle cx="82" cy="106" r="7" fill="none" stroke="#4df477" stroke-width="3" />
+  <text x="104" y="112" fill="#f2f5ef" font-family="Menlo" font-size="20" font-weight="700">scroll_spy</text>
+
+  <text x="70" y="220" fill="#f2f5ef" font-family="Helvetica" font-size="70" font-weight="700" letter-spacing="-4">One visible item</text>
+  <text x="70" y="290" fill="#4df477" font-family="Times" font-size="72" font-style="italic" letter-spacing="-3">owns playback.</text>
+  <text x="73" y="360" fill="#aeb7af" font-family="Helvetica" font-size="23">Stable primary item detection for Flutter scrollables.</text>
+  <text x="73" y="401" fill="#aeb7af" font-family="Helvetica" font-size="23">Built for autoplay, analytics, and prefetching.</text>
+
+  <rect x="71" y="463" width="327" height="54" fill="#4df477" />
+  <text x="92" y="497" fill="#061108" font-family="Helvetica" font-size="17" font-weight="700">pub.dev/packages/scroll_spy</text>
+
+  <g filter="url(#shadow)">
+    <rect x="854" y="50" width="298" height="530" rx="42" fill="#101411" stroke="#455047" stroke-width="2" />
+    <image x="868" y="64" width="270" height="502" preserveAspectRatio="xMidYMid slice" xlink:href="feed-autoplay-poster.jpg" clip-path="url(#screen)" />
+    <rect x="953" y="71" width="100" height="21" rx="11" fill="#080a09" />
+  </g>
+
+  <path d="M802 312H1165" stroke="#4df477" stroke-width="2" />
+  <rect x="768" y="297" width="78" height="30" fill="#4df477" />
+  <text x="777" y="317" fill="#061108" font-family="Menlo" font-size="11" font-weight="900" letter-spacing="1">PRIMARY</text>
+</svg>

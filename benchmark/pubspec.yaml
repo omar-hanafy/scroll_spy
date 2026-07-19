@@ -1,0 +1,20 @@
+name: scroll_spy_benchmark
+description: Reproducible comparison harness for scroll_spy visibility tracking.
+publish_to: none
+version: 0.0.0
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  inview_notifier_list: 4.1.0
+  scroll_spy:
+    path: ..
+  visibility_detector: 0.4.0+2
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter

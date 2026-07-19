@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#070908" />
+    <meta name="color-scheme" content="dark" />
+    <title>Build a one-player Flutter video autoplay feed with scroll_spy</title>
+    <meta
+      name="description"
+      content="A practical Flutter video feed architecture: select one stable primary item, pause the previous video, preload neighbors, and handle lifecycle changes."
+    />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://omar-hanafy.github.io/scroll-spy/guides/flutter-video-autoplay-feed.html" />
+    <link rel="icon" href="../assets/scroll-spy-icon.png" type="image/png" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="One-player Flutter video autoplay feed" />
+    <meta property="og:description" content="Stable primary selection, bounded video controllers, and lifecycle-safe playback." />
+    <meta property="og:url" content="https://omar-hanafy.github.io/scroll-spy/guides/flutter-video-autoplay-feed.html" />
+    <meta property="og:image" content="https://omar-hanafy.github.io/scroll-spy/assets/social-preview.png" />
+    <link rel="stylesheet" href="../styles.css" />
+    <script src="../app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="scroll-progress" aria-hidden="true"><span></span></div>
+    <header class="site-header">
+      <a class="wordmark" href="../" aria-label="scroll_spy home"><span class="wordmark-mark" aria-hidden="true"></span><span>scroll_spy</span></a>
+      <nav aria-label="Primary navigation">
+        <a href="../">Overview</a>
+        <a href="../comparison.html">Compare</a>
+        <a href="../demo/">Live demo</a>
+        <a class="nav-source" href="https://github.com/omar-hanafy/scroll_spy">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="main" class="article-main">
+      <article>
+        <header class="article-hero" data-reveal>
+          <p class="eyebrow"><span></span> Flutter autoplay architecture</p>
+          <h1>Play one video. Keep the neighbors warm.</h1>
+          <p class="article-lede">
+            A reliable social feed needs more than a visibility percentage. It needs
+            one stable playback owner, an ordered handoff, bounded controllers, and a
+            lifecycle rule that stops media when the screen is no longer active.
+          </p>
+        </header>
+
+        <section class="prose" data-reveal>
+          <h2>The ownership rule</h2>
+          <p>
+            Treat scroll_spy's `primaryId` as the only item allowed to play. When the
+            ID changes, pause every outgoing handle before starting the incoming one.
+            Do not let every card independently call play when its visible fraction
+            crosses a threshold. Two cards can cross at nearly the same time.
+          </p>
+          <div class="ownership-flow" aria-label="Playback ownership sequence">
+            <span>primary changes</span><i>→</i><span>pause outgoing</span><i>→</i><span>prepare window</span><i>→</i><strong>play winner</strong>
+          </div>
+        </section>
+
+        <section class="prose" data-reveal>
+          <h2>1. Select one stable primary item</h2>
+          <p>
+            A center attention zone is a practical starting point for a vertically
+            scrolling feed. Hysteresis makes a challenger move far enough ahead before
+            it replaces the current winner. Minimum duration prevents rapid changes
+            during a fast gesture.
+          </p>
+          <div class="code-window article-code">
+            <div class="code-bar"><span>feed.dart</span><button class="copy-button" type="button" data-copy-target="scope-code">Copy</button></div>
+            <pre><code id="scope-code">ScrollSpyScope&lt;int&gt;(
+  controller: spy,
+  scrollController: scroll,
+  region: <span class="token-muted">const</span> ScrollSpyRegion.zone(
+    anchor: ScrollSpyAnchor.fraction(<span class="token-number">0.5</span>),
+    extentPx: <span class="token-number">220</span>,
+  ),
+  policy: <span class="token-muted">const</span> ScrollSpyPolicy.closestToAnchor(),
+  stability: <span class="token-muted">const</span> ScrollSpyStability(
+    hysteresisPx: <span class="token-number">24</span>,
+    minPrimaryDuration: Duration(milliseconds: <span class="token-number">150</span>),
+  ),
+  child: ListView.builder(
+    controller: scroll,
+    itemCount: items.length,
+    itemBuilder: (context, index) =&gt; ScrollSpyItem&lt;int&gt;(
+      id: index,
+      builder: (context, focus, child) =&gt; FeedCard(
+        index: index,
+        isPrimary: focus.isPrimary,
+      ),
+    ),
+  ),
+);</code></pre>
+          </div>
+        </section>
+
+        <section class="prose" data-reveal>
+          <h2>2. Put playback handoff outside the cards</h2>
+          <p>
+            `ScrollSpyPrimaryListener` is a side-effect boundary. It does not require
+            rebuilding the list when the primary ID changes. Give the player pool the
+            new ID and let it serialize platform commands.
+          </p>
+          <div class="code-window article-code">
+            <div class="code-bar"><span>feed.dart</span><button class="copy-button" type="button" data-copy-target="listener-code">Copy</button></div>
+            <pre><code id="listener-code">ScrollSpyPrimaryListener&lt;int&gt;(
+  controller: spy,
+  onChanged: (previous, current) {
+    unawaited(videoPool.setPrimary(current));
+  },
+  child: feed,
+);</code></pre>
+          </div>
+        </section>
+
+        <section class="prose" data-reveal>
+          <h2>3. Bound the player pool</h2>
+          <p>
+            Retain the primary controller plus a small neighbor radius. With radius 1,
+            the pool owns at most three controllers: previous, primary, and next. On a
+            transition it should:
+          </p>
+          <ol>
+            <li>Pause every handle except the requested target.</li>
+            <li>Dispose handles outside the desired neighbor window.</li>
+            <li>Initialize the target first, then preload retained neighbors.</li>
+            <li>Check that the target is still current after asynchronous initialization.</li>
+            <li>Pause non-target handles again, then play only the initialized target.</li>
+          </ol>
+          <aside class="callout">
+            Serializing reconciliation matters. A fast fling can request several
+            primaries while video initialization is still pending. Without a queue and
+            a final identity check, an old request can start after a newer item wins.
+          </aside>
+        </section>
+
+        <section class="prose" data-reveal>
+          <h2>4. Stop playback with the route and app lifecycle</h2>
+          <p>
+            Pause the pool when the app leaves `AppLifecycleState.resumed` or when a
+            modal route covers the feed. Resume reconciliation only when both are
+            active. Close the pool when the page is disposed.
+          </p>
+          <div class="code-window article-code">
+            <div class="code-bar"><span>lifecycle.dart</span><button class="copy-button" type="button" data-copy-target="lifecycle-code">Copy</button></div>
+            <pre><code id="lifecycle-code"><span class="token-muted">void</span> syncPlayback() {
+  unawaited(videoPool.setActive(appIsActive &amp;&amp; routeIsActive));
+}
+
+<span class="token-muted">void</span> didChangeAppLifecycleState(AppLifecycleState state) {
+  appIsActive = state == AppLifecycleState.resumed;
+  syncPlayback();
+}
+
+<span class="token-muted">void</span> dispose() {
+  unawaited(videoPool.close());
+  spy.dispose();
+  scroll.dispose();
+  super.dispose();
+}</code></pre>
+          </div>
+        </section>
+
+        <section class="prose" data-reveal>
+          <h2>5. Test policy without the video plugin</h2>
+          <p>
+            Put a small interface around `video_player` and inject fake handles into
+            the pool. Assert the behavior that protects production feeds: never more
+            than one playing item, no more than the configured controller bound,
+            outgoing pause before incoming play, stale async requests ignored, and all
+            handles paused or disposed on lifecycle changes.
+          </p>
+          <div class="article-actions">
+            <a class="button button-primary" href="https://github.com/omar-hanafy/scroll_spy/blob/main/example/lib/demos/feed_video_pool.dart">Read the pool <span aria-hidden="true">↗</span></a>
+            <a class="button button-quiet" href="https://github.com/omar-hanafy/scroll_spy/blob/main/example/test/feed_video_pool_test.dart">Read the tests <span aria-hidden="true">↗</span></a>
+          </div>
+        </section>
+
+        <section class="article-cta" data-reveal>
+          <h2>See the complete handoff.</h2>
+          <p>The bundled video demo runs without a remote media dependency and exposes the live pool state.</p>
+          <div class="article-actions">
+            <a class="button button-primary" href="../demo/">Run the demo <span aria-hidden="true">▶</span></a>
+            <a class="button button-quiet" href="https://pub.dev/packages/scroll_spy">Add scroll_spy <span aria-hidden="true">↗</span></a>
+          </div>
+        </section>
+      </article>
+    </main>
+
+    <footer>
+      <a class="wordmark" href="../"><span class="wordmark-mark" aria-hidden="true"></span><span>scroll_spy</span></a>
+      <p>One stable winner, one bounded playback pool.</p>
+      <div><a href="https://pub.dev/packages/scroll_spy">pub.dev</a><a href="https://github.com/omar-hanafy/scroll_spy">GitHub</a><a href="../comparison.html">Compare</a></div>
+    </footer>
+  </body>
+</html>

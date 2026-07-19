@@ -30,8 +30,12 @@ migrate_working_dir/
 # Internal design/planning documents; not part of the published package.
 docs/
 
-# The demo GIF is served from GitHub in the README; 25 MB does not belong in
-# the package archive. The PNG icon stays (pubspec screenshots).
+# Repository-only product site and comparison benchmark.
+website/
+benchmark/
+
+# The animated demo is served from GitHub in the README and does not belong in
+# the package archive. The formal PNG screenshots stay.
 screenshots/scroll_spy.gif
 
 # Raw screen recordings (gitignored, but .pubignore replaces .gitignore, so

@@ -1,0 +1,50 @@
+name: Deploy product site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'website/**'
+      - 'example/**'
+      - 'tool/build_pages.sh'
+      - '.github/workflows/deploy-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-scroll-spy-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build and deploy Pages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Build crawlable site and Flutter demo
+        run: bash tool/build_pages.sh
+      - name: Check out Pages repository
+        uses: actions/checkout@v4
+        with:
+          repository: omar-hanafy/omar-hanafy.github.io
+          token: ${{ secrets.TAG_PUSH_PAT }}
+          path: pages-repository
+      - name: Publish scroll_spy site directory
+        run: |
+          rsync -a --delete build/pages/scroll-spy/ pages-repository/scroll-spy/
+          cd pages-repository
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scroll-spy
+          if git diff --cached --quiet; then
+            echo "Pages content is already current."
+            exit 0
+          fi
+          git commit -m "Deploy scroll_spy product site"
+          git push origin HEAD:main

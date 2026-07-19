@@ -44,6 +44,24 @@ jobs:
       - name: Run tests
         working-directory: ${{ env.PACKAGE_DIR }}
         run: flutter test
+      - name: Install example dependencies
+        working-directory: example
+        run: flutter pub get
+      - name: Analyze example
+        working-directory: example
+        run: flutter analyze
+      - name: Run example tests
+        working-directory: example
+        run: flutter test
+      - name: Install benchmark dependencies
+        working-directory: benchmark
+        run: flutter pub get
+      - name: Analyze benchmark
+        working-directory: benchmark
+        run: flutter analyze
+      - name: Run comparison benchmark assertions
+        working-directory: benchmark
+        run: flutter test test/visibility_comparison_benchmark_test.dart
 
   ai-plugin:
     name: Validate AI plugin

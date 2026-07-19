@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#070908" />
+    <meta name="color-scheme" content="dark" />
+
+    <title>scroll_spy - Stable primary item detection for Flutter</title>
+    <meta
+      name="description"
+      content="Detect visible Flutter items and choose one stable primary item for video autoplay feeds, analytics, reading position, and prefetching."
+    />
+    <meta
+      name="keywords"
+      content="Flutter visibility detector, Flutter video autoplay feed, viewport focus detection, primary visible item, scroll analytics, scroll_spy"
+    />
+    <meta name="author" content="Omar Hanafy" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://omar-hanafy.github.io/scroll-spy/" />
+    <link rel="alternate" type="text/plain" href="llms.txt" title="scroll_spy package context" />
+    <link rel="icon" href="assets/scroll-spy-icon.png" type="image/png" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="scroll_spy" />
+    <meta property="og:title" content="One visible item owns playback" />
+    <meta
+      property="og:description"
+      content="Stable primary item detection for Flutter scrollables, built for autoplay feeds, analytics, reading position, and prefetching."
+    />
+    <meta property="og:url" content="https://omar-hanafy.github.io/scroll-spy/" />
+    <meta
+      property="og:image"
+      content="https://omar-hanafy.github.io/scroll-spy/assets/social-preview.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="scroll_spy selecting one primary card in a Flutter video feed" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="scroll_spy for Flutter" />
+    <meta
+      name="twitter:description"
+      content="Know what is visible. Choose one stable winner. Keep autoplay feeds calm."
+    />
+    <meta
+      name="twitter:image"
+      content="https://omar-hanafy.github.io/scroll-spy/assets/social-preview.png"
+    />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareSourceCode",
+        "name": "scroll_spy",
+        "description": "Viewport-aware focus detection and stable primary item selection for Flutter scrollables.",
+        "codeRepository": "https://github.com/omar-hanafy/scroll_spy",
+        "downloadUrl": "https://pub.dev/packages/scroll_spy",
+        "license": "https://opensource.org/licenses/MIT",
+        "programmingLanguage": "Dart",
+        "runtimePlatform": "Flutter",
+        "applicationCategory": "DeveloperApplication",
+        "keywords": [
+          "Flutter",
+          "visibility detection",
+          "video autoplay feed",
+          "viewport focus",
+          "scroll analytics"
+        ]
+      }
+    </script>
+
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="scroll-progress" aria-hidden="true"><span></span></div>
+
+    <header class="site-header">
+      <a class="wordmark" href="#top" aria-label="scroll_spy home">
+        <span class="wordmark-mark" aria-hidden="true"></span>
+        <span>scroll_spy</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="comparison.html">Compare</a>
+        <a href="#install">Install</a>
+        <a href="demo/">Live demo</a>
+        <a class="nav-source" href="https://github.com/omar-hanafy/scroll_spy">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top">
+        <div class="hero-copy" data-reveal>
+          <p class="eyebrow"><span></span> Viewport focus for Flutter</p>
+          <h1>
+            One visible item
+            <em>owns playback.</em>
+          </h1>
+          <p class="hero-lede">
+            Detect every visible item, choose one stable primary winner, and keep
+            Flutter video feeds from fighting over the player.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="https://pub.dev/packages/scroll_spy">
+              Add scroll_spy
+              <span aria-hidden="true">↗</span>
+            </a>
+            <a class="button button-quiet" href="demo/">
+              Watch it work
+              <span aria-hidden="true">▶</span>
+            </a>
+          </div>
+          <div class="proof-line" aria-label="Package highlights">
+            <span><strong>160/160</strong> pub points</span>
+            <span><strong>6</strong> Flutter platforms</span>
+            <span><strong>0</strong> third-party runtime deps</span>
+          </div>
+        </div>
+
+        <div class="hero-stage" data-reveal>
+          <div class="focus-rail" aria-hidden="true">
+            <span class="focus-label">PRIMARY</span>
+            <span class="focus-line"></span>
+          </div>
+          <div class="phone-shell">
+            <div class="phone-top" aria-hidden="true"></div>
+            <video
+              class="product-video"
+              autoplay
+              muted
+              loop
+              playsinline
+              poster="assets/feed-autoplay-poster.jpg"
+              aria-label="Flutter feed where scroll_spy selects one primary card"
+            >
+              <source src="assets/feed-autoplay.webm" type="video/webm" />
+              <source src="assets/feed-autoplay.mp4" type="video/mp4" />
+            </video>
+          </div>
+          <div class="winner-readout" aria-hidden="true">
+            <span>ACTIVE PLAYERS</span>
+            <strong>01</strong>
+            <i></i>
+          </div>
+        </div>
+      </section>
+
+      <section class="manifesto section-rule" aria-labelledby="problem-title">
+        <p class="section-index">01 / THE JOB</p>
+        <div class="manifesto-copy" data-reveal>
+          <h2 id="problem-title">Visibility is a measurement. Playback needs a decision.</h2>
+          <p>
+            Two cards can both be 60% visible. A visibility callback tells you that
+            fact, but it cannot tell your feed which controller should play. That
+            missing decision is where flicker, double audio, and controller churn begin.
+          </p>
+        </div>
+        <div class="decision-stack" data-reveal>
+          <div><span>MEASURE</span><strong>What is on screen?</strong></div>
+          <div><span>FOCUS</span><strong>What is inside the attention zone?</strong></div>
+          <div class="decision-primary"><span>SELECT</span><strong>Which single item wins?</strong></div>
+          <div><span>STABILIZE</span><strong>Should it keep winning?</strong></div>
+        </div>
+      </section>
+
+      <section class="outcomes section-rule" aria-labelledby="outcomes-title">
+        <p class="section-index">02 / ONE SIGNAL</p>
+        <div class="outcomes-heading" data-reveal>
+          <h2 id="outcomes-title">A stable primary ID can run the whole feed.</h2>
+          <p>
+            Play the winner. Pause the previous one. Warm the neighbors. Record
+            impressions only after meaningful attention.
+          </p>
+        </div>
+        <ol class="signal-flow" data-reveal>
+          <li><span>01</span><strong>Scroll</strong><small>ListView, GridView, PageView, or your own scrollable</small></li>
+          <li><span>02</span><strong>Compute</strong><small>Visible fraction, region overlap, anchor distance</small></li>
+          <li class="signal-winner"><span>03</span><strong>Select</strong><small>Exactly one stable primary item</small></li>
+          <li><span>04</span><strong>Act</strong><small>Autoplay, analytics, prefetch, reading position</small></li>
+        </ol>
+      </section>
+
+      <section class="comparison section-rule" id="compare" aria-labelledby="compare-title">
+        <p class="section-index">03 / CHOOSE BY JOB</p>
+        <div class="comparison-intro" data-reveal>
+          <h2 id="compare-title">Use the primitive that answers your actual question.</h2>
+          <p>
+            These packages are not interchangeable. A visibility percentage is the
+            right primitive for many screens. scroll_spy adds the selection and
+            stability layer needed when one item must own attention.
+          </p>
+        </div>
+        <div class="comparison-table-wrap" data-reveal>
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Capability</th>
+                <th scope="col" class="selected">scroll_spy</th>
+                <th scope="col">visibility_detector</th>
+                <th scope="col">inview_notifier_list</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Core question</th>
+                <td class="selected">Which item should own attention?</td>
+                <td>How much of this widget is visible?</td>
+                <td>Is this list child in the configured range?</td>
+              </tr>
+              <tr>
+                <th scope="row">One winner</th>
+                <td class="selected"><b>Built in</b></td>
+                <td>Application code</td>
+                <td>Application code</td>
+              </tr>
+              <tr>
+                <th scope="row">Anti-flicker rules</th>
+                <td class="selected"><b>Hysteresis + minimum hold</b></td>
+                <td>Application code</td>
+                <td>Application code</td>
+              </tr>
+              <tr>
+                <th scope="row">Per-item geometry</th>
+                <td class="selected">Visibility + focus metrics</td>
+                <td><b>Detailed visibility info</b></td>
+                <td>Threshold-oriented notification</td>
+              </tr>
+              <tr>
+                <th scope="row">Best fit</th>
+                <td class="selected">Autoplay, attention, reading position</td>
+                <td>General widget visibility</td>
+                <td>Simple indexed-list in-view UI</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="comparison-note">
+          Comparison describes package responsibilities, not a universal speed ranking.
+          <a href="comparison.html">Read the full comparison</a> or
+          <a href="https://github.com/omar-hanafy/scroll_spy/tree/main/benchmark">inspect the reproducible benchmark.</a>
+        </p>
+      </section>
+
+      <section class="install section-rule" id="install" aria-labelledby="install-title">
+        <p class="section-index">04 / IMPLEMENT</p>
+        <div class="install-copy" data-reveal>
+          <p class="eyebrow"><span></span> Small surface, explicit policy</p>
+          <h2 id="install-title">Your UI stays yours.</h2>
+          <p>
+            Wrap the scrollable, register stable item IDs, then react to primary
+            changes. The video engine remains outside the package and under your control.
+          </p>
+          <a class="text-link" href="https://pub.dev/documentation/scroll_spy/latest/">
+            Read the API documentation <span aria-hidden="true">↗</span>
+          </a>
+          <br />
+          <a class="text-link" href="guides/flutter-video-autoplay-feed.html">
+            Build a one-player video feed <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+        <div class="code-window" data-reveal>
+          <div class="code-bar">
+            <span>feed.dart</span>
+            <button class="copy-button" type="button" data-copy-target="feed-code">Copy</button>
+          </div>
+          <pre><code id="feed-code"><span class="token-muted">final</span> spy = ScrollSpyController&lt;int&gt;();
+
+ScrollSpyListView&lt;int&gt;.builder(
+  controller: spy,
+  region: ScrollSpyRegion.zone(
+    anchor: <span class="token-muted">const</span> ScrollSpyAnchor.fraction(<span class="token-number">0.5</span>),
+    extentPx: <span class="token-number">200</span>,
+  ),
+  policy: <span class="token-muted">const</span> ScrollSpyPolicy.closestToAnchor(),
+  stability: <span class="token-muted">const</span> ScrollSpyStability(
+    hysteresisPx: <span class="token-number">24</span>,
+    minPrimaryDuration: Duration(milliseconds: <span class="token-number">150</span>),
+  ),
+  itemBuilder: (context, index) =&gt; ScrollSpyItem&lt;int&gt;(
+    id: index,
+    builder: (context, focus, child) =&gt; VideoCard(
+      isPlaying: focus.isPrimary,
+    ),
+  ),
+);</code></pre>
+        </div>
+      </section>
+
+      <section class="engine section-rule" aria-labelledby="engine-title">
+        <p class="section-index">05 / HOT PATH</p>
+        <div class="engine-head" data-reveal>
+          <h2 id="engine-title">Built for the part of the frame budget you cannot get back.</h2>
+          <p>
+            During steady linear scrolling, item positions come from a cached scroll
+            model with O(1) arithmetic per item. The hot path avoids render-tree walks,
+            matrix math, and allocations. Exotic transforms fall back to a general path.
+          </p>
+        </div>
+        <div class="engine-metrics" data-reveal>
+          <div><strong>O(1)</strong><span>position math per tracked item</span></div>
+          <div><strong>0</strong><span>steady-scroll hot-path allocations</span></div>
+          <div><strong>lazy</strong><span>snapshots only when observed</span></div>
+        </div>
+        <p class="engine-proof">
+          These are implementation invariants covered by the package test suite. They are
+          not claims about every app, device, or competing package.
+        </p>
+      </section>
+
+      <section class="final-cta" data-reveal aria-labelledby="cta-title">
+        <p class="eyebrow"><span></span> Stop coordinating players by accident</p>
+        <h2 id="cta-title">Give attention one owner.</h2>
+        <p>Start with the live feed, inspect the overlay, then copy the pattern into your app.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="demo/">Open the Flutter demo <span aria-hidden="true">▶</span></a>
+          <a class="button button-quiet" href="https://github.com/omar-hanafy/scroll_spy">View source <span aria-hidden="true">↗</span></a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <a class="wordmark" href="#top"><span class="wordmark-mark" aria-hidden="true"></span><span>scroll_spy</span></a>
+      <p>MIT licensed. Built for Flutter feeds that need one calm decision.</p>
+      <div>
+        <a href="https://pub.dev/packages/scroll_spy">pub.dev</a>
+        <a href="https://github.com/omar-hanafy/scroll_spy">GitHub</a>
+        <a href="https://github.com/omar-hanafy/scroll_spy/discussions">Discussions</a>
+      </div>
+    </footer>
+  </body>
+</html>
