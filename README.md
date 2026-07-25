@@ -25,14 +25,14 @@
 </p>
 
 <p align="center">
-  <a href="https://omar-hanafy.github.io/scroll-spy/demo/">
+  <a href="https://omar-hanafy.github.io/scroll_spy/demo/">
     <img src="https://raw.githubusercontent.com/omar-hanafy/scroll_spy/main/screenshots/scroll_spy.gif?v=1.0.5" alt="scroll_spy demo" width="360" />
   </a>
 </p>
 <p align="center">
-  <a href="https://omar-hanafy.github.io/scroll-spy/"><b>Product guide</b></a>
+  <a href="https://omar-hanafy.github.io/scroll_spy/"><b>Product guide</b></a>
   &nbsp;·&nbsp;
-  <a href="https://omar-hanafy.github.io/scroll-spy/demo/"><b>Real video feed demo</b></a>
+  <a href="https://omar-hanafy.github.io/scroll_spy/demo/"><b>Real video feed demo</b></a>
   &nbsp;·&nbsp;
   <a href="https://pub.dev/documentation/scroll_spy/latest/"><b>API docs</b></a>
 </p>
@@ -641,7 +641,7 @@ cd example
 flutter run
 ```
 
-Or open the [live web demo](https://omar-hanafy.github.io/scroll-spy/demo/).
+Or open the [live web demo](https://omar-hanafy.github.io/scroll_spy/demo/).
 
 The autoplay example uses bundled media, so it is repeatable without depending
 on a remote video host. Its small player pool keeps the current item and nearby
