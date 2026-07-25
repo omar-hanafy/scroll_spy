@@ -20,7 +20,7 @@ Choose visibility_detector instead when the main job is general per-widget visib
 - Package: https://pub.dev/packages/scroll_spy
 - Documentation: https://pub.dev/documentation/scroll_spy/latest/
 - Source: https://github.com/omar-hanafy/scroll_spy
-- Live demo: https://omar-hanafy.github.io/scroll-spy/demo/
+- Live demo: https://omar-hanafy.github.io/scroll_spy/demo/
 - Issues: https://github.com/omar-hanafy/scroll_spy/issues
 - Discussions: https://github.com/omar-hanafy/scroll_spy/discussions
 
