@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'dart:ui' show Rect;
 
 import 'package:flutter/foundation.dart';
@@ -118,9 +117,9 @@ class ScrollSpyItemFocus<T> {
     required this.focusOverlapFraction,
     this.itemRectInViewport,
     this.visibleRectInViewport,
-  })  : assert(visibleFraction >= 0.0 && visibleFraction <= 1.0),
-        assert(focusProgress >= 0.0 && focusProgress <= 1.0),
-        assert(focusOverlapFraction >= 0.0 && focusOverlapFraction <= 1.0);
+  }) : assert(visibleFraction >= 0.0 && visibleFraction <= 1.0),
+       assert(focusProgress >= 0.0 && focusProgress <= 1.0),
+       assert(focusOverlapFraction >= 0.0 && focusOverlapFraction <= 1.0);
 
   /// Creates a default "off-screen" state for an item ID.
   ///
@@ -250,17 +249,17 @@ class ScrollSpyItemFocus<T> {
 
   @override
   int get hashCode => Object.hash(
-        id,
-        isVisible,
-        isFocused,
-        isPrimary,
-        visibleFraction,
-        distanceToAnchorPx,
-        focusProgress,
-        focusOverlapFraction,
-        itemRectInViewport,
-        visibleRectInViewport,
-      );
+    id,
+    isVisible,
+    isFocused,
+    isPrimary,
+    visibleFraction,
+    distanceToAnchorPx,
+    focusProgress,
+    focusOverlapFraction,
+    itemRectInViewport,
+    visibleRectInViewport,
+  );
 }
 
 /// A complete, immutable snapshot of the focus state for the entire scope at a
@@ -303,16 +302,17 @@ class ScrollSpySnapshot<T> {
 
   /// Creates a snapshot of the focus state for all measurable items.
   ///
-  /// Collections are wrapped in unmodifiable views to prevent mutation.
+  /// Collections are copied into unmodifiable storage. Later mutations to the
+  /// supplied sets or map do not change this snapshot.
   ScrollSpySnapshot({
     required this.computedAt,
     required this.primaryId,
     required Set<T> focusedIds,
     required Set<T> visibleIds,
     required Map<T, ScrollSpyItemFocus<T>> items,
-  })  : focusedIds = UnmodifiableSetView(focusedIds),
-        visibleIds = UnmodifiableSetView(visibleIds),
-        items = UnmodifiableMapView(items);
+  }) : focusedIds = Set<T>.unmodifiable(focusedIds),
+       visibleIds = Set<T>.unmodifiable(visibleIds),
+       items = Map<T, ScrollSpyItemFocus<T>>.unmodifiable(items);
 
   /// Creates an empty snapshot.
   ///
@@ -362,7 +362,10 @@ class ScrollSpySnapshot<T> {
     return true;
   }
 
-  /// Returns a copy with the provided fields replaced.
+  /// Returns a copy with the provided non-null fields replaced.
+  ///
+  /// A null [primaryId] retains the current primary. To explicitly clear it,
+  /// construct a new snapshot with `primaryId: null`.
   ///
   /// This preserves the immutability contract (collections remain unmodifiable)
   /// and is useful for tests or derived state.
@@ -405,10 +408,12 @@ class ScrollSpySnapshot<T> {
 
   @override
   int get hashCode => Object.hash(
-        computedAt,
-        primaryId,
-        Object.hashAllUnordered(focusedIds),
-        Object.hashAllUnordered(visibleIds),
-        Object.hashAll(items.entries.map((e) => Object.hash(e.key, e.value))),
-      );
+    computedAt,
+    primaryId,
+    Object.hashAllUnordered(focusedIds),
+    Object.hashAllUnordered(visibleIds),
+    Object.hashAllUnordered(
+      items.entries.map((e) => Object.hash(e.key, e.value)),
+    ),
+  );
 }

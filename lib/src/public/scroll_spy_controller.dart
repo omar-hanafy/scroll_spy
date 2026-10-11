@@ -39,8 +39,9 @@ class ScrollSpyController<T> {
         initialSnapshot ?? ScrollSpySnapshot<T>.empty();
     _snapshot = _LazySnapshotNotifier<T>(initial, _materializeLatest);
     _primaryId = ValueNotifier<T?>(initial.primaryId);
-    _focusedIds =
-        ValueNotifier<Set<T>>(Set<T>.unmodifiable(initial.focusedIds));
+    _focusedIds = ValueNotifier<Set<T>>(
+      Set<T>.unmodifiable(initial.focusedIds),
+    );
   }
 
   late final ValueNotifier<T?> _primaryId;
@@ -56,10 +57,19 @@ class ScrollSpyController<T> {
   final Map<T, _TrackedValueNotifier<bool>> _itemIsFocusedNotifiers = {};
   final Map<T, _TrackedValueNotifier<bool>> _itemIsVisibleNotifiers = {};
 
+  // User callbacks may request another listenable while fan-out is iterating
+  // one of the maps. Publish those new registrations after the commit.
+  final Map<T, _TrackedValueNotifier<ScrollSpyItemFocus<T>>>
+  _pendingItemNotifiers = {};
+  final Map<T, _TrackedValueNotifier<bool>> _pendingPrimaryNotifiers = {};
+  final Map<T, _TrackedValueNotifier<bool>> _pendingFocusedNotifiers = {};
+  final Map<T, _TrackedValueNotifier<bool>> _pendingVisibleNotifiers = {};
+
   // Reused scratch to avoid per-frame allocations during eviction.
   final List<T> _evictionScratch = <T>[];
 
   bool _disposed = false;
+  bool _committing = false;
 
   /// Number of full snapshots materialized so far (laziness invariant hook).
   @visibleForTesting
@@ -110,12 +120,13 @@ class ScrollSpyController<T> {
   /// Per-item notifications use tolerance-aware equality to avoid noisy
   /// rebuilds from tiny scroll jitter.
   ValueListenable<ScrollSpyItemFocus<T>> itemFocusOf(T id) {
-    final existing = _itemNotifiers[id];
+    final existing = _itemNotifiers[id] ?? _pendingItemNotifiers[id];
     if (existing != null) return existing;
 
-    final notifier =
-        _TrackedValueNotifier<ScrollSpyItemFocus<T>>(_currentFocusOf(id));
-    _itemNotifiers[id] = notifier;
+    final notifier = _TrackedValueNotifier<ScrollSpyItemFocus<T>>(
+      _currentFocusOf(id),
+    );
+    (_committing ? _pendingItemNotifiers : _itemNotifiers)[id] = notifier;
     return notifier;
   }
 
@@ -126,11 +137,16 @@ class ScrollSpyController<T> {
   ///
   /// Use this for high-performance widgets that only need to know "am I primary?".
   ValueListenable<bool> itemIsPrimaryOf(T id) {
-    final existing = _itemIsPrimaryNotifiers[id];
+    final existing =
+        _itemIsPrimaryNotifiers[id] ?? _pendingPrimaryNotifiers[id];
     if (existing != null) return existing;
 
-    final notifier = _TrackedValueNotifier<bool>(_primaryId.value == id);
-    _itemIsPrimaryNotifiers[id] = notifier;
+    final frame = _lastFrame;
+    final notifier = _TrackedValueNotifier<bool>(
+      (frame != null ? frame.primaryId : _primaryId.value) == id,
+    );
+    (_committing ? _pendingPrimaryNotifiers : _itemIsPrimaryNotifiers)[id] =
+        notifier;
     return notifier;
   }
 
@@ -141,12 +157,15 @@ class ScrollSpyController<T> {
   ///
   /// Use this for high-performance widgets that only need to know "am I focused?".
   ValueListenable<bool> itemIsFocusedOf(T id) {
-    final existing = _itemIsFocusedNotifiers[id];
+    final existing =
+        _itemIsFocusedNotifiers[id] ?? _pendingFocusedNotifiers[id];
     if (existing != null) return existing;
 
-    final notifier =
-        _TrackedValueNotifier<bool>(_focusedIds.value.contains(id));
-    _itemIsFocusedNotifiers[id] = notifier;
+    final notifier = _TrackedValueNotifier<bool>(
+      (_lastFrame?.focusedIds ?? _focusedIds.value).contains(id),
+    );
+    (_committing ? _pendingFocusedNotifiers : _itemIsFocusedNotifiers)[id] =
+        notifier;
     return notifier;
   }
 
@@ -157,7 +176,8 @@ class ScrollSpyController<T> {
   ///
   /// Use this for high-performance widgets that only need to know "am I visible?".
   ValueListenable<bool> itemIsVisibleOf(T id) {
-    final existing = _itemIsVisibleNotifiers[id];
+    final existing =
+        _itemIsVisibleNotifiers[id] ?? _pendingVisibleNotifiers[id];
     if (existing != null) return existing;
 
     final frame = _lastFrame;
@@ -165,7 +185,8 @@ class ScrollSpyController<T> {
         ? (frame.slotOf(id)?.isVisible ?? false)
         : _snapshot.value.visibleIds.contains(id);
     final notifier = _TrackedValueNotifier<bool>(initial);
-    _itemIsVisibleNotifiers[id] = notifier;
+    (_committing ? _pendingVisibleNotifiers : _itemIsVisibleNotifiers)[id] =
+        notifier;
     return notifier;
   }
 
@@ -186,7 +207,8 @@ class ScrollSpyController<T> {
       );
     }
 
-    final fromNotifier = _itemNotifiers[id]?.value;
+    final fromNotifier =
+        (_itemNotifiers[id] ?? _pendingItemNotifiers[id])?.value;
     if (fromNotifier != null) return fromNotifier;
 
     // Before the first commit, serve reads from the initial snapshot seed.
@@ -202,6 +224,12 @@ class ScrollSpyController<T> {
     if (_disposed) return;
     _disposed = true;
 
+    // ChangeNotifier cannot be disposed while its callbacks are running.
+    if (_committing) return;
+    _disposeNotifiers();
+  }
+
+  void _disposeNotifiers() {
     _primaryId.dispose();
     _focusedIds.dispose();
     _snapshot.dispose();
@@ -210,6 +238,10 @@ class ScrollSpyController<T> {
     _disposeMap(_itemIsPrimaryNotifiers);
     _disposeMap(_itemIsFocusedNotifiers);
     _disposeMap(_itemIsVisibleNotifiers);
+    _disposeMap(_pendingItemNotifiers);
+    _disposeMap(_pendingPrimaryNotifiers);
+    _disposeMap(_pendingFocusedNotifiers);
+    _disposeMap(_pendingVisibleNotifiers);
   }
 
   void _disposeMap(Map<dynamic, ValueNotifier<Object?>> map) {
@@ -230,11 +262,38 @@ class ScrollSpyController<T> {
   void commit(EngineFrame<T> frame) {
     if (_disposed) return;
     _lastFrame = frame;
+    _snapshot.markStale();
+    _committing = true;
+    try {
+      _publishFrame(frame);
+    } finally {
+      _committing = false;
+      if (_disposed) {
+        _disposeNotifiers();
+      } else {
+        _adoptPending(_itemNotifiers, _pendingItemNotifiers);
+        _adoptPending(_itemIsPrimaryNotifiers, _pendingPrimaryNotifiers);
+        _adoptPending(_itemIsFocusedNotifiers, _pendingFocusedNotifiers);
+        _adoptPending(_itemIsVisibleNotifiers, _pendingVisibleNotifiers);
+      }
+    }
+  }
 
+  void _adoptPending<V>(
+    Map<T, _TrackedValueNotifier<V>> active,
+    Map<T, _TrackedValueNotifier<V>> pending,
+  ) {
+    if (pending.isEmpty) return;
+    active.addAll(pending);
+    pending.clear();
+  }
+
+  void _publishFrame(EngineFrame<T> frame) {
     // 1) Per-item focus notifiers.
     if (_itemNotifiers.isNotEmpty) {
       _evictionScratch.clear();
       _itemNotifiers.forEach((id, notifier) {
+        if (_disposed) return;
         final slot = frame.slotOf(id);
         if (slot != null && slot.measurable) {
           if (!_slotMatchesFocus(slot, notifier.value)) {
@@ -244,7 +303,7 @@ class ScrollSpyController<T> {
               visibleRect: slot.visibleRectCache,
             );
           }
-        } else if (notifier.listenerCount > 0) {
+        } else if (notifier.isListenedTo) {
           if (!_isUnknownFocus(notifier.value)) {
             notifier.value = ScrollSpyItemFocus<T>.unknown(id: id);
           }
@@ -252,7 +311,10 @@ class ScrollSpyController<T> {
           _evictionScratch.add(id);
         }
       });
+      if (_disposed) return;
       for (final id in _evictionScratch) {
+        // Another item's callback may have attached a listener meanwhile.
+        if (_itemNotifiers[id]?.isListenedTo ?? false) continue;
         _itemNotifiers.remove(id)?.dispose();
       }
       _evictionScratch.clear();
@@ -262,6 +324,7 @@ class ScrollSpyController<T> {
     _syncBoolMap(_itemIsPrimaryNotifiers, frame, _BoolSignal.primary);
     _syncBoolMap(_itemIsFocusedNotifiers, frame, _BoolSignal.focused);
     _syncBoolMap(_itemIsVisibleNotifiers, frame, _BoolSignal.visible);
+    if (_disposed) return;
 
     // 3) Global signals: update only on change. The focused set is copied
     // only when membership actually changed (the frame set is a reused
@@ -269,17 +332,17 @@ class ScrollSpyController<T> {
     if (_primaryId.value != frame.primaryId) {
       _primaryId.value = frame.primaryId;
     }
+    if (_disposed) return;
     if (!setUnorderedEquals<T>(_focusedIds.value, frame.focusedIds)) {
       _focusedIds.value = Set<T>.unmodifiable(frame.focusedIds);
     }
+    if (_disposed) return;
 
     // 4) Snapshot: materialize only for active listeners; otherwise leave a
     // stale marker so `.value` materializes on demand.
     if (_snapshot.isListenedTo) {
       debugMaterializedSnapshots++;
       _snapshot.setLive(frame.materializeSnapshot());
-    } else {
-      _snapshot.markStale();
     }
   }
 
@@ -288,10 +351,11 @@ class ScrollSpyController<T> {
     EngineFrame<T> frame,
     _BoolSignal signal,
   ) {
-    if (notifiers.isEmpty) return;
+    if (_disposed || notifiers.isEmpty) return;
 
     _evictionScratch.clear();
     notifiers.forEach((id, notifier) {
+      if (_disposed) return;
       final slot = frame.slotOf(id);
       if (slot != null && slot.measurable) {
         final bool next = switch (signal) {
@@ -300,13 +364,15 @@ class ScrollSpyController<T> {
           _BoolSignal.visible => slot.isVisible,
         };
         if (notifier.value != next) notifier.value = next;
-      } else if (notifier.listenerCount > 0) {
+      } else if (notifier.isListenedTo) {
         if (notifier.value != false) notifier.value = false;
       } else {
         _evictionScratch.add(id);
       }
     });
+    if (_disposed) return;
     for (final id in _evictionScratch) {
+      if (notifiers[id]?.isListenedTo ?? false) continue;
       notifiers.remove(id)?.dispose();
     }
     _evictionScratch.clear();
@@ -418,25 +484,12 @@ final class _LazySnapshotNotifier<T> extends ChangeNotifier
   }
 }
 
-/// A small [ValueNotifier] variant that tracks how many listeners are attached.
+/// A small [ValueNotifier] variant exposing whether listeners are attached.
 ///
-/// This is used internally to support safe-ish eviction of per-item notifiers
+/// This is used internally to support safe eviction of per-item notifiers
 /// in infinite feeds.
 final class _TrackedValueNotifier<T> extends ValueNotifier<T> {
   _TrackedValueNotifier(super.value);
 
-  int _listenerCount = 0;
-  int get listenerCount => _listenerCount;
-
-  @override
-  void addListener(VoidCallback listener) {
-    _listenerCount++;
-    super.addListener(listener);
-  }
-
-  @override
-  void removeListener(VoidCallback listener) {
-    _listenerCount = (_listenerCount - 1).clamp(0, 1 << 30);
-    super.removeListener(listener);
-  }
+  bool get isListenedTo => hasListeners;
 }

@@ -73,7 +73,7 @@ final class FractionScrollSpyAnchor extends ScrollSpyAnchor {
   ///
   /// Use [offsetPx] to bias the anchor after the fraction is resolved.
   const FractionScrollSpyAnchor(this.fraction, {super.offsetPx = 0.0})
-      : assert(fraction >= 0.0 && fraction <= 1.0);
+    : assert(fraction >= 0.0 && fraction <= 1.0);
 
   @override
   double resolveFromStart(double viewportMainAxisExtent) {
@@ -186,8 +186,8 @@ class ScrollSpyRegionResult {
     required this.isFocused,
     required this.focusProgress,
     required this.overlapFraction,
-  })  : assert(focusProgress >= 0.0 && focusProgress <= 1.0),
-        assert(overlapFraction >= 0.0 && overlapFraction <= 1.0);
+  }) : assert(focusProgress >= 0.0 && focusProgress <= 1.0),
+       assert(overlapFraction >= 0.0 && overlapFraction <= 1.0);
 
   /// A reusable "not focused" result (all metrics set to zero).
   static const ScrollSpyRegionResult notFocused = ScrollSpyRegionResult(
@@ -241,7 +241,8 @@ final class RegionScratch {
 /// Custom regions must return a [ScrollSpyRegionResult] whose numeric fields are
 /// in the 0..1 range. The engine will clamp them as a safety net.
 typedef ScrollSpyRegionEvaluator = ScrollSpyRegionResult Function(
-    ScrollSpyRegionInput input);
+  ScrollSpyRegionInput input,
+);
 
 /// Defines the "active area" within the viewport that confers focus status.
 ///
@@ -351,7 +352,7 @@ final class ScrollSpyLineRegion extends ScrollSpyRegion {
   ///
   /// Use [thicknessPx] to make the line into a thin band.
   const ScrollSpyLineRegion({required this.anchor, this.thicknessPx = 0.0})
-      : assert(thicknessPx >= 0.0);
+    : assert(thicknessPx >= 0.0);
 
   @override
   ScrollSpyRegionResult evaluate(ScrollSpyRegionInput input) {
@@ -430,8 +431,9 @@ final class ScrollSpyLineRegion extends ScrollSpyRegion {
 
     out.isFocused = true;
     out.focusProgress = (1.0 - (distance / itemHalf)).clamp(0.0, 1.0);
-    out.overlapFraction =
-        thicknessPx == 0.0 ? 1.0 : (overlapPx / thicknessPx).clamp(0.0, 1.0);
+    out.overlapFraction = thicknessPx == 0.0
+        ? 1.0
+        : (overlapPx / thicknessPx).clamp(0.0, 1.0);
   }
 
   @override
@@ -461,7 +463,7 @@ final class ScrollSpyZoneRegion extends ScrollSpyRegion {
 
   /// Creates a zone-based focus region centered on [anchor].
   const ScrollSpyZoneRegion({required this.anchor, required this.extentPx})
-      : assert(extentPx > 0.0);
+    : assert(extentPx > 0.0);
 
   @override
   ScrollSpyRegionResult evaluate(ScrollSpyRegionInput input) {
@@ -546,10 +548,7 @@ final class ScrollSpyCustomRegion extends ScrollSpyRegion {
   /// Creates a custom focus region driven by [evaluator].
   ///
   /// The engine still uses [anchor] for distance metrics and debug labeling.
-  const ScrollSpyCustomRegion({
-    required this.anchor,
-    required this.evaluator,
-  });
+  const ScrollSpyCustomRegion({required this.anchor, required this.evaluator});
 
   @override
   ScrollSpyRegionResult evaluate(ScrollSpyRegionInput input) {

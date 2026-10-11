@@ -33,97 +33,99 @@ void main() {
     }
 
     testWidgets(
-        'filters ScrollMetricsNotification when metricsNotificationPredicate is false',
-        (tester) async {
-      final controller = ScrollSpyController<int>();
-      final scopeKey = GlobalKey<ScrollSpyScopeState<int>>();
+      'filters ScrollMetricsNotification when metricsNotificationPredicate is false',
+      (tester) async {
+        final controller = ScrollSpyController<int>();
+        final scopeKey = GlobalKey<ScrollSpyScopeState<int>>();
 
-      await tester.pumpWidget(
-        Directionality(
-          textDirection: TextDirection.ltr,
-          child: SizedBox(
-            height: 200,
-            child: ScrollSpyScope<int>(
-              key: scopeKey,
-              controller: controller,
-              region: const ScrollSpyRegion.line(
-                anchor: ScrollSpyAnchor.pixels(0),
-              ),
-              policy: const ScrollSpyPolicy.closestToAnchor(),
-              metricsNotificationPredicate: (_) => false,
-              child: ListView(
-                children: List.generate(
-                  4,
-                  (i) => ScrollSpyItem<int>(
-                    id: i,
-                    builder: (context, focus, child) =>
-                        SizedBox(height: 50, child: child),
-                    child: Text('item $i'),
+        await tester.pumpWidget(
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: SizedBox(
+              height: 200,
+              child: ScrollSpyScope<int>(
+                key: scopeKey,
+                controller: controller,
+                region: const ScrollSpyRegion.line(
+                  anchor: ScrollSpyAnchor.pixels(0),
+                ),
+                policy: const ScrollSpyPolicy.closestToAnchor(),
+                metricsNotificationPredicate: (_) => false,
+                child: ListView(
+                  children: List.generate(
+                    4,
+                    (i) => ScrollSpyItem<int>(
+                      id: i,
+                      builder: (context, focus, child) =>
+                          SizedBox(height: 50, child: child),
+                      child: Text('item $i'),
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      await pumpUntilComputed(tester);
-      final int initialSequence = await currentSequence(tester, scopeKey);
+        await pumpUntilComputed(tester);
+        final int initialSequence = await currentSequence(tester, scopeKey);
 
-      final BuildContext listContext = tester.element(find.byType(ListView));
-      metricsNotification(listContext, tester).dispatch(listContext);
+        final BuildContext listContext = tester.element(find.byType(ListView));
+        metricsNotification(listContext, tester).dispatch(listContext);
 
-      await tester.pump();
-      final int afterSequence = await currentSequence(tester, scopeKey);
+        await tester.pump();
+        final int afterSequence = await currentSequence(tester, scopeKey);
 
-      expect(afterSequence, initialSequence);
-    });
+        expect(afterSequence, initialSequence);
+      },
+    );
 
     testWidgets(
-        'allows ScrollMetricsNotification when metricsNotificationPredicate is true',
-        (tester) async {
-      final controller = ScrollSpyController<int>();
-      final scopeKey = GlobalKey<ScrollSpyScopeState<int>>();
+      'allows ScrollMetricsNotification when metricsNotificationPredicate is true',
+      (tester) async {
+        final controller = ScrollSpyController<int>();
+        final scopeKey = GlobalKey<ScrollSpyScopeState<int>>();
 
-      await tester.pumpWidget(
-        Directionality(
-          textDirection: TextDirection.ltr,
-          child: SizedBox(
-            height: 200,
-            child: ScrollSpyScope<int>(
-              key: scopeKey,
-              controller: controller,
-              region: const ScrollSpyRegion.line(
-                anchor: ScrollSpyAnchor.pixels(0),
-              ),
-              policy: const ScrollSpyPolicy.closestToAnchor(),
-              metricsNotificationPredicate: (_) => true,
-              child: ListView(
-                children: List.generate(
-                  4,
-                  (i) => ScrollSpyItem<int>(
-                    id: i,
-                    builder: (context, focus, child) =>
-                        SizedBox(height: 50, child: child),
-                    child: Text('item $i'),
+        await tester.pumpWidget(
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: SizedBox(
+              height: 200,
+              child: ScrollSpyScope<int>(
+                key: scopeKey,
+                controller: controller,
+                region: const ScrollSpyRegion.line(
+                  anchor: ScrollSpyAnchor.pixels(0),
+                ),
+                policy: const ScrollSpyPolicy.closestToAnchor(),
+                metricsNotificationPredicate: (_) => true,
+                child: ListView(
+                  children: List.generate(
+                    4,
+                    (i) => ScrollSpyItem<int>(
+                      id: i,
+                      builder: (context, focus, child) =>
+                          SizedBox(height: 50, child: child),
+                      child: Text('item $i'),
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      await pumpUntilComputed(tester);
-      final int initialSequence = await currentSequence(tester, scopeKey);
+        await pumpUntilComputed(tester);
+        final int initialSequence = await currentSequence(tester, scopeKey);
 
-      final BuildContext listContext = tester.element(find.byType(ListView));
-      metricsNotification(listContext, tester).dispatch(listContext);
+        final BuildContext listContext = tester.element(find.byType(ListView));
+        metricsNotification(listContext, tester).dispatch(listContext);
 
-      await tester.pump();
-      final int afterSequence = await currentSequence(tester, scopeKey);
+        await tester.pump();
+        final int afterSequence = await currentSequence(tester, scopeKey);
 
-      expect(afterSequence, greaterThan(initialSequence));
-    });
+        expect(afterSequence, greaterThan(initialSequence));
+      },
+    );
   });
 }

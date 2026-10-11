@@ -75,9 +75,11 @@ jobs:
           fi
           branch="${GITHUB_REF_NAME}"
           tag="scroll_spy-v${version}"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "branch=$branch" >> "$GITHUB_OUTPUT"
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          {
+            echo "version=$version"
+            echo "branch=$branch"
+            echo "tag=$tag"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Validate version for branch
         if: steps.bump.outputs.version_bumped == 'true'
@@ -89,10 +91,26 @@ jobs:
             echo "Main must use a stable version (no pre-release): $version"
             exit 1
           fi
-          if [ "$branch" = "dev" ] && [[ "$version" != *-* ]]; then
-            echo "Dev must use a pre-release version: $version"
+          if [ "$branch" = "dev" ] && [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+-dev\. ]]; then
+            echo "Dev must use a -dev.* pre-release version: $version"
             exit 1
           fi
+
+      - name: Prepare release notes from the changelog
+        if: steps.bump.outputs.version_bumped == 'true'
+        env:
+          RELEASE_VERSION: ${{ steps.vars.outputs.version }}
+        run: |
+          set -euo pipefail
+          awk -v version="$RELEASE_VERSION" '
+            $1 == "##" {
+              if (found) exit
+              if ($2 == version) { found = 1; next }
+            }
+            found && $0 != "---" { print }
+            END { if (!found) exit 1 }
+          ' CHANGELOG.md > "$RUNNER_TEMP/release-notes.md"
+          test -s "$RUNNER_TEMP/release-notes.md"
 
       - name: Ensure tag does not exist
         if: steps.bump.outputs.version_bumped == 'true'
@@ -120,5 +138,5 @@ jobs:
         with:
           tag_name: ${{ steps.vars.outputs.tag }}
           name: ${{ steps.vars.outputs.tag }}
-          generate_release_notes: true
+          body_path: ${{ runner.temp }}/release-notes.md
           prerelease: ${{ steps.vars.outputs.branch == 'dev' }}

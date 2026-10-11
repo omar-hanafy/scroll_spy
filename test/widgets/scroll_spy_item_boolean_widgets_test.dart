@@ -33,9 +33,7 @@ void main() {
       controller.commitFrame(
         makeSnapshot(
           primaryId: 1,
-          items: {
-            1: makeFocusItem(id: 1, isPrimary: true),
-          },
+          items: {1: makeFocusItem(id: 1, isPrimary: true)},
         ),
       );
       await tester.pump();
@@ -57,9 +55,7 @@ void main() {
       controller.commitFrame(
         makeSnapshot(
           primaryId: null,
-          items: {
-            1: makeFocusItem(id: 1, isPrimary: false),
-          },
+          items: {1: makeFocusItem(id: 1, isPrimary: false)},
         ),
       );
       await tester.pump();
@@ -92,9 +88,7 @@ void main() {
       controller.commitFrame(
         makeSnapshot(
           focusedIds: {7},
-          items: {
-            7: makeFocusItem(id: 7, isFocused: true),
-          },
+          items: {7: makeFocusItem(id: 7, isFocused: true)},
         ),
       );
       await tester.pump();
@@ -105,11 +99,7 @@ void main() {
         makeSnapshot(
           focusedIds: {7},
           items: {
-            7: makeFocusItem(
-              id: 7,
-              isFocused: true,
-              distanceToAnchorPx: 99,
-            ),
+            7: makeFocusItem(id: 7, isFocused: true, distanceToAnchorPx: 99),
           },
         ),
       );
@@ -120,9 +110,7 @@ void main() {
       controller.commitFrame(
         makeSnapshot(
           focusedIds: const {},
-          items: {
-            7: makeFocusItem(id: 7, isFocused: false),
-          },
+          items: {7: makeFocusItem(id: 7, isFocused: false)},
         ),
       );
       await tester.pump();
@@ -155,9 +143,7 @@ void main() {
       controller.commitFrame(
         makeSnapshot(
           visibleIds: {3},
-          items: {
-            3: makeFocusItem(id: 3, isVisible: true),
-          },
+          items: {3: makeFocusItem(id: 3, isVisible: true)},
         ),
       );
       await tester.pump();
@@ -179,9 +165,7 @@ void main() {
       controller.commitFrame(
         makeSnapshot(
           visibleIds: const {},
-          items: {
-            3: makeFocusItem(id: 3, isVisible: false),
-          },
+          items: {3: makeFocusItem(id: 3, isVisible: false)},
         ),
       );
       await tester.pump();
@@ -252,8 +236,11 @@ void main() {
 
       expect(
         events,
-        unorderedEquals(
-            <String>['p:false->true', 'f:false->true', 'v:false->true']),
+        unorderedEquals(<String>[
+          'p:false->true',
+          'f:false->true',
+          'v:false->true',
+        ]),
       );
       events.clear();
 
@@ -296,8 +283,11 @@ void main() {
 
       expect(
         events,
-        unorderedEquals(
-            <String>['p:true->false', 'f:true->false', 'v:true->false']),
+        unorderedEquals(<String>[
+          'p:true->false',
+          'f:true->false',
+          'v:true->false',
+        ]),
       );
     });
 
@@ -362,8 +352,9 @@ void main() {
   });
 
   group('ScrollSpyItem boolean widgets (scope resolution)', () {
-    testWidgets('primary builder resolves controller from scope',
-        (tester) async {
+    testWidgets('primary builder resolves controller from scope', (
+      tester,
+    ) async {
       final controller = ScrollSpyController<int>();
       addTearDown(controller.dispose);
 
@@ -398,9 +389,7 @@ void main() {
       controller.commitFrame(
         makeSnapshot(
           primaryId: 1,
-          items: {
-            1: makeFocusItem(id: 1, isPrimary: true),
-          },
+          items: {1: makeFocusItem(id: 1, isPrimary: true)},
         ),
       );
       await tester.pump();
@@ -408,8 +397,9 @@ void main() {
       expect(values, <bool>[false, true]);
     });
 
-    testWidgets('primary listener resolves controller from scope',
-        (tester) async {
+    testWidgets('primary listener resolves controller from scope', (
+      tester,
+    ) async {
       final controller = ScrollSpyController<int>();
       addTearDown(controller.dispose);
 
@@ -442,9 +432,7 @@ void main() {
       controller.commitFrame(
         makeSnapshot(
           primaryId: 1,
-          items: {
-            1: makeFocusItem(id: 1, isPrimary: true),
-          },
+          items: {1: makeFocusItem(id: 1, isPrimary: true)},
         ),
       );
       await tester.pump();
@@ -454,9 +442,7 @@ void main() {
       controller.commitFrame(
         makeSnapshot(
           primaryId: null,
-          items: {
-            1: makeFocusItem(id: 1, isPrimary: false),
-          },
+          items: {1: makeFocusItem(id: 1, isPrimary: false)},
         ),
       );
       await tester.pump();
@@ -464,8 +450,9 @@ void main() {
       expect(events, <String>['false->true', 'true->false']);
     });
 
-    testWidgets('focused builder resolves controller from scope',
-        (tester) async {
+    testWidgets('focused builder resolves controller from scope', (
+      tester,
+    ) async {
       final controller = ScrollSpyController<int>();
       addTearDown(controller.dispose);
 
@@ -499,9 +486,7 @@ void main() {
       controller.commitFrame(
         makeSnapshot(
           focusedIds: {7},
-          items: {
-            7: makeFocusItem(id: 7, isFocused: true),
-          },
+          items: {7: makeFocusItem(id: 7, isFocused: true)},
         ),
       );
       await tester.pump();
@@ -509,8 +494,9 @@ void main() {
       expect(values, <bool>[false, true]);
     });
 
-    testWidgets('focused listener resolves controller from scope',
-        (tester) async {
+    testWidgets('focused listener resolves controller from scope', (
+      tester,
+    ) async {
       final controller = ScrollSpyController<int>();
       addTearDown(controller.dispose);
 
@@ -542,9 +528,7 @@ void main() {
       controller.commitFrame(
         makeSnapshot(
           focusedIds: {7},
-          items: {
-            7: makeFocusItem(id: 7, isFocused: true),
-          },
+          items: {7: makeFocusItem(id: 7, isFocused: true)},
         ),
       );
       await tester.pump();
@@ -554,9 +538,7 @@ void main() {
       controller.commitFrame(
         makeSnapshot(
           focusedIds: const {},
-          items: {
-            7: makeFocusItem(id: 7, isFocused: false),
-          },
+          items: {7: makeFocusItem(id: 7, isFocused: false)},
         ),
       );
       await tester.pump();
@@ -564,8 +546,9 @@ void main() {
       expect(events, <String>['false->true', 'true->false']);
     });
 
-    testWidgets('visible builder resolves controller from scope',
-        (tester) async {
+    testWidgets('visible builder resolves controller from scope', (
+      tester,
+    ) async {
       final controller = ScrollSpyController<int>();
       addTearDown(controller.dispose);
 
@@ -599,9 +582,7 @@ void main() {
       controller.commitFrame(
         makeSnapshot(
           visibleIds: {4},
-          items: {
-            4: makeFocusItem(id: 4, isVisible: true),
-          },
+          items: {4: makeFocusItem(id: 4, isVisible: true)},
         ),
       );
       await tester.pump();
@@ -609,8 +590,9 @@ void main() {
       expect(values, <bool>[false, true]);
     });
 
-    testWidgets('visible listener resolves controller from scope',
-        (tester) async {
+    testWidgets('visible listener resolves controller from scope', (
+      tester,
+    ) async {
       final controller = ScrollSpyController<int>();
       addTearDown(controller.dispose);
 
@@ -642,9 +624,7 @@ void main() {
       controller.commitFrame(
         makeSnapshot(
           visibleIds: {4},
-          items: {
-            4: makeFocusItem(id: 4, isVisible: true),
-          },
+          items: {4: makeFocusItem(id: 4, isVisible: true)},
         ),
       );
       await tester.pump();
@@ -654,9 +634,7 @@ void main() {
       controller.commitFrame(
         makeSnapshot(
           visibleIds: const {},
-          items: {
-            4: makeFocusItem(id: 4, isVisible: false),
-          },
+          items: {4: makeFocusItem(id: 4, isVisible: false)},
         ),
       );
       await tester.pump();

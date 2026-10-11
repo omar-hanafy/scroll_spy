@@ -28,7 +28,7 @@ import 'package:scroll_spy/src/utils/throttle.dart';
 ///    under standard sliver lists derive their position from a cached anchor
 ///    with O(1) validation instead of walking the render tree.
 /// 2) Visibility, distance and region metrics are written into the slots and
-///    membership into two reused id sets.
+///    membership exposed through two borrowed slot views.
 /// 3) [EngineSelection] applies policy + stability and picks the primary.
 /// 4) The controller receives a reused [EngineFrame] and fans out diff-only,
 ///    materializing immutable objects only for active listeners.
@@ -44,27 +44,19 @@ import 'package:scroll_spy/src/utils/throttle.dart';
 class ScrollSpyEngine<T> {
   /// Creates an engine publishing into [controller].
   ScrollSpyEngine({
-    required ScrollSpyController<T> controller,
-    required ScrollSpyRegion region,
-    required ScrollSpyPolicy<T> policy,
-    required ScrollSpyStability stability,
+    required this._controller,
+    required this._region,
+    required this._policy,
+    required this._stability,
     required ScrollSpyUpdatePolicy updatePolicy,
-    required bool debugEnabled,
-    required bool includeItemRects,
-    EdgeInsets viewportInsets = EdgeInsets.zero,
-    bool insetsAffectVisibility = true,
-  })  : _controller = controller,
-        _region = region,
-        _policy = policy,
-        _stability = stability,
-        _updatePolicy = updatePolicy,
-        _debugEnabled = debugEnabled,
-        _includeItemRects = includeItemRects,
-        _viewportInsets = viewportInsets,
-        _insetsAffectVisibility = insetsAffectVisibility,
-        _debugFrame = ValueNotifier<debug.ScrollSpyDebugFrame<T>?>(
-          debug.ScrollSpyDebugFrame.empty<T>(),
-        ) {
+    required this._debugEnabled,
+    required this._includeItemRects,
+    this._viewportInsets = EdgeInsets.zero,
+    this._insetsAffectVisibility = true,
+  }) : _updatePolicy = updatePolicy,
+       _debugFrame = ValueNotifier<debug.ScrollSpyDebugFrame<T>?>(
+         debug.ScrollSpyDebugFrame.empty<T>(),
+       ) {
     _frame = EngineFrame<T>(
       slotOf: _registry.slotOf,
       materializeSnapshot: _materializeSnapshot,
@@ -86,8 +78,6 @@ class ScrollSpyEngine<T> {
   final EngineGeometry _geometry = EngineGeometry();
   final RegionScratch _regionScratch = RegionScratch();
   final PrimarySelection<T> _selectionScratch = PrimarySelection<T>();
-  final Set<T> _focusedScratch = <T>{};
-  final Set<T> _visibleScratch = <T>{};
   late final EngineFrame<T> _frame;
 
   /// Monotonic clock for stability timing.
@@ -107,12 +97,13 @@ class ScrollSpyEngine<T> {
   bool _isDragging = false;
 
   T? _previousPrimaryId;
-  Duration? _previousPrimarySince;
+  int? _previousPrimarySinceMicroseconds;
 
   Debouncer? _scrollEndDebouncer;
   Throttler? _flingThrottler;
 
   int _debugSequence = 0;
+  int _debugFramePublicationDepth = 0;
   final ValueNotifier<debug.ScrollSpyDebugFrame<T>?> _debugFrame;
 
   /// Total compute passes executed (including empty commits).
@@ -206,7 +197,8 @@ class ScrollSpyEngine<T> {
     final bool resolvedInsetsVisibility =
         insetsAffectVisibility ?? _insetsAffectVisibility;
 
-    final bool changed = !identical(_controller, controller) ||
+    final bool changed =
+        !identical(_controller, controller) ||
         _region != region ||
         _policy != policy ||
         _stability != stability ||
@@ -247,9 +239,9 @@ class ScrollSpyEngine<T> {
       case OnScrollEndUpdatePolicy(:final debounce):
         _scrollEndDebouncer = Debouncer(delay: debounce);
       case HybridUpdatePolicy(
-          :final scrollEndDebounce,
-          :final ballisticInterval,
-        ):
+        :final scrollEndDebounce,
+        :final ballisticInterval,
+      ):
         _scrollEndDebouncer = Debouncer(delay: scrollEndDebounce);
         _flingThrottler = Throttler(interval: ballisticInterval);
     }
@@ -287,9 +279,9 @@ class ScrollSpyEngine<T> {
         _schedulePostFrameCompute(ensureVisualUpdate: true);
 
       case HybridUpdatePolicy(
-          :final ballisticInterval,
-          :final computePerFrameWhileDragging,
-        ):
+        :final ballisticInterval,
+        :final computePerFrameWhileDragging,
+      ):
         if (_isDragging && !computePerFrameWhileDragging) return;
         if (_isScrolling && !_isDragging) {
           (_flingThrottler ??= Throttler(interval: ballisticInterval)).run(() {
@@ -331,24 +323,24 @@ class ScrollSpyEngine<T> {
         }
 
       case HybridUpdatePolicy(
-          :final scrollEndDebounce,
-          :final ballisticInterval,
-          :final computePerFrameWhileDragging,
-        ):
+        :final scrollEndDebounce,
+        :final ballisticInterval,
+        :final computePerFrameWhileDragging,
+      ):
         if (n is ScrollUpdateNotification) {
           if (n.dragDetails != null) {
             if (computePerFrameWhileDragging) {
               _requestCompute(immediate: false);
             }
           } else {
-            (_flingThrottler ??= Throttler(interval: ballisticInterval)).run(
-              () => _requestCompute(immediate: true),
-            );
+            (_flingThrottler ??= Throttler(
+              interval: ballisticInterval,
+            )).run(() => _requestCompute(immediate: true));
           }
         } else if (n is ScrollEndNotification) {
-          (_scrollEndDebouncer ??= Debouncer(delay: scrollEndDebounce)).run(
-            () => _requestCompute(immediate: true),
-          );
+          (_scrollEndDebouncer ??= Debouncer(
+            delay: scrollEndDebounce,
+          )).run(() => _requestCompute(immediate: true));
         }
     }
 
@@ -386,9 +378,9 @@ class ScrollSpyEngine<T> {
         });
 
       case HybridUpdatePolicy(
-          :final scrollEndDebounce,
-          :final ballisticInterval,
-        ):
+        :final scrollEndDebounce,
+        :final ballisticInterval,
+      ):
         (_flingThrottler ??= Throttler(interval: ballisticInterval)).run(() {
           _requestCompute(immediate: true);
         });
@@ -438,20 +430,26 @@ class ScrollSpyEngine<T> {
     final double fullMainHi = _geometry.viewportMainExtent;
     final double fullCrossHi = _geometry.viewportCrossExtent;
 
-    final double insetMainLo =
-        vertical ? _viewportInsets.top : _viewportInsets.left;
-    final double insetMainHi =
-        vertical ? _viewportInsets.bottom : _viewportInsets.right;
-    final double insetCrossLo =
-        vertical ? _viewportInsets.left : _viewportInsets.top;
-    final double insetCrossHi =
-        vertical ? _viewportInsets.right : _viewportInsets.bottom;
+    final double insetMainLo = vertical
+        ? _viewportInsets.top
+        : _viewportInsets.left;
+    final double insetMainHi = vertical
+        ? _viewportInsets.bottom
+        : _viewportInsets.right;
+    final double insetCrossLo = vertical
+        ? _viewportInsets.left
+        : _viewportInsets.top;
+    final double insetCrossHi = vertical
+        ? _viewportInsets.right
+        : _viewportInsets.bottom;
 
     final double effMainLo = insetMainLo.clamp(0.0, fullMainHi);
     final double effMainHi = (fullMainHi - insetMainHi).clamp(0.0, fullMainHi);
     final double effCrossLo = insetCrossLo.clamp(0.0, fullCrossHi);
-    final double effCrossHi =
-        (fullCrossHi - insetCrossHi).clamp(0.0, fullCrossHi);
+    final double effCrossHi = (fullCrossHi - insetCrossHi).clamp(
+      0.0,
+      fullCrossHi,
+    );
 
     if (effMainHi - effMainLo <= 0 || effCrossHi - effCrossLo <= 0) {
       _commitEmpty();
@@ -461,8 +459,9 @@ class ScrollSpyEngine<T> {
     final double visMainLo = _insetsAffectVisibility ? effMainLo : 0.0;
     final double visMainHi = _insetsAffectVisibility ? effMainHi : fullMainHi;
     final double visCrossLo = _insetsAffectVisibility ? effCrossLo : 0.0;
-    final double visCrossHi =
-        _insetsAffectVisibility ? effCrossHi : fullCrossHi;
+    final double visCrossHi = _insetsAffectVisibility
+        ? effCrossHi
+        : fullCrossHi;
 
     _anchorPos =
         effMainLo + _region.anchor.resolveFromStart(effMainHi - effMainLo);
@@ -475,8 +474,6 @@ class ScrollSpyEngine<T> {
           : Rect.fromLTRB(effMainLo, effCrossLo, effMainHi, effCrossHi);
     }
 
-    _focusedScratch.clear();
-    _visibleScratch.clear();
     int measurableCount = 0;
 
     _registry.beginCompute();
@@ -498,19 +495,25 @@ class ScrollSpyEngine<T> {
       final double itemCross = slot.crossEndNow - slot.crossStartNow;
       final double itemArea = itemMain.abs() * itemCross.abs();
 
-      final double visMainStart =
-          slot.mainStart > visMainLo ? slot.mainStart : visMainLo;
-      final double visMainEnd =
-          slot.mainEnd < visMainHi ? slot.mainEnd : visMainHi;
-      final double visCrossStart =
-          slot.crossStartNow > visCrossLo ? slot.crossStartNow : visCrossLo;
-      final double visCrossEnd =
-          slot.crossEndNow < visCrossHi ? slot.crossEndNow : visCrossHi;
+      final double visMainStart = slot.mainStart > visMainLo
+          ? slot.mainStart
+          : visMainLo;
+      final double visMainEnd = slot.mainEnd < visMainHi
+          ? slot.mainEnd
+          : visMainHi;
+      final double visCrossStart = slot.crossStartNow > visCrossLo
+          ? slot.crossStartNow
+          : visCrossLo;
+      final double visCrossEnd = slot.crossEndNow < visCrossHi
+          ? slot.crossEndNow
+          : visCrossHi;
 
-      final double visMain =
-          visMainEnd - visMainStart > 0 ? visMainEnd - visMainStart : 0.0;
-      final double visCross =
-          visCrossEnd - visCrossStart > 0 ? visCrossEnd - visCrossStart : 0.0;
+      final double visMain = visMainEnd - visMainStart > 0
+          ? visMainEnd - visMainStart
+          : 0.0;
+      final double visCross = visCrossEnd - visCrossStart > 0
+          ? visCrossEnd - visCrossStart
+          : 0.0;
 
       final double visibleFraction = itemArea <= 0
           ? 0.0
@@ -534,8 +537,9 @@ class ScrollSpyEngine<T> {
         final bool isFocused = _regionScratch.isFocused;
         slot.isFocused = isFocused;
         slot.focusProgress = isFocused ? _regionScratch.focusProgress : 0.0;
-        slot.focusOverlapFraction =
-            isFocused ? _regionScratch.overlapFraction : 0.0;
+        slot.focusOverlapFraction = isFocused
+            ? _regionScratch.overlapFraction
+            : 0.0;
       } else {
         slot.isFocused = false;
         slot.focusProgress = 0.0;
@@ -546,18 +550,23 @@ class ScrollSpyEngine<T> {
         slot.itemRectCache = _rectOfSlot(slot);
         slot.visibleRectCache = (visMain > 0 && visCross > 0)
             ? (vertical
-                ? Rect.fromLTRB(
-                    visCrossStart, visMainStart, visCrossEnd, visMainEnd)
-                : Rect.fromLTRB(
-                    visMainStart, visCrossStart, visMainEnd, visCrossEnd))
+                  ? Rect.fromLTRB(
+                      visCrossStart,
+                      visMainStart,
+                      visCrossEnd,
+                      visMainEnd,
+                    )
+                  : Rect.fromLTRB(
+                      visMainStart,
+                      visCrossStart,
+                      visMainEnd,
+                      visCrossEnd,
+                    ))
             : null;
       } else {
         slot.itemRectCache = null;
         slot.visibleRectCache = null;
       }
-
-      if (isVisible) _visibleScratch.add(slot.id);
-      if (slot.isFocused) _focusedScratch.add(slot.id);
     }
     _regionSlot = null;
     _registry.endCompute();
@@ -572,20 +581,20 @@ class ScrollSpyEngine<T> {
       policy: _policy,
       stability: _stability,
       previousPrimaryId: _previousPrimaryId,
-      previousPrimarySince: _previousPrimarySince,
-      now: _clock.elapsed,
+      previousPrimarySinceMicroseconds: _previousPrimarySinceMicroseconds,
+      nowMicroseconds: _clock.elapsedMicroseconds,
       into: _selectionScratch,
     );
     _previousPrimaryId = selection.primaryId;
-    _previousPrimarySince = selection.primarySince;
+    _previousPrimarySinceMicroseconds = selection.primarySinceMicroseconds;
 
     _frame
       ..primaryId = selection.primaryId
-      ..focusedIds = _focusedScratch
-      ..visibleIds = _visibleScratch;
+      ..focusedIds = _registry.focusedIds
+      ..visibleIds = _registry.visibleIds;
     _controller.commit(_frame);
 
-    if (_debugEnabled) _publishDebugFrame();
+    if (_debugEnabled && !_disposed) _publishDebugFrame();
   }
 
   RenderAbstractViewport? _resolveViewport() {
@@ -607,30 +616,30 @@ class ScrollSpyEngine<T> {
 
   void _commitEmpty() {
     _previousPrimaryId = null;
-    _previousPrimarySince = null;
+    _previousPrimarySinceMicroseconds = null;
 
     for (final slot in _registry.slots) {
       slot.resetMetrics();
     }
 
-    _focusedScratch.clear();
-    _visibleScratch.clear();
     _frame
       ..primaryId = null
-      ..focusedIds = _focusedScratch
-      ..visibleIds = _visibleScratch;
+      ..focusedIds = _registry.focusedIds
+      ..visibleIds = _registry.visibleIds;
     _controller.commit(_frame);
 
-    if (_debugEnabled) {
-      _debugFrame.value = debug.ScrollSpyDebugFrame<T>(
-        sequence: ++_debugSequence,
-        viewportRect: Rect.zero,
-        focusRegionRect: null,
-        focusRegionLabel: _buildFocusRegionLabel(_region),
-        primaryId: null,
-        focusedIds: const {},
-        items: const {},
-        snapshot: _materializeSnapshot(),
+    if (_debugEnabled && !_disposed) {
+      _publishDebugValue(
+        debug.ScrollSpyDebugFrame<T>(
+          sequence: ++_debugSequence,
+          viewportRect: Rect.zero,
+          focusRegionRect: null,
+          focusRegionLabel: _buildFocusRegionLabel(_region),
+          primaryId: null,
+          focusedIds: const {},
+          items: const {},
+          snapshot: _materializeSnapshot(),
+        ),
       );
     }
   }
@@ -638,9 +647,17 @@ class ScrollSpyEngine<T> {
   Rect _rectOfSlot(ItemSlot<T> slot) {
     return _geometry.axis == Axis.vertical
         ? Rect.fromLTRB(
-            slot.crossStartNow, slot.mainStart, slot.crossEndNow, slot.mainEnd)
+            slot.crossStartNow,
+            slot.mainStart,
+            slot.crossEndNow,
+            slot.mainEnd,
+          )
         : Rect.fromLTRB(
-            slot.mainStart, slot.crossStartNow, slot.mainEnd, slot.crossEndNow);
+            slot.mainStart,
+            slot.crossStartNow,
+            slot.mainEnd,
+            slot.crossEndNow,
+          );
   }
 
   ScrollSpySnapshot<T> _materializeSnapshot() {
@@ -678,16 +695,30 @@ class ScrollSpyEngine<T> {
       );
     }
 
-    _debugFrame.value = debug.ScrollSpyDebugFrame<T>(
-      sequence: ++_debugSequence,
-      viewportRect: _effectiveRect,
-      focusRegionRect: _buildFocusRegionRect(),
-      focusRegionLabel: _buildFocusRegionLabel(_region),
-      primaryId: _previousPrimaryId,
-      focusedIds: Set<T>.of(_frame.focusedIds),
-      items: Map<T, debug.ScrollSpyDebugItem<T>>.unmodifiable(items),
-      snapshot: _materializeSnapshot(),
+    _publishDebugValue(
+      debug.ScrollSpyDebugFrame<T>(
+        sequence: ++_debugSequence,
+        viewportRect: _effectiveRect,
+        focusRegionRect: _buildFocusRegionRect(),
+        focusRegionLabel: _buildFocusRegionLabel(_region),
+        primaryId: _previousPrimaryId,
+        focusedIds: Set<T>.of(_frame.focusedIds),
+        items: Map<T, debug.ScrollSpyDebugItem<T>>.unmodifiable(items),
+        snapshot: _materializeSnapshot(),
+      ),
     );
+  }
+
+  void _publishDebugValue(debug.ScrollSpyDebugFrame<T> frame) {
+    _debugFramePublicationDepth++;
+    try {
+      _debugFrame.value = frame;
+    } finally {
+      _debugFramePublicationDepth--;
+      if (_disposed && _debugFramePublicationDepth == 0) {
+        _debugFrame.dispose();
+      }
+    }
   }
 
   Rect? _buildFocusRegionRect() {
@@ -742,6 +773,8 @@ class ScrollSpyEngine<T> {
     _scrollEndDebouncer = null;
     _flingThrottler = null;
 
-    _debugFrame.dispose();
+    // A debug listener may dispose the engine from inside its notification.
+    // Keep cancellation immediate and release the notifier after fan-out.
+    if (_debugFramePublicationDepth == 0) _debugFrame.dispose();
   }
 }

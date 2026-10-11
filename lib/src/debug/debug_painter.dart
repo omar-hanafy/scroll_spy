@@ -1,5 +1,6 @@
 // lib/src/debug/debug_painter.dart
 import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 
 import 'package:scroll_spy/src/public/scroll_spy_models.dart';
@@ -27,7 +28,7 @@ class ScrollSpyDebugPainter<T> extends CustomPainter {
 
   /// Creates a painter for a single debug frame.
   ScrollSpyDebugPainter({required this.frame, required this.config})
-      : super(repaint: null);
+    : super(repaint: null);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -95,7 +96,8 @@ class ScrollSpyDebugPainter<T> extends CustomPainter {
     for (final ScrollSpyDebugItem<T> item in frame.items.values) {
       final bool isPrimary =
           frame.primaryId != null && item.id == frame.primaryId;
-      final bool isFocused = frame.focusedIds.contains(item.id) ||
+      final bool isFocused =
+          frame.focusedIds.contains(item.id) ||
           (item.focus?.isFocused ?? false);
 
       if (config.showItemBounds) {
@@ -185,8 +187,8 @@ class ScrollSpyDebugPainter<T> extends CustomPainter {
         backgroundColor: isPrimary
             ? config.primaryBoundsColor.withValues(alpha: 0.70)
             : (isFocused
-                ? config.focusedBoundsColor.withValues(alpha: 0.70)
-                : const Color(0xAA000000)),
+                  ? config.focusedBoundsColor.withValues(alpha: 0.70)
+                  : const Color(0xAA000000)),
       );
     }
   }

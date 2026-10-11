@@ -85,42 +85,43 @@ class DemoScaffold extends StatelessWidget {
       ),
       builder: (context) {
         return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 4, 24, 28),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                if (description != null) ...[
-                  const SizedBox(height: 12),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 4, 24, 28),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    description!,
-                    style: const TextStyle(
-                      color: SpyColors.muted,
-                      height: 1.5,
-                      fontSize: 15,
+                    title,
+                    style: Theme.of(context).textTheme.headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  if (description != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      description!,
+                      style: const TextStyle(
+                        color: SpyColors.muted,
+                        height: 1.5,
+                        fontSize: 15,
+                      ),
                     ),
-                  ),
+                  ],
+                  if (apis.isNotEmpty) ...[
+                    const SizedBox(height: 20),
+                    const SectionLabel('APIs in this demo'),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final api in apis) CodeChip(api, accent: accent),
+                      ],
+                    ),
+                  ],
                 ],
-                if (apis.isNotEmpty) ...[
-                  const SizedBox(height: 20),
-                  const SectionLabel('APIs in this demo'),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final api in apis) CodeChip(api, accent: accent),
-                    ],
-                  ),
-                ],
-              ],
+              ),
             ),
           ),
         );

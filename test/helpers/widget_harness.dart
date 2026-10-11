@@ -23,18 +23,19 @@ final class ScrollSpyTestHarness {
     this.debugConfig,
     Key? scopeKey,
     Key? listKey,
-  })  : assert(itemCount >= 0),
-        assert(itemExtent > 0),
-        assert(viewportSize.width > 0 && viewportSize.height > 0),
-        controller = controller ?? ScrollSpyController<int>(),
-        region = region ??
-            ScrollSpyRegion.zone(
-              anchor: const ScrollSpyAnchor.fraction(0.5),
-              extentPx: itemExtent,
-            ),
-        policy = policy ?? const ScrollSpyPolicy.closestToAnchor(),
-        scopeKey = scopeKey ?? const Key('vf_scope'),
-        listKey = listKey ?? const Key('vf_list');
+  }) : assert(itemCount >= 0),
+       assert(itemExtent > 0),
+       assert(viewportSize.width > 0 && viewportSize.height > 0),
+       controller = controller ?? ScrollSpyController<int>(),
+       region =
+           region ??
+           ScrollSpyRegion.zone(
+             anchor: const ScrollSpyAnchor.fraction(0.5),
+             extentPx: itemExtent,
+           ),
+       policy = policy ?? const ScrollSpyPolicy.closestToAnchor(),
+       scopeKey = scopeKey ?? const Key('vf_scope'),
+       listKey = listKey ?? const Key('vf_list');
 
   /// Public so tests can inspect/commit frames.
   final ScrollSpyController<int> controller;

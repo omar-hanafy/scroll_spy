@@ -39,12 +39,21 @@ void _expectParity(
     ),
   );
 
-  expect(out.isFocused, expected.isFocused,
-      reason: 'isFocused for $region item($itemStart..$itemEnd) @$anchorPos');
-  expect(out.focusProgress, moreOrLessEquals(expected.focusProgress),
-      reason: 'progress for $region item($itemStart..$itemEnd) @$anchorPos');
-  expect(out.overlapFraction, moreOrLessEquals(expected.overlapFraction),
-      reason: 'overlap for $region item($itemStart..$itemEnd) @$anchorPos');
+  expect(
+    out.isFocused,
+    expected.isFocused,
+    reason: 'isFocused for $region item($itemStart..$itemEnd) @$anchorPos',
+  );
+  expect(
+    out.focusProgress,
+    moreOrLessEquals(expected.focusProgress),
+    reason: 'progress for $region item($itemStart..$itemEnd) @$anchorPos',
+  );
+  expect(
+    out.overlapFraction,
+    moreOrLessEquals(expected.overlapFraction),
+    reason: 'overlap for $region item($itemStart..$itemEnd) @$anchorPos',
+  );
 }
 
 void main() {
@@ -65,24 +74,36 @@ void main() {
     test('line thickness 0', () {
       const region = ScrollSpyRegion.line(anchor: anchor);
       for (final c in cases) {
-        _expectParity(region,
-            itemStart: c.start, itemEnd: c.end, anchorPos: 400);
+        _expectParity(
+          region,
+          itemStart: c.start,
+          itemEnd: c.end,
+          anchorPos: 400,
+        );
       }
     });
 
     test('line thickness 24', () {
       const region = ScrollSpyRegion.line(anchor: anchor, thicknessPx: 24);
       for (final c in cases) {
-        _expectParity(region,
-            itemStart: c.start, itemEnd: c.end, anchorPos: 400);
+        _expectParity(
+          region,
+          itemStart: c.start,
+          itemEnd: c.end,
+          anchorPos: 400,
+        );
       }
     });
 
     test('zone extent 180', () {
       const region = ScrollSpyRegion.zone(anchor: anchor, extentPx: 180);
       for (final c in cases) {
-        _expectParity(region,
-            itemStart: c.start, itemEnd: c.end, anchorPos: 400);
+        _expectParity(
+          region,
+          itemStart: c.start,
+          itemEnd: c.end,
+          anchorPos: 400,
+        );
       }
     });
 

@@ -106,11 +106,12 @@ final class HybridUpdatePolicy extends ScrollSpyUpdatePolicy {
     this.scrollEndDebounce = const Duration(milliseconds: 80),
     this.ballisticInterval = const Duration(milliseconds: 50),
     this.computePerFrameWhileDragging = true,
-  })  : assert(scrollEndDebounce >= Duration.zero),
-        assert(ballisticInterval > Duration.zero);
+  }) : assert(scrollEndDebounce >= Duration.zero),
+       assert(ballisticInterval > Duration.zero);
 
   @override
-  String toString() => 'ScrollSpyUpdatePolicy.hybrid('
+  String toString() =>
+      'ScrollSpyUpdatePolicy.hybrid('
       'scrollEndDebounce: $scrollEndDebounce, '
       'ballisticInterval: $ballisticInterval, '
       'computePerFrameWhileDragging: $computePerFrameWhileDragging'

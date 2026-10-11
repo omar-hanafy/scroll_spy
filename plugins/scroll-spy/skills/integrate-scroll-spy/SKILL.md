@@ -11,8 +11,9 @@ configurable focus region, and which single item is the stable primary.
 You wire four things: a scope (owns the engine), items (register geometry),
 a controller (read side), and a reaction (builder or listener).
 
-Before writing code, inspect the project: confirm `scroll_spy: ^1.x` in
-pubspec.yaml (0.x: run migrate-scroll-spy-v0-to-v1 first), find any existing
+Before writing code, inspect the project: confirm the resolved scroll_spy version
+and SDK constraints in pubspec.yaml (2.x requires Flutter 3.47.7 / Dart
+3.13.5; shared APIs also work on 1.x), find any existing
 `ScrollSpyScope`/controller to extend instead of duplicating, and note the
 scrollable type you are instrumenting. Exact signatures for everything used
 below: [references/api-cheatsheet.md](references/api-cheatsheet.md).

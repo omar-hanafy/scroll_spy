@@ -84,6 +84,18 @@ final class ItemSlot<T> {
   /// Probe box height at capture time.
   double boxH0 = 0;
 
+  /// Immediate probe parent at capture time (reparenting fingerprint).
+  RenderObject? boxParent0;
+
+  /// Standard sliver padding on the fast chain, if present.
+  RenderSliverPadding? padding;
+
+  /// Resolved padding at capture time, including cross-axis positioning.
+  EdgeInsets? padding0;
+
+  /// Grid child cross-axis offset at capture time, or zero for list children.
+  double sliverCrossAxisOffset0 = 0;
+
   // Latest computed metrics. Valid when [measurable] is true.
 
   /// Whether the item could be measured on the latest pass.
@@ -138,6 +150,9 @@ final class ItemSlot<T> {
     tier = GeometryTier.unmeasured;
     sliver = null;
     sliverChild = null;
+    boxParent0 = null;
+    padding = null;
+    padding0 = null;
   }
 
   /// Materializes an immutable [ScrollSpyItemFocus] from the current metrics.

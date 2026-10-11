@@ -75,8 +75,7 @@ void main() {
         expect(
           controller.primaryId.value,
           2,
-          reason:
-              'Programmatic scroll should recompute via ScrollController listener even when notifications are filtered.',
+          reason: 'Programmatic scroll should recompute via ScrollController listener even when notifications are filtered.',
         );
       },
     );

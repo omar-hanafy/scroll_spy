@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart' show ScrollCacheExtent;
+import 'package:flutter/rendering.dart' as rendering show ScrollCacheExtent;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:inview_notifier_list/inview_notifier_list.dart';
 import 'package:scroll_spy/scroll_spy.dart';
@@ -168,13 +168,11 @@ class _VisibilityDetectorConsumerState
 
 class _Harness {
   _Harness(this.implementation, this.profile)
-      : counters = _Counters(),
-        scrollController = ScrollController(
-          initialScrollOffset: _initialOffset,
-        ),
-        scrollSpyController = implementation == _Implementation.scrollSpy
-            ? ScrollSpyController<int>()
-            : null;
+    : counters = _Counters(),
+      scrollController = ScrollController(initialScrollOffset: _initialOffset),
+      scrollSpyController = implementation == _Implementation.scrollSpy
+          ? ScrollSpyController<int>()
+          : null;
 
   final _Implementation implementation;
   final _Profile profile;
@@ -216,7 +214,9 @@ class _Harness {
         controller: scrollController,
         itemCount: _itemCount,
         itemExtent: _itemExtent,
-        scrollCacheExtent: ScrollCacheExtent.pixels(profile.cacheExtent),
+        scrollCacheExtent: rendering.ScrollCacheExtent.pixels(
+          profile.cacheExtent,
+        ),
         itemBuilder: (context, index) {
           counters.listItemBuilds += 1;
           return ScrollSpyItemLite<int>(
@@ -282,7 +282,9 @@ class _Harness {
       controller: scrollController,
       itemCount: _itemCount,
       itemExtent: _itemExtent,
-      scrollCacheExtent: ScrollCacheExtent.pixels(profile.cacheExtent),
+      scrollCacheExtent: rendering.ScrollCacheExtent.pixels(
+        profile.cacheExtent,
+      ),
       itemBuilder: (context, index) {
         counters.listItemBuilds += 1;
         return _VisibilityDetectorConsumer(
@@ -296,25 +298,25 @@ class _Harness {
   }
 
   int mountedItems(WidgetTester tester) => switch (implementation) {
-        _Implementation.scrollSpy => tester
-            .widgetList<ScrollSpyItemLite<int>>(
-              find.byType(
-                ScrollSpyItemLite<int>,
-                skipOffstage: false,
-              ),
-            )
-            .length,
-        _Implementation.inViewNotifier => tester
-            .widgetList<InViewNotifierWidget>(
-              find.byType(InViewNotifierWidget, skipOffstage: false),
-            )
-            .length,
-        _Implementation.visibilityDetector => tester
-            .widgetList<VisibilityDetector>(
-              find.byType(VisibilityDetector, skipOffstage: false),
-            )
-            .length,
-      };
+    _Implementation.scrollSpy =>
+      tester
+          .widgetList<ScrollSpyItemLite<int>>(
+            find.byType(ScrollSpyItemLite<int>, skipOffstage: false),
+          )
+          .length,
+    _Implementation.inViewNotifier =>
+      tester
+          .widgetList<InViewNotifierWidget>(
+            find.byType(InViewNotifierWidget, skipOffstage: false),
+          )
+          .length,
+    _Implementation.visibilityDetector =>
+      tester
+          .widgetList<VisibilityDetector>(
+            find.byType(VisibilityDetector, skipOffstage: false),
+          )
+          .length,
+  };
 
   void dispose() {
     scrollSpyController?.dispose();
@@ -396,9 +398,7 @@ void _printResults(List<_Result> results) {
     'builds | registration builds | reactive builds | callbacks | state '
     'transitions | repeated deliveries | mean step us | p50 us | p95 us |',
   );
-  print(
-    '|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|',
-  );
+  print('|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|');
   for (final result in results) {
     final c = result.counters;
     print(
@@ -426,8 +426,9 @@ void main() {
 
   tearDown(() {
     VisibilityDetectorController.instance.notifyNow();
-    VisibilityDetectorController.instance.updateInterval =
-        const Duration(milliseconds: 500);
+    VisibilityDetectorController.instance.updateInterval = const Duration(
+      milliseconds: 500,
+    );
   });
 
   testWidgets(

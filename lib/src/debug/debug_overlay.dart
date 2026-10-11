@@ -47,10 +47,7 @@ class ScrollSpyDebugOverlay<T> extends StatelessWidget {
             }
 
             return CustomPaint(
-              painter: ScrollSpyDebugPainter<T>(
-                frame: frame,
-                config: config,
-              ),
+              painter: ScrollSpyDebugPainter<T>(frame: frame, config: config),
               isComplex: true,
               willChange: true,
               child: const SizedBox.expand(),

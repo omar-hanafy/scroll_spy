@@ -11,7 +11,7 @@ package only, never this plugin.
 
 ## What is included
 
-Six skills, all instructions-and-reference only (no hooks, no MCP servers, no
+Seven skills, all instructions-and-reference only (no hooks, no MCP servers, no
 executable scripts, no network access, no telemetry):
 
 | Skill | Audience | Use it when |
@@ -20,6 +20,7 @@ executable scripts, no network access, no telemetry):
 | `tune-scroll-spy-stability` | app developers | The primary item flickers or alternates, switches too eagerly or too slowly, goes null between items, sticks too long, or autoplay stutters at boundaries |
 | `diagnose-scroll-spy` | app developers | primaryId stays null, focusedIds stays empty, listeners never fire, jumps via ScrollController are not detected, highlights are offset under pinned headers, or nested scrollables interfere |
 | `optimize-scroll-spy-performance` | app developers | Jank, dropped frames, or rebuild storms in large feeds; choosing between ScrollSpyItem, ScrollSpyItemLite, builders, and listeners |
+| `migrate-scroll-spy-v1-to-v2` | upgraders | Moving a project from 1.x to 2.x, including SDK constraints and optional cache-extent modernization |
 | `migrate-scroll-spy-v0-to-v1` | upgraders | Moving a project from scroll_spy 0.1.x/0.2.x to 1.x, including code that used removed engine internals (ScrollSpyRegistry, ScrollSpyGeometry, ScrollSpySelection, ScrollSpyDiff, commitFrame) |
 | `convert-visibility-detector-to-scroll-spy` | adopters | Replacing the visibility_detector package with scroll_spy, or adding a stable primary to a VisibilityDetector-based feed |
 
@@ -102,7 +103,7 @@ permission flow.
 
 | | Supported |
 |---|---|
-| scroll_spy | 1.x (migration skill also reads 0.1.x/0.2.x projects) |
+| scroll_spy | 2.x; shared APIs apply to 1.x, with separate 0.x and 1.x migration guides |
 | Claude Code | v2+ CLI, desktop, and web clients with plugin marketplaces |
 | Codex | CLI v0.144+, ChatGPT desktop app (not the IDE extension, not mobile) |
 | Plugin version | Matches the package version (both are released together) |
@@ -133,7 +134,7 @@ codex plugin remove scroll-spy@scroll-spy
   `omar-hanafy/scroll_spy` (git access required); corporate proxies that block
   GitHub will block installation.
 - **A skill gives advice that does not match your scroll_spy version:** the
-  skills target 1.x. If you are on 0.x, run `migrate-scroll-spy-v0-to-v1`
+  skills target 2.x. If you are on 0.x, run `migrate-scroll-spy-v0-to-v1`
   first or upgrade manually.
 - **Codex IDE extension:** plugins do not load there; use the
   `$skill-installer` flow above to install individual skills for the IDE.

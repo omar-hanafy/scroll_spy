@@ -28,6 +28,9 @@ final class EngineGeometry {
   double _viewportW = 0;
   double _viewportH = 0;
   bool _canFastTier = false;
+  AxisDirection? _crossAxisDirection;
+  double _viewportAnchor = 0;
+  RenderSliver? _viewportCenter;
 
   /// Epoch of the current viewport identity/size/axis. Fast anchors captured
   /// under an older epoch are re-measured instead of trusted.
@@ -54,6 +57,7 @@ final class EngineGeometry {
   // Results of the last _walk call.
   bool _walkOk = false;
   bool _walkPure = false;
+  bool _walkFastSafe = false;
   double _walkL = 0;
   double _walkT = 0;
   double _walkW = 0;
@@ -62,6 +66,9 @@ final class EngineGeometry {
   RenderObject? _walkSliverChild;
   double _walkLayoutOffset = 0;
   bool _walkHasLayoutOffset = false;
+  double _walkCrossAxisOffset = 0;
+  RenderSliverPadding? _walkPadding;
+  EdgeInsets? _walkPaddingValue;
 
   /// Scroll offset read at [beginPass].
   double get pixels => _pixels;
@@ -99,12 +106,17 @@ final class EngineGeometry {
     double dir = 1;
     double pixels = 0;
     bool canFast = false;
+    AxisDirection? crossAxisDirection;
+    double anchor = 0;
+    RenderSliver? center;
 
     if (viewport is RenderViewportBase) {
       final RenderViewportBase base = viewport;
+      crossAxisDirection = base.crossAxisDirection;
       final AxisDirection axisDirection = base.axisDirection;
       axis = axisDirectionToAxis(axisDirection);
-      dir = (axisDirection == AxisDirection.down ||
+      dir =
+          (axisDirection == AxisDirection.down ||
               axisDirection == AxisDirection.right)
           ? 1.0
           : -1.0;
@@ -113,11 +125,20 @@ final class EngineGeometry {
       pixels = offset.pixels;
       canFast = true;
     }
+    if (viewport is RenderViewport) {
+      anchor = viewport.anchor;
+      center = viewport.center;
+    }
 
-    final bool changed = !identical(_viewport, viewport) ||
+    final bool changed =
+        !identical(_viewport, viewport) ||
         box.size.width != _viewportW ||
         box.size.height != _viewportH ||
-        axis != _axis;
+        axis != _axis ||
+        dir != _dir ||
+        crossAxisDirection != _crossAxisDirection ||
+        anchor != _viewportAnchor ||
+        !identical(center, _viewportCenter);
     if (changed) _epoch++;
 
     _viewport = viewport;
@@ -126,6 +147,9 @@ final class EngineGeometry {
     _dir = dir;
     _pixels = pixels;
     _canFastTier = canFast;
+    _crossAxisDirection = crossAxisDirection;
+    _viewportAnchor = anchor;
+    _viewportCenter = center;
     _viewportW = box.size.width;
     _viewportH = box.size.height;
 
@@ -168,14 +192,30 @@ final class EngineGeometry {
     final RenderObject? child = slot.sliverChild;
     if (sliver == null || child == null) return false;
     if (!sliver.attached || !child.attached) return false;
+    if (!identical(child.parent, sliver) ||
+        !identical(slot.box!.parent, slot.boxParent0)) {
+      return false;
+    }
 
     final ParentData? parentData = child.parentData;
     if (parentData is! SliverMultiBoxAdaptorParentData) return false;
+    if (parentData.keptAlive) return false;
     final double? layoutOffset = parentData.layoutOffset;
     if (layoutOffset == null || layoutOffset != slot.layoutOffset0) {
       return false;
     }
     if (sliver.constraints.precedingScrollExtent != slot.precedingExtent0) {
+      return false;
+    }
+    final double? crossAxisOffset = parentData is SliverGridParentData
+        ? parentData.crossAxisOffset
+        : 0;
+    if (crossAxisOffset == null ||
+        crossAxisOffset != slot.sliverCrossAxisOffset0) {
+      return false;
+    }
+    if (slot.padding != null &&
+        slot.padding!.resolvedPadding != slot.padding0) {
       return false;
     }
 
@@ -211,6 +251,7 @@ final class EngineGeometry {
 
     final RenderSliver? sliver = _walkSliver;
     if (_walkPure &&
+        _walkFastSafe &&
         _canFastTier &&
         _walkHasLayoutOffset &&
         sliver is RenderSliverMultiBoxAdaptor) {
@@ -227,12 +268,19 @@ final class EngineGeometry {
         ..layoutOffset0 = _walkLayoutOffset
         ..precedingExtent0 = sliver.constraints.precedingScrollExtent
         ..boxW0 = box.size.width
-        ..boxH0 = box.size.height;
+        ..boxH0 = box.size.height
+        ..boxParent0 = box.parent
+        ..padding = _walkPadding
+        ..padding0 = _walkPaddingValue
+        ..sliverCrossAxisOffset0 = _walkCrossAxisOffset;
     } else {
       slot
         ..tier = _walkPure ? GeometryTier.walk : GeometryTier.matrix
         ..sliver = null
-        ..sliverChild = null;
+        ..sliverChild = null
+        ..boxParent0 = null
+        ..padding = null
+        ..padding0 = null;
     }
   }
 
@@ -246,9 +294,13 @@ final class EngineGeometry {
   void _walk(RenderBox box) {
     _walkOk = false;
     _walkPure = true;
+    _walkFastSafe = true;
     _walkSliver = null;
     _walkSliverChild = null;
     _walkHasLayoutOffset = false;
+    _walkCrossAxisOffset = 0;
+    _walkPadding = null;
+    _walkPaddingValue = null;
 
     final RenderObject viewport = _viewportBox!;
     double dx = 0;
@@ -263,18 +315,44 @@ final class EngineGeometry {
         return;
       }
 
+      // A pure translation at capture time need not remain constant: Align,
+      // Padding, Transform, and custom parents can move an unchanged probe.
+      // Only the standard passthrough chain gets a cached scroll anchor.
+      if (parent is RenderBox &&
+          !identical(parent, viewport) &&
+          !_isStableBoxParent(parent)) {
+        _walkFastSafe = false;
+      }
+      if (parent is RenderSliver) {
+        if (parent is RenderSliverMultiBoxAdaptor && node is RenderBox) {
+          if (!_isStandardAdaptor(parent)) _walkFastSafe = false;
+        } else if (parent.runtimeType == RenderSliverPadding &&
+            node is RenderSliver &&
+            _walkPadding == null) {
+          _walkPadding = parent as RenderSliverPadding;
+          _walkPaddingValue = _walkPadding!.resolvedPadding;
+        } else {
+          _walkFastSafe = false;
+        }
+      }
+
       if (_walkSliver == null && parent is RenderSliver && node is RenderBox) {
         _walkSliver = parent;
         _walkSliverChild = node;
         final ParentData? parentData = node.parentData;
         if (parentData is SliverMultiBoxAdaptorParentData) {
           final double? layoutOffset = parentData.layoutOffset;
-          if (layoutOffset == null) {
+          if (layoutOffset == null || parentData.keptAlive) {
             // Kept alive without layout: not measurable this pass.
             return;
           }
           _walkLayoutOffset = layoutOffset;
           _walkHasLayoutOffset = true;
+          final double? crossAxisOffset = parentData is SliverGridParentData
+              ? parentData.crossAxisOffset
+              : 0;
+          if (crossAxisOffset == null) return;
+          _walkCrossAxisOffset = crossAxisOffset;
         }
       }
 
@@ -325,6 +403,22 @@ final class EngineGeometry {
     _walkH = rect.height;
     _walkOk = true;
   }
+
+  static bool _isStableBoxParent(RenderBox box) {
+    final Type type = box.runtimeType;
+    return type == RenderProxyBox ||
+        type == RenderConstrainedBox ||
+        type == RenderRepaintBoundary ||
+        type == RenderIndexedSemantics ||
+        type == RenderSemanticsAnnotations;
+  }
+
+  static bool _isStandardAdaptor(RenderSliverMultiBoxAdaptor sliver) =>
+      sliver.runtimeType == RenderSliverList ||
+      sliver.runtimeType == RenderSliverGrid ||
+      sliver.runtimeType == RenderSliverFixedExtentList ||
+      sliver.runtimeType == RenderSliverVariedExtentList ||
+      sliver.runtimeType == RenderSliverFillViewport;
 
   static bool _isPureTranslation(Matrix4 m) {
     final Float64List s = m.storage;

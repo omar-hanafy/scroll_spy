@@ -14,7 +14,9 @@ import 'package:scroll_spy/src/public/scroll_spy_models.dart';
 /// - Return positive if `b` should be prioritized over `a`.
 /// - Return zero if they are considered equal.
 typedef ScrollSpyComparator<T> = int Function(
-    ScrollSpyItemFocus<T> a, ScrollSpyItemFocus<T> b);
+  ScrollSpyItemFocus<T> a,
+  ScrollSpyItemFocus<T> b,
+);
 
 /// Defines the strategy for selecting the "primary" item when multiple items
 /// are focused.
@@ -26,8 +28,9 @@ typedef ScrollSpyComparator<T> = int Function(
 /// rules (`ScrollSpyStability`) are applied.
 ///
 /// Tie-breakers:
-/// If [compare] returns `0` for two candidates, the engine applies deterministic
-/// tie-breakers in this order:
+/// When a custom [compare] returns `0`, the engine first prefers the candidate
+/// with smaller absolute `distanceToAnchorPx`. If the policy ranking remains
+/// tied, the engine applies deterministic tie-breakers in this order:
 /// 1) Higher `focusProgress`
 /// 2) Higher `visibleFraction`
 /// 3) Smaller absolute `distanceToAnchorPx`
@@ -73,15 +76,14 @@ sealed class ScrollSpyPolicy<T> {
   /// Use this if you have complex business logic (e.g., "prefer ads over organic content
   /// if both are equally close").
   ///
-  /// If your comparator returns `0`, the engine will fall back to the
-  /// deterministic tie-breakers documented on [ScrollSpyPolicy].
+  /// If your comparator returns `0`, the engine first prefers the candidate
+  /// closest to the anchor, then uses the tie-breakers on [ScrollSpyPolicy].
   const factory ScrollSpyPolicy.custom({
     required ScrollSpyComparator<T> compare,
   }) = CustomFocusPolicy<T>;
 }
 
 @immutable
-
 /// Policy implementation for [ScrollSpyPolicy.closestToAnchor].
 ///
 /// Ranks candidates by absolute `distanceToAnchorPx` (smaller wins).
@@ -103,7 +105,6 @@ final class ClosestToAnchorPolicy<T> extends ScrollSpyPolicy<T> {
 }
 
 @immutable
-
 /// Policy implementation for [ScrollSpyPolicy.largestVisibleFraction].
 ///
 /// Ranks candidates by `visibleFraction` (larger wins).
@@ -125,7 +126,6 @@ final class LargestVisibleFractionPolicy<T> extends ScrollSpyPolicy<T> {
 }
 
 @immutable
-
 /// Policy implementation for [ScrollSpyPolicy.largestFocusOverlap].
 ///
 /// Ranks candidates by `focusOverlapFraction` (larger wins).
@@ -147,7 +147,6 @@ final class LargestFocusOverlapPolicy<T> extends ScrollSpyPolicy<T> {
 }
 
 @immutable
-
 /// Policy implementation for [ScrollSpyPolicy.largestFocusProgress].
 ///
 /// Ranks candidates by `focusProgress` (larger wins).
@@ -169,7 +168,6 @@ final class LargestFocusProgressPolicy<T> extends ScrollSpyPolicy<T> {
 }
 
 @immutable
-
 /// Policy implementation for [ScrollSpyPolicy.custom].
 ///
 /// Delegates ranking to the user-provided [ScrollSpyComparator].
@@ -179,8 +177,7 @@ final class CustomFocusPolicy<T> extends ScrollSpyPolicy<T> {
   /// Creates a policy backed by a custom comparator.
   ///
   /// If the comparator returns 0, the engine applies deterministic tie-breakers.
-  const CustomFocusPolicy({required ScrollSpyComparator<T> compare})
-      : _compare = compare;
+  const CustomFocusPolicy({required this._compare});
 
   @override
   int compare(ScrollSpyItemFocus<T> a, ScrollSpyItemFocus<T> b) =>
