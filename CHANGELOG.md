@@ -33,10 +33,10 @@
 - Keep the reading header and demo information sheets usable on narrow screens.
 
 ### Changed
-- Upgrade the video example to video_player 2.14.1 and migrate its Android
-  build to Flutter 3.47's Gradle and built-in Kotlin configuration. The macOS
-  and iOS examples now target macOS 12 and iOS 15 or later, matching the
-  current Flutter toolchain.
+- Upgrade the example to video_player 2.14.1 and cupertino_icons 2.0.0, and
+  migrate its Android build to Flutter 3.47's Gradle and built-in Kotlin
+  configuration. The macOS and iOS examples now target macOS 12 and iOS 15 or
+  later, matching the current Flutter toolchain.
 - Point package documentation and demo links at the repository's current
   product site at `https://omar-hanafy.github.io/scroll_spy/`.
 - Clarify that custom-policy ties prefer the closest item before the remaining

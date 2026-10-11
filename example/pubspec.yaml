@@ -34,6 +34,7 @@ dependencies:
   scroll_spy:
     path: ../
   video_player: ^2.14.1
+  cupertino_icons: ^2.0.0
 
 dev_dependencies:
   integration_test:

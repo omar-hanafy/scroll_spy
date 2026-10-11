@@ -39,8 +39,8 @@ jobs:
             echo "Main requires a stable version (no pre-release): $version"
             exit 1
           fi
-          if [ "$TARGET_BRANCH" = "dev" ] && [[ "$version" != *-* ]]; then
-            echo "Dev requires a pre-release version: $version"
+          if [ "$TARGET_BRANCH" = "dev" ] && [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+-dev\. ]]; then
+            echo "Dev requires a -dev.* pre-release version: $version"
             exit 1
           fi
 
