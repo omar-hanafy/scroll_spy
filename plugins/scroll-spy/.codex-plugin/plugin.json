@@ -1,7 +1,7 @@
 {
   "name": "scroll-spy",
-  "version": "1.0.5",
-  "description": "Package-specific skills for the scroll_spy Flutter package: integration, primary-selection tuning, diagnosis, performance optimization, v0.2-to-v1 migration, and visibility_detector conversion.",
+  "version": "2.0.0",
+  "description": "Package-specific skills for the scroll_spy Flutter package: integration, primary-selection tuning, diagnosis, performance optimization, v0.2-to-v1 and v1-to-v2 migration, and visibility_detector conversion.",
   "keywords": [
     "flutter",
     "dart",
@@ -15,7 +15,7 @@
   "interface": {
     "displayName": "ScrollSpy Assistant",
     "shortDescription": "Skills for the scroll_spy Flutter package.",
-    "longDescription": "Adds package-specific skills for scroll_spy, the viewport focus detection package for Flutter: correct integration into feeds and carousels, primary-selection stability tuning, symptom-based diagnosis, rebuild-pressure optimization, migration from 0.2.x to 1.x, and conversion from visibility_detector.",
+    "longDescription": "Adds package-specific skills for scroll_spy, the viewport focus detection package for Flutter: correct integration into feeds and carousels, primary-selection stability tuning, symptom-based diagnosis, rebuild-pressure optimization, migration from 0.2.x to 1.x and 1.x to 2.x, and conversion from visibility_detector.",
     "developerName": "Omar Hanafy",
     "category": "Development",
     "websiteUrl": "https://github.com/omar-hanafy/scroll_spy",

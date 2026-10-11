@@ -75,9 +75,11 @@ jobs:
           fi
           branch="${GITHUB_REF_NAME}"
           tag="scroll_spy-v${version}"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "branch=$branch" >> "$GITHUB_OUTPUT"
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          {
+            echo "version=$version"
+            echo "branch=$branch"
+            echo "tag=$tag"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Validate version for branch
         if: steps.bump.outputs.version_bumped == 'true'

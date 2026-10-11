@@ -8,8 +8,8 @@ final class PrimarySelection<T> {
   /// The chosen primary id, or null.
   T? primaryId;
 
-  /// Monotonic time the current primary started being primary.
-  Duration? primarySince;
+  /// Monotonic microseconds when the current primary started being primary.
+  int? primarySinceMicroseconds;
 }
 
 /// Pure selection + stability logic over [ItemSlot]s.
@@ -20,11 +20,12 @@ final class PrimarySelection<T> {
 ///   previous primary is kept while visible, else the best visible wins;
 /// - stability (min duration + hysteresis) applies only when a previous
 ///   primary is still focused and a different candidate would win;
-/// - deterministic tie-breaks: focusProgress desc, visibleFraction desc,
+/// - custom-policy ties first fall back to |distance| asc;
+/// - remaining deterministic tie-breaks: focusProgress desc, visibleFraction desc,
 ///   |distance| asc, then stable input (registration) order.
 ///
-/// Timing is monotonic ([Duration] since the engine started), so wall-clock
-/// jumps cannot corrupt `minPrimaryDuration`.
+/// Timing uses monotonic microseconds since the engine started, so wall-clock
+/// jumps cannot corrupt `minPrimaryDuration` and each pass creates no Duration.
 final class EngineSelection {
   const EngineSelection._();
 
@@ -35,8 +36,8 @@ final class EngineSelection {
     required ScrollSpyPolicy<T> policy,
     required ScrollSpyStability stability,
     required T? previousPrimaryId,
-    required Duration? previousPrimarySince,
-    required Duration now,
+    required int? previousPrimarySinceMicroseconds,
+    required int nowMicroseconds,
     PrimarySelection<T>? into,
   }) {
     final PrimarySelection<T> result = into ?? PrimarySelection<T>();
@@ -68,7 +69,7 @@ final class EngineSelection {
         previousPrimary != null && previousPrimary.isVisible;
 
     ItemSlot<T>? winner;
-    Duration? since;
+    int? since;
 
     if (bestFocused == null) {
       if (!stability.allowPrimaryWhenNoItemFocused) {
@@ -76,36 +77,39 @@ final class EngineSelection {
         since = null;
       } else if (previousStillVisible) {
         winner = previousPrimary;
-        since = previousPrimarySince ?? now;
+        since = previousPrimarySinceMicroseconds ?? nowMicroseconds;
       } else if (bestVisible != null) {
         winner = bestVisible;
-        since = now;
+        since = nowMicroseconds;
       }
     } else if (!previousStillFocused) {
       winner = bestFocused;
-      since = now;
+      since = nowMicroseconds;
     } else if (identical(bestFocused, previousPrimary)) {
       winner = previousPrimary;
-      since = previousPrimarySince ?? now;
+      since = previousPrimarySinceMicroseconds ?? nowMicroseconds;
     } else {
-      final Duration currentSince = previousPrimarySince ?? now;
+      final int currentSince =
+          previousPrimarySinceMicroseconds ?? nowMicroseconds;
+      final int minDurationMicroseconds =
+          stability.minPrimaryDuration.inMicroseconds;
       final bool minDurationSatisfied =
-          stability.minPrimaryDuration == Duration.zero ||
-              now - currentSince >= stability.minPrimaryDuration;
+          minDurationMicroseconds == 0 ||
+          nowMicroseconds - currentSince >= minDurationMicroseconds;
 
       if (!minDurationSatisfied) {
         winner = previousPrimary;
         since = currentSince;
       } else if (!stability.preferCurrentPrimary) {
         winner = bestFocused;
-        since = now;
+        since = nowMicroseconds;
       } else if (_beatsByHysteresis(
         current: previousPrimary,
         candidate: bestFocused,
         hysteresisPx: stability.hysteresisPx,
       )) {
         winner = bestFocused;
-        since = now;
+        since = nowMicroseconds;
       } else {
         winner = previousPrimary;
         since = currentSince;
@@ -118,7 +122,7 @@ final class EngineSelection {
 
     result
       ..primaryId = winner?.id
-      ..primarySince = since;
+      ..primarySinceMicroseconds = since;
     return result;
   }
 

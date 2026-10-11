@@ -10,8 +10,10 @@ import 'package:scroll_spy/src/public/scroll_spy_stability.dart';
 import 'package:scroll_spy/src/public/scroll_spy_update_policy.dart';
 import 'package:scroll_spy/src/widgets/scroll_spy_scope.dart';
 
-typedef _ScrollViewBuilder = Widget Function(
-    {ScrollController? controller, bool? primary});
+typedef _ScrollViewBuilder = Widget Function({
+  ScrollController? controller,
+  bool? primary,
+});
 
 /// A convenience widget that combines a [ScrollSpyScope] with a [ListView].
 ///
@@ -49,8 +51,8 @@ class ScrollSpyListView<T> extends StatefulWidget {
     required this.primary,
     required this.itemExtentBuilder,
     required this.hitTestBehavior,
-    required _ScrollViewBuilder scrollableBuilder,
-  }) : _scrollableBuilder = scrollableBuilder;
+    required this._scrollableBuilder,
+  });
 
   final _ScrollViewBuilder _scrollableBuilder;
 
@@ -86,7 +88,7 @@ class ScrollSpyListView<T> extends StatefulWidget {
 
   /// Optional predicate to further filter scroll metrics notifications.
   final bool Function(ScrollMetricsNotification notification)?
-      metricsNotificationPredicate;
+  metricsNotificationPredicate;
 
   /// Whether to show the debug overlay.
   final bool debug;
@@ -98,6 +100,8 @@ class ScrollSpyListView<T> extends StatefulWidget {
   final Axis scrollDirection;
 
   /// Whether the ListView should use a PrimaryScrollController.
+  ///
+  /// When null, follows the ancestor controller's platform and axis policy.
   final bool? primary;
 
   /// Optional item-extent builder passed to ListView.
@@ -107,6 +111,9 @@ class ScrollSpyListView<T> extends StatefulWidget {
   final HitTestBehavior hitTestBehavior;
 
   /// Equivalent to [ListView.builder] but wrapped in a [ScrollSpyScope].
+  ///
+  /// `scrollCacheExtent` accepts pixels or viewport multiples and takes
+  /// precedence over the legacy `cacheExtent` value in logical pixels.
   factory ScrollSpyListView.builder({
     Key? key,
     required ScrollSpyController<T> controller,
@@ -120,7 +127,7 @@ class ScrollSpyListView<T> extends StatefulWidget {
     int notificationDepth = 0,
     bool Function(ScrollNotification notification)? notificationPredicate,
     bool Function(ScrollMetricsNotification notification)?
-        metricsNotificationPredicate,
+    metricsNotificationPredicate,
     bool debug = false,
     ScrollSpyDebugConfig? debugConfig,
     // ListView.builder params:
@@ -136,6 +143,7 @@ class ScrollSpyListView<T> extends StatefulWidget {
     required NullableIndexedWidgetBuilder itemBuilder,
     int? itemCount,
     double? cacheExtent,
+    ScrollCacheExtent? scrollCacheExtent,
     int? semanticChildCount,
     DragStartBehavior dragStartBehavior = DragStartBehavior.start,
     ScrollViewKeyboardDismissBehavior keyboardDismissBehavior =
@@ -181,8 +189,11 @@ class ScrollSpyListView<T> extends StatefulWidget {
           prototypeItem: prototypeItem,
           itemBuilder: itemBuilder,
           itemCount: itemCount,
-          // ignore: deprecated_member_use
-          cacheExtent: cacheExtent,
+          scrollCacheExtent:
+              scrollCacheExtent ??
+              (cacheExtent == null
+                  ? null
+                  : ScrollCacheExtent.pixels(cacheExtent)),
           semanticChildCount: semanticChildCount,
           dragStartBehavior: dragStartBehavior,
           keyboardDismissBehavior: keyboardDismissBehavior,
@@ -199,6 +210,9 @@ class ScrollSpyListView<T> extends StatefulWidget {
   }
 
   /// Equivalent to [ListView.separated] but wrapped in a [ScrollSpyScope].
+  ///
+  /// `scrollCacheExtent` accepts pixels or viewport multiples and takes
+  /// precedence over the legacy `cacheExtent` value in logical pixels.
   factory ScrollSpyListView.separated({
     Key? key,
     required ScrollSpyController<T> controller,
@@ -212,7 +226,7 @@ class ScrollSpyListView<T> extends StatefulWidget {
     int notificationDepth = 0,
     bool Function(ScrollNotification notification)? notificationPredicate,
     bool Function(ScrollMetricsNotification notification)?
-        metricsNotificationPredicate,
+    metricsNotificationPredicate,
     bool debug = false,
     ScrollSpyDebugConfig? debugConfig,
     // ListView.separated params:
@@ -226,6 +240,7 @@ class ScrollSpyListView<T> extends StatefulWidget {
     required IndexedWidgetBuilder separatorBuilder,
     required int itemCount,
     double? cacheExtent,
+    ScrollCacheExtent? scrollCacheExtent,
     DragStartBehavior dragStartBehavior = DragStartBehavior.start,
     ScrollViewKeyboardDismissBehavior keyboardDismissBehavior =
         ScrollViewKeyboardDismissBehavior.manual,
@@ -273,8 +288,11 @@ class ScrollSpyListView<T> extends StatefulWidget {
           physics: physics,
           shrinkWrap: shrinkWrap,
           padding: padding,
-          // ignore: deprecated_member_use
-          cacheExtent: cacheExtent,
+          scrollCacheExtent:
+              scrollCacheExtent ??
+              (cacheExtent == null
+                  ? null
+                  : ScrollCacheExtent.pixels(cacheExtent)),
           dragStartBehavior: dragStartBehavior,
           keyboardDismissBehavior: keyboardDismissBehavior,
           restorationId: restorationId,
@@ -343,19 +361,21 @@ class _ScrollSpyListViewState<T> extends State<ScrollSpyListView<T>> {
     );
 
     final bool scrollViewWantsPrimary =
-        widget.primary ?? (widget.scrollDirection == Axis.vertical);
+        widget.primary ??
+        PrimaryScrollController.shouldInherit(context, widget.scrollDirection);
 
     final bool usesExternalPrimaryController =
         widget.scrollController == null &&
-            scrollViewWantsPrimary &&
-            primaryController != null;
+        scrollViewWantsPrimary &&
+        primaryController != null;
 
     final ScrollController effectiveEngineController =
         usesExternalPrimaryController
-            ? primaryController
-            : (widget.scrollController ?? _ensureInternalController());
+        ? primaryController
+        : (widget.scrollController ?? _ensureInternalController());
 
-    final bool shouldWrapWithPrimary = widget.scrollController == null &&
+    final bool shouldWrapWithPrimary =
+        widget.scrollController == null &&
         scrollViewWantsPrimary &&
         primaryController == null;
 
@@ -363,8 +383,9 @@ class _ScrollSpyListViewState<T> extends State<ScrollSpyListView<T>> {
         ? null
         : (usesExternalPrimaryController ? null : effectiveEngineController);
 
-    final bool? scrollablePrimary =
-        shouldWrapWithPrimary ? (widget.primary ?? true) : widget.primary;
+    final bool? scrollablePrimary = shouldWrapWithPrimary
+        ? (widget.primary ?? true)
+        : widget.primary;
 
     Widget scrollable = widget._scrollableBuilder(
       controller: scrollableController,
@@ -430,8 +451,8 @@ class ScrollSpyGridView<T> extends StatefulWidget {
     required this.scrollDirection,
     required this.primary,
     required this.hitTestBehavior,
-    required _ScrollViewBuilder scrollableBuilder,
-  }) : _scrollableBuilder = scrollableBuilder;
+    required this._scrollableBuilder,
+  });
 
   final _ScrollViewBuilder _scrollableBuilder;
 
@@ -467,7 +488,7 @@ class ScrollSpyGridView<T> extends StatefulWidget {
 
   /// Optional predicate to further filter scroll metrics notifications.
   final bool Function(ScrollMetricsNotification notification)?
-      metricsNotificationPredicate;
+  metricsNotificationPredicate;
 
   /// Whether to show the debug overlay.
   final bool debug;
@@ -479,12 +500,17 @@ class ScrollSpyGridView<T> extends StatefulWidget {
   final Axis scrollDirection;
 
   /// Whether the GridView should use a PrimaryScrollController.
+  ///
+  /// When null, follows the ancestor controller's platform and axis policy.
   final bool? primary;
 
   /// Hit test behavior for the underlying GridView.
   final HitTestBehavior hitTestBehavior;
 
   /// Equivalent to [GridView.builder] but wrapped in a [ScrollSpyScope].
+  ///
+  /// `scrollCacheExtent` accepts pixels or viewport multiples and takes
+  /// precedence over the legacy `cacheExtent` value in logical pixels.
   factory ScrollSpyGridView.builder({
     Key? key,
     required ScrollSpyController<T> controller,
@@ -498,7 +524,7 @@ class ScrollSpyGridView<T> extends StatefulWidget {
     int notificationDepth = 0,
     bool Function(ScrollNotification notification)? notificationPredicate,
     bool Function(ScrollMetricsNotification notification)?
-        metricsNotificationPredicate,
+    metricsNotificationPredicate,
     bool debug = false,
     ScrollSpyDebugConfig? debugConfig,
     // GridView.builder params:
@@ -512,6 +538,7 @@ class ScrollSpyGridView<T> extends StatefulWidget {
     required NullableIndexedWidgetBuilder itemBuilder,
     int? itemCount,
     double? cacheExtent,
+    ScrollCacheExtent? scrollCacheExtent,
     int? semanticChildCount,
     DragStartBehavior dragStartBehavior = DragStartBehavior.start,
     ScrollViewKeyboardDismissBehavior keyboardDismissBehavior =
@@ -554,8 +581,11 @@ class ScrollSpyGridView<T> extends StatefulWidget {
           gridDelegate: gridDelegate,
           itemBuilder: itemBuilder,
           itemCount: itemCount,
-          // ignore: deprecated_member_use
-          cacheExtent: cacheExtent,
+          scrollCacheExtent:
+              scrollCacheExtent ??
+              (cacheExtent == null
+                  ? null
+                  : ScrollCacheExtent.pixels(cacheExtent)),
           semanticChildCount: semanticChildCount,
           dragStartBehavior: dragStartBehavior,
           keyboardDismissBehavior: keyboardDismissBehavior,
@@ -606,19 +636,21 @@ class _ScrollSpyGridViewState<T> extends State<ScrollSpyGridView<T>> {
     );
 
     final bool scrollViewWantsPrimary =
-        widget.primary ?? (widget.scrollDirection == Axis.vertical);
+        widget.primary ??
+        PrimaryScrollController.shouldInherit(context, widget.scrollDirection);
 
     final bool usesExternalPrimaryController =
         widget.scrollController == null &&
-            scrollViewWantsPrimary &&
-            primaryController != null;
+        scrollViewWantsPrimary &&
+        primaryController != null;
 
     final ScrollController effectiveEngineController =
         usesExternalPrimaryController
-            ? primaryController
-            : (widget.scrollController ?? _ensureInternalController());
+        ? primaryController
+        : (widget.scrollController ?? _ensureInternalController());
 
-    final bool shouldWrapWithPrimary = widget.scrollController == null &&
+    final bool shouldWrapWithPrimary =
+        widget.scrollController == null &&
         scrollViewWantsPrimary &&
         primaryController == null;
 
@@ -626,8 +658,9 @@ class _ScrollSpyGridViewState<T> extends State<ScrollSpyGridView<T>> {
         ? null
         : (usesExternalPrimaryController ? null : effectiveEngineController);
 
-    final bool? scrollablePrimary =
-        shouldWrapWithPrimary ? (widget.primary ?? true) : widget.primary;
+    final bool? scrollablePrimary = shouldWrapWithPrimary
+        ? (widget.primary ?? true)
+        : widget.primary;
 
     Widget scrollable = widget._scrollableBuilder(
       controller: scrollableController,
@@ -696,6 +729,7 @@ class ScrollSpyCustomScrollView<T> extends StatefulWidget {
     this.center,
     this.anchor = 0.0,
     this.cacheExtent,
+    this.scrollCacheExtent,
     this.semanticChildCount,
     this.dragStartBehavior = DragStartBehavior.start,
     this.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.manual,
@@ -738,7 +772,7 @@ class ScrollSpyCustomScrollView<T> extends StatefulWidget {
 
   /// Optional predicate to further filter scroll metrics notifications.
   final bool Function(ScrollMetricsNotification notification)?
-      metricsNotificationPredicate;
+  metricsNotificationPredicate;
 
   /// Whether to show the debug overlay.
   final bool debug;
@@ -754,6 +788,8 @@ class ScrollSpyCustomScrollView<T> extends StatefulWidget {
   final bool reverse;
 
   /// Whether the CustomScrollView should use a PrimaryScrollController.
+  ///
+  /// When null, follows the ancestor controller's platform and axis policy.
   final bool? primary;
 
   /// Scroll physics for the CustomScrollView.
@@ -771,8 +807,15 @@ class ScrollSpyCustomScrollView<T> extends StatefulWidget {
   /// The anchor point for the CustomScrollView.
   final double anchor;
 
-  /// Cache extent for the CustomScrollView.
+  /// Legacy cache extent in logical pixels for the CustomScrollView.
+  ///
+  /// Used when [scrollCacheExtent] is null.
   final double? cacheExtent;
+
+  /// Cache extent in pixels or viewport multiples for the CustomScrollView.
+  ///
+  /// Takes precedence over [cacheExtent] when both are provided.
+  final ScrollCacheExtent? scrollCacheExtent;
 
   /// Semantic child count for the CustomScrollView.
   final int? semanticChildCount;
@@ -834,19 +877,21 @@ class _ScrollSpyCustomScrollViewState<T>
     );
 
     final bool scrollViewWantsPrimary =
-        widget.primary ?? (widget.scrollDirection == Axis.vertical);
+        widget.primary ??
+        PrimaryScrollController.shouldInherit(context, widget.scrollDirection);
 
     final bool usesExternalPrimaryController =
         widget.scrollController == null &&
-            scrollViewWantsPrimary &&
-            primaryController != null;
+        scrollViewWantsPrimary &&
+        primaryController != null;
 
     final ScrollController effectiveEngineController =
         usesExternalPrimaryController
-            ? primaryController
-            : (widget.scrollController ?? _ensureInternalController());
+        ? primaryController
+        : (widget.scrollController ?? _ensureInternalController());
 
-    final bool shouldWrapWithPrimary = widget.scrollController == null &&
+    final bool shouldWrapWithPrimary =
+        widget.scrollController == null &&
         scrollViewWantsPrimary &&
         primaryController == null;
 
@@ -854,8 +899,9 @@ class _ScrollSpyCustomScrollViewState<T>
         ? null
         : (usesExternalPrimaryController ? null : effectiveEngineController);
 
-    final bool? scrollablePrimary =
-        shouldWrapWithPrimary ? (widget.primary ?? true) : widget.primary;
+    final bool? scrollablePrimary = shouldWrapWithPrimary
+        ? (widget.primary ?? true)
+        : widget.primary;
 
     Widget scrollable = CustomScrollView(
       controller: scrollableController,
@@ -867,8 +913,11 @@ class _ScrollSpyCustomScrollViewState<T>
       shrinkWrap: widget.shrinkWrap,
       center: widget.center,
       anchor: widget.anchor,
-      // ignore: deprecated_member_use
-      cacheExtent: widget.cacheExtent,
+      scrollCacheExtent:
+          widget.scrollCacheExtent ??
+          (widget.cacheExtent == null
+              ? null
+              : ScrollCacheExtent.pixels(widget.cacheExtent!)),
       semanticChildCount: widget.semanticChildCount,
       dragStartBehavior: widget.dragStartBehavior,
       keyboardDismissBehavior: widget.keyboardDismissBehavior,
@@ -989,7 +1038,7 @@ class ScrollSpyPageView<T> extends StatefulWidget {
 
   /// Optional predicate to further filter scroll metrics notifications.
   final bool Function(ScrollMetricsNotification notification)?
-      metricsNotificationPredicate;
+  metricsNotificationPredicate;
 
   /// Whether to show the debug overlay.
   final bool debug;
@@ -1066,7 +1115,7 @@ class ScrollSpyPageView<T> extends StatefulWidget {
     int notificationDepth = 0,
     bool Function(ScrollNotification notification)? notificationPredicate,
     bool Function(ScrollMetricsNotification notification)?
-        metricsNotificationPredicate,
+    metricsNotificationPredicate,
     bool debug = false,
     ScrollSpyDebugConfig? debugConfig,
     // PageView.builder params:
@@ -1156,8 +1205,8 @@ class _ScrollSpyPageViewState<T> extends State<ScrollSpyPageView<T>> {
         oldWidget.pageController != widget.pageController;
     final bool internalParamsChanged =
         oldWidget.initialPage != widget.initialPage ||
-            oldWidget.keepPage != widget.keepPage ||
-            oldWidget.viewportFraction != widget.viewportFraction;
+        oldWidget.keepPage != widget.keepPage ||
+        oldWidget.viewportFraction != widget.viewportFraction;
 
     if (_internalController == null ||
         ownershipChanged ||
@@ -1184,7 +1233,8 @@ class _ScrollSpyPageViewState<T> extends State<ScrollSpyPageView<T>> {
 
   @override
   Widget build(BuildContext context) {
-    final PageController effectiveController = widget.pageController ??
+    final PageController effectiveController =
+        widget.pageController ??
         (_internalController ??= _createInternalController());
 
     final pv = PageView.builder(

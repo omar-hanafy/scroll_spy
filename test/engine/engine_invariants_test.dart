@@ -40,8 +40,7 @@ Widget _liteFeed({
 
 void main() {
   group('performance invariants', () {
-    testWidgets(
-        'steady scrolling performs zero full measures after warmup '
+    testWidgets('steady scrolling performs zero full measures after warmup '
         '(all fast-tier hits)', (tester) async {
       final harness = ScrollSpyTestHarness(
         itemCount: 200,
@@ -70,27 +69,31 @@ void main() {
         await tester.pump();
       }
 
-      expect(geometry.fullMeasures, measuresAfterWarmup,
-          reason: 'steady scrolling must not re-measure geometry');
-      expect(geometry.fastHits, greaterThan(fastHitsBefore),
-          reason: 'positions must come from the O(1) fast tier');
+      expect(
+        geometry.fullMeasures,
+        measuresAfterWarmup,
+        reason: 'steady scrolling must not re-measure geometry',
+      );
+      expect(
+        geometry.fastHits,
+        greaterThan(fastHitsBefore),
+        reason: 'positions must come from the O(1) fast tier',
+      );
 
       // And the engine still tracks correctly.
       expect(harness.controller.primaryId.value, isNotNull);
     });
 
-    testWidgets(
-        'boolean-only (Lite) feeds materialize no snapshots and no '
+    testWidgets('boolean-only (Lite) feeds materialize no snapshots and no '
         'per-item focus objects', (tester) async {
       final controller = ScrollSpyController<int>();
       final scrollController = ScrollController();
       addTearDown(controller.dispose);
       addTearDown(scrollController.dispose);
 
-      await tester.pumpWidget(_liteFeed(
-        controller: controller,
-        scrollController: scrollController,
-      ));
+      await tester.pumpWidget(
+        _liteFeed(controller: controller, scrollController: scrollController),
+      );
       await tester.pump();
       await tester.pump();
 
@@ -100,12 +103,21 @@ void main() {
         await tester.pump();
       }
 
-      expect(controller.debugMaterializedSnapshots, 0,
-          reason: 'nobody listens to snapshots');
-      expect(controller.debugMaterializedItemFocus, 0,
-          reason: 'Lite consumers use boolean signals only');
-      expect(controller.primaryId.value, isNotNull,
-          reason: 'tracking still works');
+      expect(
+        controller.debugMaterializedSnapshots,
+        0,
+        reason: 'nobody listens to snapshots',
+      );
+      expect(
+        controller.debugMaterializedItemFocus,
+        0,
+        reason: 'Lite consumers use boolean signals only',
+      );
+      expect(
+        controller.primaryId.value,
+        isNotNull,
+        reason: 'tracking still works',
+      );
     });
   });
 }

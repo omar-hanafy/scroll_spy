@@ -12,7 +12,10 @@ import 'package:scroll_spy/src/widgets/scroll_spy_scope.dart';
 /// forwarded from the widget’s `child` parameter so callers can avoid
 /// rebuilding static subtrees.
 typedef ScrollSpyPrimaryWidgetBuilder<T> = Widget Function(
-    BuildContext context, T? primaryId, Widget? child);
+  BuildContext context,
+  T? primaryId,
+  Widget? child,
+);
 
 /// Builder signature for reacting to focused ID set changes.
 ///
@@ -21,7 +24,10 @@ typedef ScrollSpyPrimaryWidgetBuilder<T> = Widget Function(
 /// forwarded from the widget’s `child` parameter so callers can avoid
 /// rebuilding static subtrees.
 typedef ScrollSpyFocusedIdsWidgetBuilder<T> = Widget Function(
-    BuildContext context, Set<T> focusedIds, Widget? child);
+  BuildContext context,
+  Set<T> focusedIds,
+  Widget? child,
+);
 
 /// Builder signature for reacting to full snapshot changes.
 ///

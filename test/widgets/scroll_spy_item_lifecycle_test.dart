@@ -62,8 +62,7 @@ void main() {
         await _pumpUntil(
           tester,
           () => controller.snapshot.value.items.length == 20,
-          reason:
-              'Expected initial snapshot.items to include all 20 registered items.',
+          reason: 'Expected initial snapshot.items to include all 20 registered items.',
         );
 
         // Shrink the list: items 5..19 should dispose + unregister cleanly.
@@ -75,8 +74,7 @@ void main() {
         await _pumpUntil(
           tester,
           () => controller.snapshot.value.items.length == 5,
-          reason:
-              'After shrinking to 5 items, snapshot.items should reduce to exactly 5.',
+          reason: 'After shrinking to 5 items, snapshot.items should reduce to exactly 5.',
         );
 
         itemCount.dispose();

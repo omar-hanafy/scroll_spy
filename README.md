@@ -92,7 +92,8 @@ scroll event
   render-tree walks, no matrix math, no allocations on the hot path. Snapshots
   are materialized lazily, only when something listens. Items under transforms
   or exotic custom slivers are detected automatically and measured with a
-  general path, so correctness never depends on your layout being "standard".
+  general path. Changes to scroll direction, viewport configuration, padding,
+  or ancestor positioning invalidate or bypass cached geometry.
 - **Granular rebuild control.** Per-item notifiers, boolean-only "lite" items,
   diff-only global signals, and listener widgets for side effects that should
   not rebuild anything.
@@ -123,9 +124,13 @@ inspect its scenario and run it on your own hardware.
 
 ## Install
 
+Requires Flutter **3.47.7 or later** and Dart **3.13.5 or later**.
+For older SDKs, keep using scroll_spy 1.x. Upgrading from 1.x to 2.x
+requires an SDK upgrade; the public Dart API remains compatible.
+
 ```yaml
 dependencies:
-  scroll_spy: ^1.0.5
+  scroll_spy: ^2.0.0
 ```
 
 ```dart
@@ -256,11 +261,15 @@ and unique within the scope).
 Per-item notifiers are **lazy** (created on first access), **diff-optimized**
 (fire only on real changes), and **auto-evicted** (disposed when the item
 leaves and nothing listens). Create the controller in `initState` (or as a
-field) and `dispose()` it.
+field) and `dispose()` it. Callbacks may subscribe to additional items or
+dispose the controller safely; reading `snapshot.value` inside a primary
+callback returns the current frame.
 
 `ScrollSpySnapshot<T>` carries `primaryId`, `focusedIds`, `visibleIds`,
 `items` (a `Map<T, ScrollSpyItemFocus<T>>` of everything measured), and
-`computedAt`.
+`computedAt`. Its collections are immutable copies, so changing the sets or map
+passed to its constructor cannot change an existing snapshot. Equal snapshots
+have equal hash codes regardless of collection insertion order.
 
 ### Per-item focus state
 
@@ -341,6 +350,10 @@ ScrollSpyPolicy<int>.custom(
   },
 )
 ```
+
+When a custom comparator returns zero, the closest item wins first. Remaining
+ties prefer higher focus progress, then visible fraction, then smaller absolute
+anchor distance, and finally registration order.
 
 ### Stability (anti-flicker)
 
@@ -503,7 +516,10 @@ ScrollSpyCustomScrollView<String>(
 )
 ```
 
-Full version: [Reading progress demo](example/lib/demos/reading_progress_page.dart).
+The [Reading progress demo](example/lib/demos/reading_progress_page.dart)
+keeps its short article mounted so table-of-contents links can reach any section.
+For a long lazy list, use index-based navigation; `Scrollable.ensureVisible`
+requires the target widget to already be mounted.
 
 ### Impression analytics
 
@@ -589,7 +605,10 @@ ScrollSpyScope<int>(
 ```
 
 The wrappers accept `scrollController` (or `pageController`) and wire this for
-you.
+you. List, grid, and custom-scroll wrappers follow Flutter's
+`PrimaryScrollController.shouldInherit` policy, including desktop and custom
+horizontal inheritance. Replacing a scope's focus controller reconnects its
+descendant items, builders, and listeners to the new controller.
 
 ---
 
@@ -681,8 +700,8 @@ and run it on the hardware and workload that matter to your app.
 
 scroll_spy ships an installable, instructions-only plugin for Claude Code and
 OpenAI Codex. It teaches an assistant the package's integration, stability,
-diagnosis, performance, 0.x migration, and `visibility_detector` conversion
-workflows. It is development tooling, not part of the Flutter runtime package.
+diagnosis, performance, 0.x-to-1.x and 1.x-to-2.x migration, and
+`visibility_detector` conversion workflows. It is development tooling, not part of the Flutter runtime package.
 
 Claude Code:
 
@@ -708,6 +727,11 @@ capability list and explicit skill names.
 ---
 
 ## API map
+
+Requires Flutter 3.47.7 / Dart 3.13.5 or later. List, grid, and custom-scroll
+wrappers accept `scrollCacheExtent` for pixel or viewport-based caching; the
+existing `cacheExtent` argument remains supported as a pixel value. Import
+`ScrollCacheExtent` from `package:flutter/rendering.dart` when configuring it.
 
 Core:
 - `ScrollSpyScope<T>` - owns the engine for a scrollable subtree

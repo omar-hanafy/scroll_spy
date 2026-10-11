@@ -15,32 +15,38 @@ void main() {
       notifier.addListener(() => updates++);
 
       // 1. Initial (Primary)
-      controller.commitFrame(makeSnapshot(
-        primaryId: 1,
-        items: {
-          1: makeFocusItem(id: 1, isPrimary: true, distanceToAnchorPx: 0)
-        },
-      ));
+      controller.commitFrame(
+        makeSnapshot(
+          primaryId: 1,
+          items: {
+            1: makeFocusItem(id: 1, isPrimary: true, distanceToAnchorPx: 0),
+          },
+        ),
+      );
       expect(updates, 1);
       expect(notifier.value, true);
 
       // 2. Metric Change (Distance) - Should NOT notify
-      controller.commitFrame(makeSnapshot(
-        primaryId: 1,
-        items: {
-          1: makeFocusItem(id: 1, isPrimary: true, distanceToAnchorPx: 5)
-        },
-      ));
+      controller.commitFrame(
+        makeSnapshot(
+          primaryId: 1,
+          items: {
+            1: makeFocusItem(id: 1, isPrimary: true, distanceToAnchorPx: 5),
+          },
+        ),
+      );
       expect(updates, 1);
 
       // 3. Toggle off
-      controller.commitFrame(makeSnapshot(
-        primaryId: 2,
-        items: {
-          1: makeFocusItem(id: 1, isPrimary: false, distanceToAnchorPx: 10),
-          2: makeFocusItem(id: 2, isPrimary: true, distanceToAnchorPx: 0),
-        },
-      ));
+      controller.commitFrame(
+        makeSnapshot(
+          primaryId: 2,
+          items: {
+            1: makeFocusItem(id: 1, isPrimary: false, distanceToAnchorPx: 10),
+            2: makeFocusItem(id: 2, isPrimary: true, distanceToAnchorPx: 0),
+          },
+        ),
+      );
       expect(updates, 2);
       expect(notifier.value, false);
     });
@@ -55,27 +61,33 @@ void main() {
       notifier.addListener(() => updates++);
 
       // 1. Initial (Focused)
-      controller.commitFrame(makeSnapshot(
-        focusedIds: {id},
-        items: {id: makeFocusItem(id: id, isFocused: true)},
-      ));
+      controller.commitFrame(
+        makeSnapshot(
+          focusedIds: {id},
+          items: {id: makeFocusItem(id: id, isFocused: true)},
+        ),
+      );
       expect(updates, 1);
       expect(notifier.value, true);
 
       // 2. Metric Change - Should NOT notify
-      controller.commitFrame(makeSnapshot(
-        focusedIds: {id},
-        items: {
-          id: makeFocusItem(id: id, isFocused: true, distanceToAnchorPx: 999)
-        },
-      ));
+      controller.commitFrame(
+        makeSnapshot(
+          focusedIds: {id},
+          items: {
+            id: makeFocusItem(id: id, isFocused: true, distanceToAnchorPx: 999),
+          },
+        ),
+      );
       expect(updates, 1);
 
       // 3. Toggle Focus - Should notify
-      controller.commitFrame(makeSnapshot(
-        focusedIds: {},
-        items: {id: makeFocusItem(id: id, isFocused: false)},
-      ));
+      controller.commitFrame(
+        makeSnapshot(
+          focusedIds: {},
+          items: {id: makeFocusItem(id: id, isFocused: false)},
+        ),
+      );
       expect(updates, 2);
       expect(notifier.value, false);
     });
@@ -90,27 +102,33 @@ void main() {
       notifier.addListener(() => updates++);
 
       // 1. Initial (Visible)
-      controller.commitFrame(makeSnapshot(
-        visibleIds: {id},
-        items: {id: makeFocusItem(id: id, isVisible: true)},
-      ));
+      controller.commitFrame(
+        makeSnapshot(
+          visibleIds: {id},
+          items: {id: makeFocusItem(id: id, isVisible: true)},
+        ),
+      );
       expect(updates, 1);
       expect(notifier.value, true);
 
       // 2. Metric Change - Should NOT notify
-      controller.commitFrame(makeSnapshot(
-        visibleIds: {id},
-        items: {
-          id: makeFocusItem(id: id, isVisible: true, visibleFraction: 0.5)
-        },
-      ));
+      controller.commitFrame(
+        makeSnapshot(
+          visibleIds: {id},
+          items: {
+            id: makeFocusItem(id: id, isVisible: true, visibleFraction: 0.5),
+          },
+        ),
+      );
       expect(updates, 1);
 
       // 3. Toggle Visibility - Should notify
-      controller.commitFrame(makeSnapshot(
-        visibleIds: {},
-        items: {id: makeFocusItem(id: id, isVisible: false)},
-      ));
+      controller.commitFrame(
+        makeSnapshot(
+          visibleIds: {},
+          items: {id: makeFocusItem(id: id, isVisible: false)},
+        ),
+      );
       expect(updates, 2);
       expect(notifier.value, false);
     });
@@ -129,14 +147,16 @@ void main() {
       n3.addListener(() => c3++);
 
       // Frame A: {1, 2} focused
-      controller.commitFrame(makeSnapshot(
-        focusedIds: {1, 2},
-        items: {
-          1: makeFocusItem(id: 1, isFocused: true),
-          2: makeFocusItem(id: 2, isFocused: true),
-          3: makeFocusItem(id: 3, isFocused: false),
-        },
-      ));
+      controller.commitFrame(
+        makeSnapshot(
+          focusedIds: {1, 2},
+          items: {
+            1: makeFocusItem(id: 1, isFocused: true),
+            2: makeFocusItem(id: 2, isFocused: true),
+            3: makeFocusItem(id: 3, isFocused: false),
+          },
+        ),
+      );
       expect(c1, 1); // false -> true
       expect(c2, 1); // false -> true
       expect(c3, 0); // false -> false (no change)
@@ -145,14 +165,16 @@ void main() {
       // 1: true -> false (change)
       // 2: true -> true (no change)
       // 3: false -> true (change)
-      controller.commitFrame(makeSnapshot(
-        focusedIds: {2, 3},
-        items: {
-          1: makeFocusItem(id: 1, isFocused: false),
-          2: makeFocusItem(id: 2, isFocused: true),
-          3: makeFocusItem(id: 3, isFocused: true),
-        },
-      ));
+      controller.commitFrame(
+        makeSnapshot(
+          focusedIds: {2, 3},
+          items: {
+            1: makeFocusItem(id: 1, isFocused: false),
+            2: makeFocusItem(id: 2, isFocused: true),
+            3: makeFocusItem(id: 3, isFocused: true),
+          },
+        ),
+      );
 
       expect(c1, 2);
       expect(c2, 1);
@@ -165,19 +187,21 @@ void main() {
 
       const id = 12;
 
-      controller.commitFrame(makeSnapshot(
-        primaryId: id,
-        focusedIds: {id},
-        visibleIds: {id},
-        items: {
-          id: makeFocusItem(
-            id: id,
-            isPrimary: true,
-            isFocused: true,
-            isVisible: true,
-          ),
-        },
-      ));
+      controller.commitFrame(
+        makeSnapshot(
+          primaryId: id,
+          focusedIds: {id},
+          visibleIds: {id},
+          items: {
+            id: makeFocusItem(
+              id: id,
+              isPrimary: true,
+              isFocused: true,
+              isVisible: true,
+            ),
+          },
+        ),
+      );
 
       final primary = controller.itemIsPrimaryOf(id);
       final focused = controller.itemIsFocusedOf(id);
@@ -210,19 +234,21 @@ void main() {
       visible.addListener(visibleListener);
 
       // 1. Make it true
-      controller.commitFrame(makeSnapshot(
-        primaryId: id,
-        focusedIds: {id},
-        visibleIds: {id},
-        items: {
-          id: makeFocusItem(
-            id: id,
-            isPrimary: true,
-            isFocused: true,
-            isVisible: true,
-          ),
-        },
-      ));
+      controller.commitFrame(
+        makeSnapshot(
+          primaryId: id,
+          focusedIds: {id},
+          visibleIds: {id},
+          items: {
+            id: makeFocusItem(
+              id: id,
+              isPrimary: true,
+              isFocused: true,
+              isVisible: true,
+            ),
+          },
+        ),
+      );
       expect(primaryUpdates, 1);
       expect(focusedUpdates, 1);
       expect(visibleUpdates, 1);

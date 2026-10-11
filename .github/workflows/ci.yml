@@ -17,18 +17,55 @@ env:
   PACKAGE_DIR: .
 
 jobs:
+  version-channel:
+    name: Validate release lane
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Validate version channel for target branch
+        working-directory: ${{ env.PACKAGE_DIR }}
+        env:
+          TARGET_BRANCH: ${{ github.base_ref || github.ref_name }}
+        run: |
+          set -euo pipefail
+          version=$(awk -F': ' '/^version: /{print $2}' pubspec.yaml)
+          if [ -z "$version" ]; then
+            echo "Unable to read version from pubspec.yaml."
+            exit 1
+          fi
+          if [ "$TARGET_BRANCH" = "main" ] && [[ "$version" == *-* ]]; then
+            echo "Main requires a stable version (no pre-release): $version"
+            exit 1
+          fi
+          if [ "$TARGET_BRANCH" = "dev" ] && [[ "$version" != *-* ]]; then
+            echo "Dev requires a pre-release version: $version"
+            exit 1
+          fi
+
   test:
-    name: Test on ${{ matrix.channel }}
+    name: Test on ${{ matrix.name }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        channel: [stable, beta]
-    continue-on-error: ${{ matrix.channel == 'beta' }}
+        include:
+          - name: minimum
+            channel: stable
+            version: '3.47.7'
+          - name: stable
+            channel: stable
+            version: ''
+          - name: beta
+            channel: beta
+            version: ''
+    continue-on-error: ${{ matrix.name == 'beta' }}
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: ${{ matrix.channel }}
+          flutter-version: ${{ matrix.version }}
           cache: true
       - name: Flutter version
         run: flutter --version

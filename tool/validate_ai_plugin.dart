@@ -140,9 +140,9 @@ void checkManifests(String? packageVersion) {
       fail('$claudeMarketplacePath plugins must be a non-empty array.');
     } else {
       final entry = plugins.whereType<Map<String, Object?>>().firstWhere(
-            (p) => p['name'] == 'scroll-spy',
-            orElse: () => <String, Object?>{},
-          );
+        (p) => p['name'] == 'scroll-spy',
+        orElse: () => <String, Object?>{},
+      );
       if (entry.isEmpty) {
         fail('$claudeMarketplacePath has no "scroll-spy" plugin entry.');
       } else {
@@ -170,9 +170,9 @@ void checkManifests(String? packageVersion) {
       fail('$codexMarketplacePath plugins must be a non-empty array.');
     } else {
       final entry = plugins.whereType<Map<String, Object?>>().firstWhere(
-            (p) => p['name'] == 'scroll-spy',
-            orElse: () => <String, Object?>{},
-          );
+        (p) => p['name'] == 'scroll-spy',
+        orElse: () => <String, Object?>{},
+      );
       if (entry.isEmpty) {
         fail('$codexMarketplacePath has no "scroll-spy" plugin entry.');
       } else {
@@ -264,12 +264,11 @@ void checkContentFile(File file, String skillRoot) {
   }
 
   // Every relative markdown link must resolve inside the skill directory.
-  for (final match in RegExp(r'\]\((?!https?://|#|mailto:)([^)\s]+)\)')
-      .allMatches(content)) {
+  for (final match in RegExp(
+    r'\]\((?!https?://|#|mailto:)([^)\s]+)\)',
+  ).allMatches(content)) {
     final target = match.group(1)!;
-    final resolved = File(
-      '${File(path).parent.path}/$target',
-    );
+    final resolved = File('${File(path).parent.path}/$target');
     if (!resolved.existsSync()) {
       fail('$path links to missing file: $target');
     }

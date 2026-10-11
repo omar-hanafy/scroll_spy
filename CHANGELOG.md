@@ -1,3 +1,49 @@
+## 2.0.0 - 2026-10-11
+
+### Changed (breaking)
+- Require Flutter 3.47.7 or later and Dart 3.13.5 or later. Upgrade your SDK
+  before updating from 1.x; the existing public Dart API remains compatible.
+  Keep scroll_spy 1.x for applications on older SDKs.
+
+### Added
+- A dedicated ScrollSpy Assistant guide for migrating 1.x integrations to 2.x.
+- `scrollCacheExtent` on the list, grid, and custom-scroll wrappers, supporting
+  pixel values and viewport multiples. Existing `cacheExtent` values remain
+  supported as logical pixels.
+
+### Fixed
+- Refresh cached item geometry when scrolling direction, viewport configuration,
+  padding, or ancestor positioning changes.
+- Allow focus callbacks to subscribe to other items or dispose the controller
+  safely, and serve the current snapshot when read inside a primary callback.
+- Stop debug publication safely when callbacks dispose the focus engine,
+  including disposal inside debug-frame notification.
+- Preserve active listeners when an unknown callback is removed.
+- Avoid rebuilding ID-set storage and allocating timing objects on steady
+  scroll passes.
+- Follow Flutter's primary-scroll-controller inheritance policy on desktop and
+  for custom horizontal inheritance, keeping programmatic jumps connected to
+  focus updates.
+- Reconnect descendant items, builders, and listeners when a scope's focus
+  controller is replaced, including cached child widgets.
+- Keep snapshot collections immutable after construction and make equal
+  snapshots share a hash code regardless of item insertion order.
+- Make the reading demo's table of contents reach sections that start offscreen,
+  including the final section, and support returning to the beginning.
+- Keep the reading header and demo information sheets usable on narrow screens.
+
+### Changed
+- Upgrade the video example to video_player 2.14.1 and migrate its Android
+  build to Flutter 3.47's Gradle and built-in Kotlin configuration. The macOS
+  and iOS examples now target macOS 12 and iOS 15 or later, matching the
+  current Flutter toolchain.
+- Point package documentation and demo links at the repository's current
+  product site at `https://omar-hanafy.github.io/scroll_spy/`.
+- Clarify that custom-policy ties prefer the closest item before the remaining
+  deterministic tie-breakers; selection behavior is unchanged.
+
+---
+
 ## 1.0.5 - 2026-07-19
 
 No public runtime API changes; existing scroll_spy 1.x integrations keep the

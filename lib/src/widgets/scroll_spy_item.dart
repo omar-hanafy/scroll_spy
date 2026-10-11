@@ -115,9 +115,7 @@ class _ScrollSpyItemState<T> extends State<ScrollSpyItem<T>> {
   }
 
   void _registerIfPossible() {
-    final ScrollSpyScopeState<T>? newScope = ScrollSpyScope.maybeOf<T>(
-      context,
-    );
+    final ScrollSpyScopeState<T>? newScope = ScrollSpyScope.maybeOf<T>(context);
     if (newScope == null) return;
 
     final RenderBox? box = _probeBox;
@@ -147,9 +145,7 @@ class _ScrollSpyItemState<T> extends State<ScrollSpyItem<T>> {
 
   @override
   Widget build(BuildContext context) {
-    final ScrollSpyScopeState<T>? scope = ScrollSpyScope.maybeOf<T>(
-      context,
-    );
+    final ScrollSpyScopeState<T>? scope = ScrollSpyScope.maybeOf<T>(context);
     assert(
       scope != null,
       'ScrollSpyItem<$T> must be placed under a ScrollSpyScope<$T>.',
@@ -250,9 +246,7 @@ class _ScrollSpyItemLiteState<T> extends State<ScrollSpyItemLite<T>> {
   }
 
   void _registerIfPossible() {
-    final ScrollSpyScopeState<T>? newScope = ScrollSpyScope.maybeOf<T>(
-      context,
-    );
+    final ScrollSpyScopeState<T>? newScope = ScrollSpyScope.maybeOf<T>(context);
     if (newScope == null) return;
 
     final RenderBox? box = _probeBox;

@@ -6,7 +6,7 @@ import 'package:scroll_spy/src/engine/slot_registry.dart';
 
 class _FakeBox extends RenderConstrainedBox {
   _FakeBox()
-      : super(additionalConstraints: const BoxConstraints.tightFor(width: 1));
+    : super(additionalConstraints: const BoxConstraints.tightFor(width: 1));
 }
 
 class _FakeContext extends Fake implements BuildContext {
@@ -34,17 +34,16 @@ void main() {
       expect(registry.slots.map((s) => s.id), [1, 2]);
     });
 
-    test('re-register keeps identity/order; invalidates only on box change',
-        () {
+    test('re-register keeps identity/order and refreshes the ancestor anchor', () {
       final boxA = _FakeBox();
       registry.register(1, context: context, box: boxA);
       final slot = registry.slotOf(1)!;
       slot.tier = GeometryTier.fast;
 
-      // Same box: geometry stays valid.
+      // The same probe can have acquired different ancestors after reparenting.
       registry.register(1, context: context, box: boxA);
       expect(identical(registry.slotOf(1), slot), isTrue);
-      expect(slot.tier, GeometryTier.fast);
+      expect(slot.tier, GeometryTier.unmeasured);
       expect(slot.registrationOrder, 0);
 
       // New box: geometry invalidated.
@@ -99,5 +98,41 @@ void main() {
       expect(registry.slotOf(1)!.tier, GeometryTier.unmeasured);
       expect(registry.slotOf(2)!.tier, GeometryTier.unmeasured);
     });
+
+    test(
+      'borrowed ID views follow measurable slot flags without rebuilding',
+      () {
+        registry.register(1, context: context, box: _FakeBox());
+        registry.register(2, context: context, box: _FakeBox());
+        final focused = registry.focusedIds;
+        final visible = registry.visibleIds;
+        registry.slotOf(1)!
+          ..measurable = true
+          ..isVisible = true
+          ..isFocused = true;
+        registry.slotOf(2)!
+          ..measurable = true
+          ..isVisible = true;
+
+        expect(focused, {1});
+        expect(visible, {1, 2});
+        expect(visible.lookup(2), 2);
+        expect(visible.contains(3), isFalse);
+        expect(() => focused.add(3), throwsUnsupportedError);
+        final savedVisible = visible.toSet();
+
+        registry.slotOf(1)!.resetMetrics();
+        registry.slotOf(2)!.isFocused = true;
+        expect(identical(focused, registry.focusedIds), isTrue);
+        expect(identical(visible, registry.visibleIds), isTrue);
+        expect(focused, {2});
+        expect(visible, {2});
+        expect(savedVisible, {1, 2});
+
+        registry.unregister(2);
+        expect(focused, isEmpty);
+        expect(visible, isEmpty);
+      },
+    );
   });
 }

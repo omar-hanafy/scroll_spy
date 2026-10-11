@@ -60,6 +60,8 @@ class ScrollSpyScope<T> extends StatefulWidget {
   ///
   /// You must provide this to listen to the results (e.g., `controller.primaryId`).
   /// The scope strictly *writes* to this controller; it does not read from it.
+  /// Replacing it also reconnects descendants that resolve their controller
+  /// through this scope, including items, builders, and listeners.
   final ScrollSpyController<T> controller;
 
   /// Defines the "attention area" within the viewport.
@@ -112,7 +114,7 @@ class ScrollSpyScope<T> extends StatefulWidget {
   /// This mirrors [notificationPredicate] but applies to [ScrollMetricsNotification].
   /// Returns `true` to process the notification.
   final bool Function(ScrollMetricsNotification notification)?
-      metricsNotificationPredicate;
+  metricsNotificationPredicate;
 
   /// Whether to paint a debug overlay on top of the child.
   ///
@@ -207,7 +209,8 @@ class ScrollSpyScopeState<T> extends State<ScrollSpyScope<T>>
   void didUpdateWidget(covariant ScrollSpyScope<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    final bool configChanged = oldWidget.region != widget.region ||
+    final bool configChanged =
+        oldWidget.region != widget.region ||
         oldWidget.policy != widget.policy ||
         oldWidget.stability != widget.stability ||
         oldWidget.updatePolicy != widget.updatePolicy ||
@@ -303,6 +306,7 @@ class ScrollSpyScopeState<T> extends State<ScrollSpyScope<T>>
   Widget build(BuildContext context) {
     Widget result = _ScrollSpyScopeInherited<T>(
       state: this,
+      controller: widget.controller,
       child: NotificationListener<SizeChangedLayoutNotification>(
         onNotification: _onSizeChangedNotification,
         child: SizeChangedLayoutNotifier(
@@ -345,11 +349,15 @@ class ScrollSpyScopeState<T> extends State<ScrollSpyScope<T>>
 class _ScrollSpyScopeInherited<T> extends InheritedWidget {
   const _ScrollSpyScopeInherited({
     required this.state,
+    required this.controller,
     required super.child,
   });
 
   final ScrollSpyScopeState<T> state;
+  final ScrollSpyController<T> controller;
 
   @override
-  bool updateShouldNotify(_ScrollSpyScopeInherited<T> oldWidget) => false;
+  bool updateShouldNotify(_ScrollSpyScopeInherited<T> oldWidget) =>
+      !identical(state, oldWidget.state) ||
+      !identical(controller, oldWidget.controller);
 }

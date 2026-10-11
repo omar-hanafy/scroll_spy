@@ -45,8 +45,7 @@ Widget _scoped({
 
 void main() {
   group('ScrollSpyEngine compute', () {
-    testWidgets(
-        'zone + closestToAnchor picks the centered item and updates '
+    testWidgets('zone + closestToAnchor picks the centered item and updates '
         'after jumpTo', (tester) async {
       final harness = ScrollSpyTestHarness(
         itemCount: 30,
@@ -78,11 +77,13 @@ void main() {
       final controller = ScrollSpyController<int>();
       addTearDown(controller.dispose);
 
-      await tester.pumpWidget(_scoped(
-        controller: controller,
-        region: const ScrollSpyRegion.line(anchor: ScrollSpyAnchor.pixels(0)),
-        itemCount: 0,
-      ));
+      await tester.pumpWidget(
+        _scoped(
+          controller: controller,
+          region: const ScrollSpyRegion.line(anchor: ScrollSpyAnchor.pixels(0)),
+          itemCount: 0,
+        ),
+      );
       await tester.pump();
       await tester.pump();
 
@@ -91,19 +92,20 @@ void main() {
       expect(controller.snapshot.value.items, isEmpty);
     });
 
-    testWidgets(
-        'top inset shifts anchor and hides covered items when '
+    testWidgets('top inset shifts anchor and hides covered items when '
         'insetsAffectVisibility is true', (tester) async {
       final controller = ScrollSpyController<int>();
       addTearDown(controller.dispose);
 
       // Viewport 200 high, inset 100 => effective viewport 100..200,
       // anchor pixels(0) sits at 100 => item 2 (100..150) wins.
-      await tester.pumpWidget(_scoped(
-        controller: controller,
-        region: const ScrollSpyRegion.line(anchor: ScrollSpyAnchor.pixels(0)),
-        viewportInsets: const EdgeInsets.only(top: 100),
-      ));
+      await tester.pumpWidget(
+        _scoped(
+          controller: controller,
+          region: const ScrollSpyRegion.line(anchor: ScrollSpyAnchor.pixels(0)),
+          viewportInsets: const EdgeInsets.only(top: 100),
+        ),
+      );
       await tester.pump();
       await tester.pump();
 
@@ -117,20 +119,23 @@ void main() {
       expect(snapshot.items[2]!.isFocused, isTrue);
     });
 
-    testWidgets(
-        'insetsAffectVisibility=false keeps covered items visible '
+    testWidgets('insetsAffectVisibility=false keeps covered items visible '
         'but still shifts the anchor', (tester) async {
       final controller = ScrollSpyController<int>();
       addTearDown(controller.dispose);
 
       // Anchor pixels(10) resolves to 110 in the effective viewport
       // (100..200); only item 2 (100..150) straddles it.
-      await tester.pumpWidget(_scoped(
-        controller: controller,
-        region: const ScrollSpyRegion.line(anchor: ScrollSpyAnchor.pixels(10)),
-        viewportInsets: const EdgeInsets.only(top: 100),
-        insetsAffectVisibility: false,
-      ));
+      await tester.pumpWidget(
+        _scoped(
+          controller: controller,
+          region: const ScrollSpyRegion.line(
+            anchor: ScrollSpyAnchor.pixels(10),
+          ),
+          viewportInsets: const EdgeInsets.only(top: 100),
+          insetsAffectVisibility: false,
+        ),
+      );
       await tester.pump();
       await tester.pump();
 
@@ -140,16 +145,19 @@ void main() {
       expect(snapshot.visibleIds, contains(0));
     });
 
-    testWidgets('insets larger than the viewport commit empty state',
-        (tester) async {
+    testWidgets('insets larger than the viewport commit empty state', (
+      tester,
+    ) async {
       final controller = ScrollSpyController<int>();
       addTearDown(controller.dispose);
 
-      await tester.pumpWidget(_scoped(
-        controller: controller,
-        region: const ScrollSpyRegion.line(anchor: ScrollSpyAnchor.pixels(0)),
-        viewportInsets: const EdgeInsets.only(top: 400),
-      ));
+      await tester.pumpWidget(
+        _scoped(
+          controller: controller,
+          region: const ScrollSpyRegion.line(anchor: ScrollSpyAnchor.pixels(0)),
+          viewportInsets: const EdgeInsets.only(top: 400),
+        ),
+      );
       await tester.pump();
       await tester.pump();
 
@@ -157,17 +165,24 @@ void main() {
       expect(controller.focusedIds.value, isEmpty);
     });
 
-    testWidgets('debug frames are not produced when debug is off',
-        (tester) async {
+    testWidgets('debug frames are not produced when debug is off', (
+      tester,
+    ) async {
       final harness = ScrollSpyTestHarness();
       addTearDown(harness.controller.dispose);
       await harness.pump(tester);
 
       final engine = harness.scopeState(tester).engine;
-      expect(engine.debugFrame.value!.sequence, 0,
-          reason: 'no debug frames published with debug disabled');
-      expect(harness.controller.primaryId.value, isNotNull,
-          reason: 'engine still computes normally');
+      expect(
+        engine.debugFrame.value!.sequence,
+        0,
+        reason: 'no debug frames published with debug disabled',
+      );
+      expect(
+        harness.controller.primaryId.value,
+        isNotNull,
+        reason: 'engine still computes normally',
+      );
     });
 
     testWidgets('items leaving the tree disappear from state', (tester) async {
@@ -176,15 +191,17 @@ void main() {
       addTearDown(controller.dispose);
       addTearDown(scrollController.dispose);
 
-      await tester.pumpWidget(_scoped(
-        controller: controller,
-        region: const ScrollSpyRegion.zone(
-          anchor: ScrollSpyAnchor.fraction(0.5),
-          extentPx: 50,
+      await tester.pumpWidget(
+        _scoped(
+          controller: controller,
+          region: const ScrollSpyRegion.zone(
+            anchor: ScrollSpyAnchor.fraction(0.5),
+            extentPx: 50,
+          ),
+          scrollController: scrollController,
+          itemCount: 100,
         ),
-        scrollController: scrollController,
-        itemCount: 100,
-      ));
+      );
       await tester.pump();
       await tester.pump();
 

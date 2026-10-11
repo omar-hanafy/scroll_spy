@@ -45,27 +45,36 @@ void _expectMatchesGroundTruth(
   final crossStart = axis == Axis.vertical ? origin.dx : origin.dy;
   final mainExtent = axis == Axis.vertical ? box.size.height : box.size.width;
 
-  expect(slot.mainStart, moreOrLessEquals(mainStart, epsilon: 0.01),
-      reason: 'mainStart of item ${slot.id}');
-  expect(slot.mainEnd, moreOrLessEquals(mainStart + mainExtent, epsilon: 0.01),
-      reason: 'mainEnd of item ${slot.id}');
-  expect(slot.crossStartNow, moreOrLessEquals(crossStart, epsilon: 0.01),
-      reason: 'crossStart of item ${slot.id}');
+  expect(
+    slot.mainStart,
+    moreOrLessEquals(mainStart, epsilon: 0.01),
+    reason: 'mainStart of item ${slot.id}',
+  );
+  expect(
+    slot.mainEnd,
+    moreOrLessEquals(mainStart + mainExtent, epsilon: 0.01),
+    reason: 'mainEnd of item ${slot.id}',
+  );
+  expect(
+    slot.crossStartNow,
+    moreOrLessEquals(crossStart, epsilon: 0.01),
+    reason: 'crossStart of item ${slot.id}',
+  );
 }
 
 void main() {
   testWidgets('vertical list: fast tier matches ground truth', (tester) async {
     final boxes = <int, RenderBox>{};
-    await tester.pumpWidget(_app(
-      ListView.builder(
-        itemExtent: 100,
-        itemCount: 50,
-        itemBuilder: (context, i) => _Probe(
-          onBox: (b) => boxes[i] = b,
-          child: Text('item $i'),
+    await tester.pumpWidget(
+      _app(
+        ListView.builder(
+          itemExtent: 100,
+          itemCount: 50,
+          itemBuilder: (context, i) =>
+              _Probe(onBox: (b) => boxes[i] = b, child: Text('item $i')),
         ),
       ),
-    ));
+    );
 
     final geometry = EngineGeometry();
     final viewport = RenderAbstractViewport.of(boxes[0]!);
@@ -86,19 +95,20 @@ void main() {
     }
   });
 
-  testWidgets('after jumpTo, fast tier derives without full measures',
-      (tester) async {
+  testWidgets('after jumpTo, fast tier derives without full measures', (
+    tester,
+  ) async {
     final boxes = <int, RenderBox>{};
-    await tester.pumpWidget(_app(
-      ListView.builder(
-        itemExtent: 100,
-        itemCount: 50,
-        itemBuilder: (context, i) => _Probe(
-          onBox: (b) => boxes[i] = b,
-          child: Text('item $i'),
+    await tester.pumpWidget(
+      _app(
+        ListView.builder(
+          itemExtent: 100,
+          itemCount: 50,
+          itemBuilder: (context, i) =>
+              _Probe(onBox: (b) => boxes[i] = b, child: Text('item $i')),
         ),
       ),
-    ));
+    );
 
     final geometry = EngineGeometry();
     final viewport = RenderAbstractViewport.of(boxes[0]!);
@@ -114,8 +124,9 @@ void main() {
       slots[entry.key] = slot;
     }
 
-    final position =
-        tester.state<ScrollableState>(find.byType(Scrollable)).position;
+    final position = tester
+        .state<ScrollableState>(find.byType(Scrollable))
+        .position;
     position.jumpTo(300);
     await tester.pump();
 
@@ -126,25 +137,29 @@ void main() {
       _expectMatchesGroundTruth(geometry, slot, axis: Axis.vertical);
       expect(slot.tier, GeometryTier.fast);
     }
-    expect(geometry.fullMeasures, measuresBefore,
-        reason: 'steady scroll must not trigger full measures');
+    expect(
+      geometry.fullMeasures,
+      measuresBefore,
+      reason: 'steady scroll must not trigger full measures',
+    );
     expect(geometry.fastHits, greaterThan(0));
   });
 
-  testWidgets('reverse list: dir is negative and positions match',
-      (tester) async {
+  testWidgets('reverse list: dir is negative and positions match', (
+    tester,
+  ) async {
     final boxes = <int, RenderBox>{};
-    await tester.pumpWidget(_app(
-      ListView.builder(
-        reverse: true,
-        itemExtent: 100,
-        itemCount: 50,
-        itemBuilder: (context, i) => _Probe(
-          onBox: (b) => boxes[i] = b,
-          child: Text('item $i'),
+    await tester.pumpWidget(
+      _app(
+        ListView.builder(
+          reverse: true,
+          itemExtent: 100,
+          itemCount: 50,
+          itemBuilder: (context, i) =>
+              _Probe(onBox: (b) => boxes[i] = b, child: Text('item $i')),
         ),
       ),
-    ));
+    );
 
     final geometry = EngineGeometry();
     final viewport = RenderAbstractViewport.of(boxes[0]!);
@@ -173,17 +188,17 @@ void main() {
 
   testWidgets('horizontal list matches ground truth', (tester) async {
     final boxes = <int, RenderBox>{};
-    await tester.pumpWidget(_app(
-      ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemExtent: 120,
-        itemCount: 50,
-        itemBuilder: (context, i) => _Probe(
-          onBox: (b) => boxes[i] = b,
-          child: Text('item $i'),
+    await tester.pumpWidget(
+      _app(
+        ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemExtent: 120,
+          itemCount: 50,
+          itemBuilder: (context, i) =>
+              _Probe(onBox: (b) => boxes[i] = b, child: Text('item $i')),
         ),
       ),
-    ));
+    );
 
     final geometry = EngineGeometry();
     final viewport = RenderAbstractViewport.of(boxes[0]!);
@@ -201,27 +216,32 @@ void main() {
     }
   });
 
-  testWidgets('resizing an item above invalidates the fast anchor',
-      (tester) async {
+  testWidgets('resizing an item above invalidates the fast anchor', (
+    tester,
+  ) async {
     final boxes = <int, RenderBox>{};
     double firstHeight = 100;
     late StateSetter rebuild;
 
-    await tester.pumpWidget(_app(
-      StatefulBuilder(builder: (context, setState) {
-        rebuild = setState;
-        return ListView.builder(
-          itemCount: 20,
-          itemBuilder: (context, i) => SizedBox(
-            height: i == 0 ? firstHeight : 100,
-            child: _Probe(
-              onBox: (b) => boxes[i] = b,
-              child: Text('item $i'),
-            ),
-          ),
-        );
-      }),
-    ));
+    await tester.pumpWidget(
+      _app(
+        StatefulBuilder(
+          builder: (context, setState) {
+            rebuild = setState;
+            return ListView.builder(
+              itemCount: 20,
+              itemBuilder: (context, i) => SizedBox(
+                height: i == 0 ? firstHeight : 100,
+                child: _Probe(
+                  onBox: (b) => boxes[i] = b,
+                  child: Text('item $i'),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
 
     final geometry = EngineGeometry();
     final viewport = RenderAbstractViewport.of(boxes[1]!);
@@ -238,26 +258,29 @@ void main() {
     geometry.beginPass(viewport: viewport, axisHint: Axis.vertical);
     _expectMatchesGroundTruth(geometry, slot, axis: Axis.vertical);
     expect(slot.mainStart, moreOrLessEquals(40, epsilon: 0.01));
-    expect(geometry.fullMeasures, measuresBefore + 1,
-        reason: 'layout shift must force a re-measure');
+    expect(
+      geometry.fullMeasures,
+      measuresBefore + 1,
+      reason: 'layout shift must force a re-measure',
+    );
   });
 
-  testWidgets('transformed item classifies as matrix tier and stays correct',
-      (tester) async {
+  testWidgets('transformed item classifies as matrix tier and stays correct', (
+    tester,
+  ) async {
     final boxes = <int, RenderBox>{};
-    await tester.pumpWidget(_app(
-      ListView.builder(
-        itemExtent: 100,
-        itemCount: 20,
-        itemBuilder: (context, i) => Transform.rotate(
-          angle: 0.3,
-          child: _Probe(
-            onBox: (b) => boxes[i] = b,
-            child: Text('item $i'),
+    await tester.pumpWidget(
+      _app(
+        ListView.builder(
+          itemExtent: 100,
+          itemCount: 20,
+          itemBuilder: (context, i) => Transform.rotate(
+            angle: 0.3,
+            child: _Probe(onBox: (b) => boxes[i] = b, child: Text('item $i')),
           ),
         ),
       ),
-    ));
+    );
 
     final geometry = EngineGeometry();
     final viewport = RenderAbstractViewport.of(boxes[0]!);
@@ -289,36 +312,39 @@ void main() {
     expect(slot.mainStart, moreOrLessEquals(expected2.top, epsilon: 0.01));
   });
 
-  testWidgets('SliverToBoxAdapter content uses walk tier and stays correct',
-      (tester) async {
+  testWidgets('SliverToBoxAdapter content uses walk tier and stays correct', (
+    tester,
+  ) async {
     final boxes = <String, RenderBox>{};
-    await tester.pumpWidget(_app(
-      CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 300,
-              child: _Probe(
-                onBox: (b) => boxes['header'] = b,
-                child: const Text('header'),
-              ),
-            ),
-          ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, i) => SizedBox(
-                height: 100,
+    await tester.pumpWidget(
+      _app(
+        CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 300,
                 child: _Probe(
-                  onBox: (b) => boxes['item$i'] = b,
-                  child: Text('item $i'),
+                  onBox: (b) => boxes['header'] = b,
+                  child: const Text('header'),
                 ),
               ),
-              childCount: 30,
             ),
-          ),
-        ],
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, i) => SizedBox(
+                  height: 100,
+                  child: _Probe(
+                    onBox: (b) => boxes['item$i'] = b,
+                    child: Text('item $i'),
+                  ),
+                ),
+                childCount: 30,
+              ),
+            ),
+          ],
+        ),
       ),
-    ));
+    );
 
     final geometry = EngineGeometry();
     final viewport = RenderAbstractViewport.of(boxes['header']!);
@@ -350,16 +376,16 @@ void main() {
 
   testWidgets('detached box becomes unmeasurable', (tester) async {
     final boxes = <int, RenderBox>{};
-    await tester.pumpWidget(_app(
-      ListView.builder(
-        itemExtent: 100,
-        itemCount: 50,
-        itemBuilder: (context, i) => _Probe(
-          onBox: (b) => boxes[i] = b,
-          child: Text('item $i'),
+    await tester.pumpWidget(
+      _app(
+        ListView.builder(
+          itemExtent: 100,
+          itemCount: 50,
+          itemBuilder: (context, i) =>
+              _Probe(onBox: (b) => boxes[i] = b, child: Text('item $i')),
         ),
       ),
-    ));
+    );
 
     final geometry = EngineGeometry();
     final viewport = RenderAbstractViewport.of(boxes[0]!);
@@ -380,5 +406,181 @@ void main() {
     geometry.ensureMeasured(slot);
     expect(slot.measurable, isFalse);
     expect(slot.distanceToAnchorPx, double.infinity);
+  });
+
+  testWidgets('changing reverse invalidates a same-axis viewport anchor', (
+    tester,
+  ) async {
+    RenderBox? probe;
+    var reverse = false;
+    late StateSetter rebuild;
+    await tester.pumpWidget(
+      _app(
+        StatefulBuilder(
+          builder: (context, setState) {
+            rebuild = setState;
+            return ListView.builder(
+              reverse: reverse,
+              itemExtent: 100,
+              itemCount: 50,
+              itemBuilder: (context, i) => _Probe(
+                onBox: (box) {
+                  if (i == 0) probe = box;
+                },
+                child: const SizedBox.expand(),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+    final box = probe!;
+    final viewport = RenderAbstractViewport.of(box);
+    final geometry = EngineGeometry();
+    final slot = ItemSlot<int>(id: 0, registrationOrder: 0)..box = box;
+    geometry.beginPass(viewport: viewport, axisHint: Axis.vertical);
+    geometry.ensureMeasured(slot);
+    expect(slot.mainStart, 0);
+    expect(slot.tier, GeometryTier.fast);
+
+    rebuild(() => reverse = true);
+    await tester.pump();
+    expect(identical(probe, box), isTrue);
+    expect(identical(RenderAbstractViewport.of(box), viewport), isTrue);
+    geometry.beginPass(viewport: viewport, axisHint: Axis.vertical);
+    _expectMatchesGroundTruth(geometry, slot, axis: Axis.vertical);
+    expect(slot.mainStart, 500);
+  });
+
+  testWidgets('moving an unchanged item with Align uses fresh geometry', (
+    tester,
+  ) async {
+    RenderBox? probe;
+    var alignment = Alignment.topLeft;
+    late StateSetter rebuild;
+    await tester.pumpWidget(
+      _app(
+        StatefulBuilder(
+          builder: (context, setState) {
+            rebuild = setState;
+            return ListView.builder(
+              itemExtent: 100,
+              itemCount: 50,
+              itemBuilder: (context, i) => Align(
+                alignment: alignment,
+                child: _Probe(
+                  onBox: (box) {
+                    if (i == 0) probe = box;
+                  },
+                  child: const SizedBox(width: 100, height: 20),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+    final box = probe!;
+    final viewport = RenderAbstractViewport.of(box);
+    final geometry = EngineGeometry();
+    final slot = ItemSlot<int>(id: 0, registrationOrder: 0)..box = box;
+    geometry.beginPass(viewport: viewport, axisHint: Axis.vertical);
+    geometry.ensureMeasured(slot);
+    expect(slot.mainStart, 0);
+    expect(slot.tier, GeometryTier.walk);
+
+    rebuild(() => alignment = Alignment.bottomLeft);
+    await tester.pump();
+    expect(identical(probe, box), isTrue);
+    geometry.beginPass(viewport: viewport, axisHint: Axis.vertical);
+    _expectMatchesGroundTruth(geometry, slot, axis: Axis.vertical);
+    expect(slot.mainStart, 80);
+  });
+
+  testWidgets('changing a pure-translation transform uses fresh geometry', (
+    tester,
+  ) async {
+    RenderBox? probe;
+    var offset = Offset.zero;
+    late StateSetter rebuild;
+    await tester.pumpWidget(
+      _app(
+        StatefulBuilder(
+          builder: (context, setState) {
+            rebuild = setState;
+            return ListView.builder(
+              itemExtent: 100,
+              itemCount: 50,
+              itemBuilder: (context, i) => Transform.translate(
+                offset: offset,
+                child: _Probe(
+                  onBox: (box) {
+                    if (i == 0) probe = box;
+                  },
+                  child: const SizedBox.expand(),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+    final box = probe!;
+    final viewport = RenderAbstractViewport.of(box);
+    final geometry = EngineGeometry();
+    final slot = ItemSlot<int>(id: 0, registrationOrder: 0)..box = box;
+    geometry.beginPass(viewport: viewport, axisHint: Axis.vertical);
+    geometry.ensureMeasured(slot);
+    expect(slot.tier, GeometryTier.walk);
+
+    rebuild(() => offset = const Offset(0, 20));
+    await tester.pump();
+    geometry.beginPass(viewport: viewport, axisHint: Axis.vertical);
+    _expectMatchesGroundTruth(geometry, slot, axis: Axis.vertical);
+    expect(slot.mainStart, 20);
+  });
+
+  testWidgets('changing cross-axis sliver padding invalidates the anchor', (
+    tester,
+  ) async {
+    RenderBox? probe;
+    var padding = const EdgeInsets.only(left: 20);
+    late StateSetter rebuild;
+    await tester.pumpWidget(
+      _app(
+        StatefulBuilder(
+          builder: (context, setState) {
+            rebuild = setState;
+            return ListView.builder(
+              padding: padding,
+              itemExtent: 100,
+              itemCount: 50,
+              itemBuilder: (context, i) => _Probe(
+                onBox: (box) {
+                  if (i == 0) probe = box;
+                },
+                child: const SizedBox.expand(),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+    final box = probe!;
+    final viewport = RenderAbstractViewport.of(box);
+    final geometry = EngineGeometry();
+    final slot = ItemSlot<int>(id: 0, registrationOrder: 0)..box = box;
+    geometry.beginPass(viewport: viewport, axisHint: Axis.vertical);
+    geometry.ensureMeasured(slot);
+    expect(slot.tier, GeometryTier.fast);
+    expect(slot.crossStartNow, 20);
+    final originalSize = box.size;
+
+    rebuild(() => padding = const EdgeInsets.only(right: 20));
+    await tester.pump();
+    expect(box.size, originalSize);
+    geometry.beginPass(viewport: viewport, axisHint: Axis.vertical);
+    _expectMatchesGroundTruth(geometry, slot, axis: Axis.vertical);
+    expect(slot.crossStartNow, 0);
   });
 }

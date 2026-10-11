@@ -69,11 +69,10 @@ typedef FeedVideoHandleFactory = FeedVideoHandle Function(int index);
 /// is serialized so a fast scroll cannot race two controllers into playback.
 class FeedVideoPool {
   FeedVideoPool({
-    required FeedVideoHandleFactory factory,
+    required this._factory,
     required this.itemCount,
     this.retainRadius = 1,
-  }) : _factory = factory,
-       assert(itemCount > 0),
+  }) : assert(itemCount > 0),
        assert(retainRadius >= 0);
 
   final FeedVideoHandleFactory _factory;
@@ -123,10 +122,8 @@ class FeedVideoPool {
       // stops an already-playing primary immediately.
       final Future<void> immediatePause = _pauseAll();
       final Future<void> reconcile = _enqueueReconcile();
-      return Future.wait<void>(<Future<void>>[
-        immediatePause,
-        reconcile,
-      ]).then<void>((_) {});
+      return Future.wait<void>(<Future<void>>[immediatePause, reconcile])
+          .then<void>((_) {});
     }
     return _enqueueReconcile();
   }

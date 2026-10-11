@@ -26,10 +26,7 @@ void main() {
             policy: const ScrollSpyPolicy.closestToAnchor(),
             itemCount: 3,
             itemBuilder: (context, index) {
-              return SizedBox(
-                key: ValueKey<int>(index),
-                height: 40,
-              );
+              return SizedBox(key: ValueKey<int>(index), height: 40);
             },
             separatorBuilder: (context, index) {
               return const SizedBox(height: 8);

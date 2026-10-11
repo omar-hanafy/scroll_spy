@@ -6,16 +6,13 @@ import 'package:scroll_spy/src/public/scroll_spy_models.dart';
 /// Internal engine-to-controller frame.
 ///
 /// The engine reuses one instance across passes and mutates it in place; the
-/// id sets are reused buffers that the controller must not retain past the
-/// commit call (it copies only when membership actually changed). Immutable
+/// id sets are borrowed views of live slots that the controller must not retain
+/// past the commit call (it copies only when membership actually changed). Immutable
 /// public objects ([ScrollSpySnapshot], [ScrollSpyItemFocus]) are materialized
 /// lazily, only for state someone listens to.
 final class EngineFrame<T> {
   /// Creates a frame backed by the engine's live registry and materializer.
-  EngineFrame({
-    required this.slotOf,
-    required this.materializeSnapshot,
-  });
+  EngineFrame({required this.slotOf, required this.materializeSnapshot});
 
   /// Builds a frame (with backing slots) from a public snapshot.
   ///

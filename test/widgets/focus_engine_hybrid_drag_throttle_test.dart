@@ -48,8 +48,7 @@ void main() {
         expect(
           harness.controller.primaryId.value,
           initialPrimary,
-          reason:
-              'Hybrid policy with computePerFrameWhileDragging=false should not recompute during drag.',
+          reason: 'Hybrid policy with computePerFrameWhileDragging=false should not recompute during drag.',
         );
 
         // Pause with finger still down so release velocity becomes ~0 (avoid ballistic).
@@ -57,16 +56,14 @@ void main() {
         expect(harness.controller.primaryId.value, initialPrimary);
 
         await gesture.up();
-        await tester
-            .pump(); // ScrollEndNotification should schedule scrollEndDebounce timer.
+        await tester.pump(); // ScrollEndNotification should schedule scrollEndDebounce timer.
 
         // "Shortly after release": still within scrollEndDebounce (5s), so no update.
         await tester.pump(const Duration(milliseconds: 500));
         expect(
           harness.controller.primaryId.value,
           initialPrimary,
-          reason:
-              'Hybrid policy should not recompute shortly after release when scrollEndDebounce is very large.',
+          reason: 'Hybrid policy should not recompute shortly after release when scrollEndDebounce is very large.',
         );
 
         // After the debounce window, it should update.
@@ -77,8 +74,7 @@ void main() {
         expect(
           harness.controller.primaryId.value,
           2,
-          reason:
-              'After the long scrollEndDebounce window, the engine should finally recompute primary.',
+          reason: 'After the long scrollEndDebounce window, the engine should finally recompute primary.',
         );
       },
     );
@@ -119,8 +115,7 @@ void main() {
         expect(
           harness.controller.primaryId.value,
           2,
-          reason:
-              'Hybrid policy with computePerFrameWhileDragging=true should recompute during drag.',
+          reason: 'Hybrid policy with computePerFrameWhileDragging=true should recompute during drag.',
         );
 
         await gesture.up();

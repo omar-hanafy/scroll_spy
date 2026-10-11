@@ -88,10 +88,10 @@ class ScrollSpyStability {
   /// engine can maintain a "best available" primary even when the region falls
   /// between items.
   const ScrollSpyStability.disabled()
-      : hysteresisPx = 0.0,
-        minPrimaryDuration = Duration.zero,
-        preferCurrentPrimary = false,
-        allowPrimaryWhenNoItemFocused = true;
+    : hysteresisPx = 0.0,
+      minPrimaryDuration = Duration.zero,
+      preferCurrentPrimary = false,
+      allowPrimaryWhenNoItemFocused = true;
 
   /// Whether hysteresis or minimum-duration stickiness is enabled.
   ///
@@ -121,9 +121,9 @@ class ScrollSpyStability {
 
   @override
   int get hashCode => Object.hash(
-        hysteresisPx,
-        minPrimaryDuration,
-        preferCurrentPrimary,
-        allowPrimaryWhenNoItemFocused,
-      );
+    hysteresisPx,
+    minPrimaryDuration,
+    preferCurrentPrimary,
+    allowPrimaryWhenNoItemFocused,
+  );
 }

@@ -8,10 +8,7 @@ import 'package:scroll_spy/scroll_spy.dart';
 /// region evaluation, selection, commit) at different mounted-item counts,
 /// with no expensive listeners attached (the booleans-first steady state).
 void main() {
-  Future<void> run(
-    WidgetTester tester, {
-    required double itemExtent,
-  }) async {
+  Future<void> run(WidgetTester tester, {required double itemExtent}) async {
     final controller = ScrollSpyController<int>();
     final scrollController = ScrollController();
     addTearDown(controller.dispose);
@@ -74,9 +71,11 @@ void main() {
     }
 
     // ignore: avoid_print
-    print('compute pass @ $mounted mounted items: '
-        'mean ${(totalUs / iterations).toStringAsFixed(1)}us, max ${maxUs}us '
-        '($iterations iterations, debug VM, indicative only)');
+    print(
+      'compute pass @ $mounted mounted items: '
+      'mean ${(totalUs / iterations).toStringAsFixed(1)}us, max ${maxUs}us '
+      '($iterations iterations, debug VM, indicative only)',
+    );
 
     expect(controller.primaryId.value, isNotNull);
   }

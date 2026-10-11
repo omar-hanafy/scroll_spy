@@ -38,6 +38,7 @@ Start a new session after installing so the skills are discovered.
 | `tune-scroll-spy-stability` | The primary flickers, switches too eagerly/slowly, goes null between items, or autoplay stutters |
 | `diagnose-scroll-spy` | No output or wrong output: null primary, empty focusedIds, jumps not detected, offsets under pinned headers, nested-scrollable interference |
 | `optimize-scroll-spy-performance` | Jank or rebuild storms in large feeds; choosing Item vs ItemLite vs listeners |
+| `migrate-scroll-spy-v1-to-v2` | Upgrading 1.x to 2.x, SDK requirements, and optional ScrollCacheExtent migration |
 | `migrate-scroll-spy-v0-to-v1` | Upgrading 0.1.x/0.2.x to 1.x; build breaks mentioning ScrollSpyRegistry, ScrollSpyGeometry, ScrollSpySelection, ScrollSpyDiff, or commitFrame |
 | `convert-visibility-detector-to-scroll-spy` | Replacing the visibility_detector package with scroll_spy |
 
@@ -48,7 +49,8 @@ your request ("my autoplay feed flickers between two cards" triggers
 
 ## Compatibility
 
-- Skills target scroll_spy 1.x (the migration skill also reads 0.x projects).
+- Skills target scroll_spy 2.x; shared APIs also apply to 1.x. Dedicated
+  migration guides cover 0.x to 1.x and 1.x to 2.x.
 - Claude Code: CLI, desktop, and web clients that support plugin marketplaces.
 - Codex: CLI and ChatGPT desktop app (the Codex IDE extension does not load
   plugins; for IDE-only use, install individual skills into `~/.codex/skills`
@@ -78,3 +80,9 @@ keep manifest versions in sync with `pubspec.yaml`, and run
 `dart run tool/validate_ai_plugin.dart` from the repository root before
 committing. See `AGENTS.md` at the repository root for the full release
 process.
+
+## SDK compatibility
+
+scroll_spy 2.x requires Flutter 3.47.7 or later and Dart 3.13.5 or later.
+The public Dart API remains compatible with 1.x; upgrade the SDK before
+changing the package constraint to `^2.0.0`. Keep 1.x on older SDKs.

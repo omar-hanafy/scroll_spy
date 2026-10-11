@@ -46,8 +46,8 @@ void main() {
         policy: const ScrollSpyPolicy.closestToAnchor(),
         stability: const ScrollSpyStability(),
         previousPrimaryId: null,
-        previousPrimarySince: null,
-        now: now,
+        previousPrimarySinceMicroseconds: null,
+        nowMicroseconds: now.inMicroseconds,
       );
 
       expect(result.primaryId, 2);
@@ -64,65 +64,74 @@ void main() {
       final result = EngineSelection.select<int>(
         slots: slots,
         policy: const ScrollSpyPolicy.closestToAnchor(),
-        stability:
-            const ScrollSpyStability(allowPrimaryWhenNoItemFocused: false),
+        stability: const ScrollSpyStability(
+          allowPrimaryWhenNoItemFocused: false,
+        ),
         previousPrimaryId: 1,
-        previousPrimarySince: now - const Duration(milliseconds: 500),
-        now: now,
+        previousPrimarySinceMicroseconds:
+            (now - const Duration(milliseconds: 500)).inMicroseconds,
+        nowMicroseconds: now.inMicroseconds,
       );
 
       expect(result.primaryId, isNull);
-      expect(result.primarySince, isNull);
+      expect(result.primarySinceMicroseconds, isNull);
       expect(slots[0].isPrimary, isFalse);
       expect(slots[1].isPrimary, isFalse);
     });
 
-    test('none focused + allow=true keeps previous primary if still visible',
-        () {
-      final previousSince = now - const Duration(seconds: 2);
-      final slots = [
-        makeSlot(id: 1, order: 0, isVisible: true, distanceToAnchorPx: 500),
-        makeSlot(id: 2, order: 1, isVisible: true, distanceToAnchorPx: 0),
-      ];
+    test(
+      'none focused + allow=true keeps previous primary if still visible',
+      () {
+        final previousSince = now - const Duration(seconds: 2);
+        final slots = [
+          makeSlot(id: 1, order: 0, isVisible: true, distanceToAnchorPx: 500),
+          makeSlot(id: 2, order: 1, isVisible: true, distanceToAnchorPx: 0),
+        ];
 
-      final result = EngineSelection.select<int>(
-        slots: slots,
-        policy: const ScrollSpyPolicy.closestToAnchor(),
-        stability:
-            const ScrollSpyStability(allowPrimaryWhenNoItemFocused: true),
-        previousPrimaryId: 1,
-        previousPrimarySince: previousSince,
-        now: now,
-      );
+        final result = EngineSelection.select<int>(
+          slots: slots,
+          policy: const ScrollSpyPolicy.closestToAnchor(),
+          stability: const ScrollSpyStability(
+            allowPrimaryWhenNoItemFocused: true,
+          ),
+          previousPrimaryId: 1,
+          previousPrimarySinceMicroseconds: previousSince.inMicroseconds,
+          nowMicroseconds: now.inMicroseconds,
+        );
 
-      expect(result.primaryId, 1);
-      expect(result.primarySince, previousSince);
-      expect(slots[0].isPrimary, isTrue);
-      expect(slots[1].isPrimary, isFalse);
-    });
+        expect(result.primaryId, 1);
+        expect(result.primarySinceMicroseconds, previousSince.inMicroseconds);
+        expect(slots[0].isPrimary, isTrue);
+        expect(slots[1].isPrimary, isFalse);
+      },
+    );
 
-    test('none focused + allow=true picks best visible when previous is not',
-        () {
-      final slots = [
-        makeSlot(id: 1, order: 0, distanceToAnchorPx: 0, visibleFraction: 0),
-        makeSlot(id: 2, order: 1, isVisible: true, distanceToAnchorPx: 10),
-      ];
+    test(
+      'none focused + allow=true picks best visible when previous is not',
+      () {
+        final slots = [
+          makeSlot(id: 1, order: 0, distanceToAnchorPx: 0, visibleFraction: 0),
+          makeSlot(id: 2, order: 1, isVisible: true, distanceToAnchorPx: 10),
+        ];
 
-      final result = EngineSelection.select<int>(
-        slots: slots,
-        policy: const ScrollSpyPolicy.closestToAnchor(),
-        stability:
-            const ScrollSpyStability(allowPrimaryWhenNoItemFocused: true),
-        previousPrimaryId: 1,
-        previousPrimarySince: now - const Duration(seconds: 10),
-        now: now,
-      );
+        final result = EngineSelection.select<int>(
+          slots: slots,
+          policy: const ScrollSpyPolicy.closestToAnchor(),
+          stability: const ScrollSpyStability(
+            allowPrimaryWhenNoItemFocused: true,
+          ),
+          previousPrimaryId: 1,
+          previousPrimarySinceMicroseconds:
+              (now - const Duration(seconds: 10)).inMicroseconds,
+          nowMicroseconds: now.inMicroseconds,
+        );
 
-      expect(result.primaryId, 2);
-      expect(result.primarySince, now);
-      expect(slots[1].isPrimary, isTrue);
-      expect(slots[0].isPrimary, isFalse);
-    });
+        expect(result.primaryId, 2);
+        expect(result.primarySinceMicroseconds, now.inMicroseconds);
+        expect(slots[1].isPrimary, isTrue);
+        expect(slots[0].isPrimary, isFalse);
+      },
+    );
 
     test('minPrimaryDuration blocks switching even if candidate would win', () {
       final previousSince = now - const Duration(milliseconds: 50);
@@ -155,12 +164,12 @@ void main() {
           preferCurrentPrimary: false,
         ),
         previousPrimaryId: 1,
-        previousPrimarySince: previousSince,
-        now: now,
+        previousPrimarySinceMicroseconds: previousSince.inMicroseconds,
+        nowMicroseconds: now.inMicroseconds,
       );
 
       expect(result.primaryId, 1);
-      expect(result.primarySince, previousSince);
+      expect(result.primarySinceMicroseconds, previousSince.inMicroseconds);
       expect(slots[0].isPrimary, isTrue);
       expect(slots[1].isPrimary, isFalse);
     });
@@ -198,11 +207,11 @@ void main() {
         policy: const ScrollSpyPolicy.closestToAnchor(),
         stability: stability,
         previousPrimaryId: 1,
-        previousPrimarySince: previousSince,
-        now: now,
+        previousPrimarySinceMicroseconds: previousSince.inMicroseconds,
+        nowMicroseconds: now.inMicroseconds,
       );
       expect(r1.primaryId, 1);
-      expect(r1.primarySince, previousSince);
+      expect(r1.primarySinceMicroseconds, previousSince.inMicroseconds);
 
       final enough = [
         makeSlot(
@@ -230,11 +239,11 @@ void main() {
         policy: const ScrollSpyPolicy.closestToAnchor(),
         stability: stability,
         previousPrimaryId: 1,
-        previousPrimarySince: previousSince,
-        now: now,
+        previousPrimarySinceMicroseconds: previousSince.inMicroseconds,
+        nowMicroseconds: now.inMicroseconds,
       );
       expect(r2.primaryId, 2);
-      expect(r2.primarySince, now);
+      expect(r2.primarySinceMicroseconds, now.inMicroseconds);
     });
 
     test('visibleFraction tie-breaker uses fraction epsilon, not px', () {
@@ -266,12 +275,15 @@ void main() {
         policy: const ScrollSpyPolicy.largestFocusProgress(),
         stability: const ScrollSpyStability(),
         previousPrimaryId: null,
-        previousPrimarySince: null,
-        now: now,
+        previousPrimarySinceMicroseconds: null,
+        nowMicroseconds: now.inMicroseconds,
       );
 
-      expect(result.primaryId, 2,
-          reason: 'visibleFraction must break focusProgress ties');
+      expect(
+        result.primaryId,
+        2,
+        reason: 'visibleFraction must break focusProgress ties',
+      );
     });
 
     test('fully tied candidates fall back to stable input order', () {
@@ -303,8 +315,8 @@ void main() {
         policy: const ScrollSpyPolicy.largestFocusProgress(),
         stability: const ScrollSpyStability(),
         previousPrimaryId: null,
-        previousPrimarySince: null,
-        now: now,
+        previousPrimarySinceMicroseconds: null,
+        nowMicroseconds: now.inMicroseconds,
       );
 
       expect(result.primaryId, 1);
@@ -341,8 +353,8 @@ void main() {
         policy: ScrollSpyPolicy<int>.custom(compare: (a, b) => 0),
         stability: const ScrollSpyStability(),
         previousPrimaryId: null,
-        previousPrimarySince: null,
-        now: now,
+        previousPrimarySinceMicroseconds: null,
+        nowMicroseconds: now.inMicroseconds,
       );
 
       expect(result.primaryId, 2);
@@ -372,58 +384,58 @@ void main() {
 
       final result = EngineSelection.select<int>(
         slots: slots,
-        policy: ScrollSpyPolicy.custom(
-          compare: (a, b) => b.id.compareTo(a.id),
-        ),
+        policy: ScrollSpyPolicy.custom(compare: (a, b) => b.id.compareTo(a.id)),
         stability: const ScrollSpyStability(),
         previousPrimaryId: null,
-        previousPrimarySince: null,
-        now: now,
+        previousPrimarySinceMicroseconds: null,
+        nowMicroseconds: now.inMicroseconds,
       );
 
       expect(result.primaryId, 2);
     });
 
-    test('preferCurrentPrimary=false ignores hysteresis after min duration',
-        () {
-      final previousSince = now - const Duration(seconds: 2);
-      final slots = [
-        makeSlot(
-          id: 1,
-          order: 0,
-          isVisible: true,
-          isFocused: true,
-          distanceToAnchorPx: 100,
-          focusProgress: 0.4,
-          focusOverlapFraction: 1.0,
-        ),
-        makeSlot(
-          id: 2,
-          order: 1,
-          isVisible: true,
-          isFocused: true,
-          distanceToAnchorPx: 99,
-          focusProgress: 0.41,
-          focusOverlapFraction: 1.0,
-        ),
-      ];
+    test(
+      'preferCurrentPrimary=false ignores hysteresis after min duration',
+      () {
+        final previousSince = now - const Duration(seconds: 2);
+        final slots = [
+          makeSlot(
+            id: 1,
+            order: 0,
+            isVisible: true,
+            isFocused: true,
+            distanceToAnchorPx: 100,
+            focusProgress: 0.4,
+            focusOverlapFraction: 1.0,
+          ),
+          makeSlot(
+            id: 2,
+            order: 1,
+            isVisible: true,
+            isFocused: true,
+            distanceToAnchorPx: 99,
+            focusProgress: 0.41,
+            focusOverlapFraction: 1.0,
+          ),
+        ];
 
-      final result = EngineSelection.select<int>(
-        slots: slots,
-        policy: const ScrollSpyPolicy.closestToAnchor(),
-        stability: const ScrollSpyStability(
-          minPrimaryDuration: Duration(milliseconds: 100),
-          hysteresisPx: 999,
-          preferCurrentPrimary: false,
-        ),
-        previousPrimaryId: 1,
-        previousPrimarySince: previousSince,
-        now: now,
-      );
+        final result = EngineSelection.select<int>(
+          slots: slots,
+          policy: const ScrollSpyPolicy.closestToAnchor(),
+          stability: const ScrollSpyStability(
+            minPrimaryDuration: Duration(milliseconds: 100),
+            hysteresisPx: 999,
+            preferCurrentPrimary: false,
+          ),
+          previousPrimaryId: 1,
+          previousPrimarySinceMicroseconds: previousSince.inMicroseconds,
+          nowMicroseconds: now.inMicroseconds,
+        );
 
-      expect(result.primaryId, 2);
-      expect(result.primarySince, now);
-    });
+        expect(result.primaryId, 2);
+        expect(result.primarySinceMicroseconds, now.inMicroseconds);
+      },
+    );
 
     test('null previousPrimarySince blocks switching until min duration', () {
       final slots = [
@@ -455,12 +467,12 @@ void main() {
           preferCurrentPrimary: false,
         ),
         previousPrimaryId: 1,
-        previousPrimarySince: null,
-        now: now,
+        previousPrimarySinceMicroseconds: null,
+        nowMicroseconds: now.inMicroseconds,
       );
 
       expect(result.primaryId, 1);
-      expect(result.primarySince, now);
+      expect(result.primarySinceMicroseconds, now.inMicroseconds);
     });
 
     test('unmeasurable slots are ignored entirely', () {
@@ -488,8 +500,8 @@ void main() {
         policy: const ScrollSpyPolicy.closestToAnchor(),
         stability: const ScrollSpyStability(),
         previousPrimaryId: null,
-        previousPrimarySince: null,
-        now: now,
+        previousPrimarySinceMicroseconds: null,
+        nowMicroseconds: now.inMicroseconds,
       );
 
       expect(result.primaryId, 2);

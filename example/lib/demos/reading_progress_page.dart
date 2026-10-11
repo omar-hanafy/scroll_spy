@@ -4,6 +4,8 @@ import 'package:scroll_spy/scroll_spy.dart';
 import '../common.dart';
 import '../theme.dart';
 
+const double _readingAnchor = 0.22;
+
 /// A section of the mock article.
 class _Section {
   const _Section(this.title, this.body);
@@ -148,10 +150,16 @@ class _ReadingProgressPageState extends State<ReadingProgressPage> {
                 onTap: () {
                   Navigator.of(context).pop();
                   final ctx = _keys[i].currentContext;
-                  if (ctx != null) {
+                  if (i == 0) {
+                    _scroll.animateTo(
+                      0,
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeInOut,
+                    );
+                  } else if (ctx != null) {
                     Scrollable.ensureVisible(
                       ctx,
-                      alignment: 0.12,
+                      alignment: _readingAnchor,
                       duration: const Duration(milliseconds: 500),
                       curve: Curves.easeInOut,
                     );
@@ -183,39 +191,53 @@ class _ReadingProgressPageState extends State<ReadingProgressPage> {
         children: [
           _ReadingHeader(controller: _spy, scroll: _scroll),
           Expanded(
-            child: ScrollSpyCustomScrollView<int>(
-              controller: _spy,
-              scrollController: _scroll,
-              region: const ScrollSpyRegion.line(
-                anchor: ScrollSpyAnchor.fraction(0.22),
-                thicknessPx: 2,
-              ),
-              policy: const ScrollSpyPolicy.closestToAnchor(),
-              stability: const ScrollSpyStability(
-                hysteresisPx: 12,
-                minPrimaryDuration: Duration(milliseconds: 80),
-              ),
-              slivers: [
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                  sliver: SliverList.builder(
-                    itemCount: _sections.length,
-                    itemBuilder: (context, i) {
-                      return ScrollSpyItemLite<int>(
-                        id: i,
-                        key: _keys[i],
-                        builder: (context, isPrimary, isFocused, _) {
-                          return _SectionBlock(
-                            index: i,
-                            section: _sections[i],
-                            isPrimary: isPrimary,
-                          );
-                        },
-                      );
-                    },
-                  ),
+            child: LayoutBuilder(
+              builder: (context, constraints) => ScrollSpyCustomScrollView<int>(
+                controller: _spy,
+                scrollController: _scroll,
+                region: const ScrollSpyRegion.line(
+                  anchor: ScrollSpyAnchor.fraction(_readingAnchor),
+                  thicknessPx: 2,
                 ),
-              ],
+                policy: const ScrollSpyPolicy.closestToAnchor(),
+                stability: const ScrollSpyStability(
+                  hysteresisPx: 12,
+                  minPrimaryDuration: Duration(milliseconds: 80),
+                ),
+                slivers: [
+                  SliverPadding(
+                    // The article has ten fixed sections. Mount every target so
+                    // TOC jumps never depend on a lazy item's currentContext.
+                    // Leading and trailing space let both endpoint sections
+                    // reach the reading line on wide or tall viewports.
+                    padding: EdgeInsets.fromLTRB(
+                      20,
+                      constraints.maxHeight * _readingAnchor,
+                      20,
+                      constraints.maxHeight * (1 - _readingAnchor),
+                    ),
+                    sliver: SliverToBoxAdapter(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          for (int i = 0; i < _sections.length; i++)
+                            ScrollSpyItemLite<int>(
+                              id: i,
+                              key: _keys[i],
+                              builder: (context, isPrimary, isFocused, _) {
+                                return _SectionBlock(
+                                  index: i,
+                                  section: _sections[i],
+                                  isPrimary: isPrimary,
+                                );
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -242,10 +264,12 @@ class _ReadingHeader extends StatelessWidget {
             controller: controller,
             builder: (context, primaryId, _) {
               final int idx = primaryId ?? 0;
-              return Row(
+              return Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   const SectionLabel('Reading'),
-                  const SizedBox(width: 8),
                   Text(
                     'Section ${idx + 1} of ${_sections.length}',
                     style: const TextStyle(
@@ -254,7 +278,6 @@ class _ReadingHeader extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const Spacer(),
                   const CodeChip('primaryId', accent: SpyColors.accent2),
                 ],
               );

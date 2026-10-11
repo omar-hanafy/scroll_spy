@@ -1,4 +1,4 @@
-# scroll_spy 1.x API cheatsheet
+# scroll_spy 2.x API cheatsheet
 
 Verified against scroll_spy 1.0.x source. Import: `package:scroll_spy/scroll_spy.dart`.
 
@@ -97,8 +97,9 @@ allocation in them is the documented cost of custom regions.
 `closestToAnchor()` (smallest |distance|), `largestVisibleFraction()`,
 `largestFocusOverlap()`, `largestFocusProgress()`,
 `custom(compare: (a, b) => int)` (negative = a wins). All const-able.
-Deterministic tie-breakers after `0`: focusProgress, visibleFraction,
-distance, registration order.
+When a custom comparator returns `0`, smaller absolute anchor distance wins
+first. Remaining deterministic ties prefer focusProgress, visibleFraction,
+absolute distance, then registration order.
 
 ## Stability
 
@@ -148,4 +149,8 @@ engine logs; set `null` to disable.
 
 ## Requirements
 
-Dart `^3.6.0`, Flutter `>=3.27.0`. Pure Dart; all six platforms.
+Dart `^3.13.5`, Flutter `>=3.47.7`. Pure Dart; all six platforms.
+
+List, grid, and custom-scroll wrappers accept `scrollCacheExtent`
+(`ScrollCacheExtent.pixels` or `.viewport`, from Flutter rendering).
+Legacy `cacheExtent` remains a pixel value; `scrollCacheExtent` takes precedence.
