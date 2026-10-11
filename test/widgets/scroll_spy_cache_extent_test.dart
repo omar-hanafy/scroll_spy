@@ -1,4 +1,4 @@
-import 'package:flutter/rendering.dart';
+import 'package:flutter/rendering.dart' as rendering show ScrollCacheExtent;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:scroll_spy/scroll_spy.dart';
@@ -14,30 +14,30 @@ void main() {
           in <
             ({
               double? legacy,
-              ScrollCacheExtent? extent,
-              ScrollCacheExtent? expected,
+              rendering.ScrollCacheExtent? extent,
+              rendering.ScrollCacheExtent? expected,
             })
           >[
             (legacy: null, extent: null, expected: null),
             (
               legacy: 500,
               extent: null,
-              expected: const ScrollCacheExtent.pixels(500),
+              expected: const rendering.ScrollCacheExtent.pixels(500),
             ),
             (
               legacy: null,
-              extent: const ScrollCacheExtent.pixels(300),
-              expected: const ScrollCacheExtent.pixels(300),
+              extent: const rendering.ScrollCacheExtent.pixels(300),
+              expected: const rendering.ScrollCacheExtent.pixels(300),
             ),
             (
               legacy: null,
-              extent: const ScrollCacheExtent.viewport(2),
-              expected: const ScrollCacheExtent.viewport(2),
+              extent: const rendering.ScrollCacheExtent.viewport(2),
+              expected: const rendering.ScrollCacheExtent.viewport(2),
             ),
             (
               legacy: 500,
-              extent: const ScrollCacheExtent.viewport(2),
-              expected: const ScrollCacheExtent.viewport(2),
+              extent: const rendering.ScrollCacheExtent.viewport(2),
+              expected: const rendering.ScrollCacheExtent.viewport(2),
             ),
           ]) {
         await tester.pumpWidget(
@@ -66,7 +66,7 @@ Widget _wrapper(
   String kind,
   ScrollSpyController<int> focus,
   double? legacy,
-  ScrollCacheExtent? extent,
+  rendering.ScrollCacheExtent? extent,
 ) {
   const region = ScrollSpyRegion.line(anchor: ScrollSpyAnchor.fraction(0.5));
   const policy = ScrollSpyPolicy<int>.closestToAnchor();
